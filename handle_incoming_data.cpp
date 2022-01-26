@@ -1,13 +1,47 @@
 #include "includes.hpp"
+#include <sstream>
 
 #define BUFFER_SIZE 1024
 
-int parse_header(std::string &header_str)
+// for debugging
+void print_request(HttpRequest &request)
 {
-	// TODO
-	(void)header_str;
-	return (0);
+	std::cout << "method: " << request.method << '\n'
+			<< "target: " << request.request_target << '\n'
+			<< "http-version: " << request.http_version << '\n';
 
+	for (std::map<std::string, std::string>::iterator it = request.header_fields.begin();
+			it != request.header_fields.end(); it++)
+		std::cout << it->first << ":" << it->second << '\n';
+		
+}
+
+std::string & str_tolower(std::string &s)
+{
+	for (std::string::iterator it = s.begin(); it != s.end(); ++it)
+		*it = tolower(*it);
+	return (s);
+}
+
+int parse_header(std::string &header_str, HttpRequest &request)
+{
+	std::istringstream	stream(header_str);
+	stream >> request.method;
+	stream >> request.request_target;
+	stream >> request.http_version;
+	
+	while (!stream.eof())
+	{
+		std::string line;
+		getline(stream, line);
+		size_t pos = line.find(':');
+		if (pos == std::string::npos) 
+			continue;
+		std::string field_name = line.substr(0, pos);
+		str_tolower(field_name);
+		request.header_fields[field_name] = line.substr(pos + 1);
+	}
+	return (0);
 }
 
 int process_data(Client &client)
@@ -19,16 +53,24 @@ int process_data(Client &client)
 		if (pos == std::string::npos) // not found: header is incomplete
 			return (2);
 		
+		// header is complete
 		std::string header_str = client.unprocessed_data.substr(0, pos);
 		client.unprocessed_data.erase(0, pos + 4);
 
-		std::cout << "header string: " << header_str << std::endl;
-		parse_header(header_str);
+		// parse header and call method_handler
+		HttpRequest request;
+		parse_header(header_str, request);
+		if (request.method == "GET")
+		{
+			// TODO: handle_get_request
+
+		}
+
 		return (1);
 
 	}
 
-		return (2);
+	return (2);
 
 
 }

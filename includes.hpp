@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include <cstdio>
+#include <cctype>
 #include <unistd.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -35,7 +36,7 @@ struct Client
 
 struct HttpRequest
 {
-	std::string request_line;
+	std::string method, request_target, http_version;
 	std::map<std::string, std::string> header_fields;
 	std::string body;
 };
