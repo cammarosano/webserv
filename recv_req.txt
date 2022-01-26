@@ -1,0 +1,250 @@
+HOW TO:
+
+- receive a header: 
+	recv() up to BUFFER_SIZE bytes.
+	Check for double CRLF. If not found, keep reading until it's found.
+	Whatever is after the double CRLF is the body or a next request. It must be stored
+		as an "after_header"
+
+- receive a body:
+	Mind the "after_header": bytes_received = len(after_header)
+	If content-length is known:
+		keep recv()-ing until bytes_received equals to content-length
+	If transfer-encoding in "chunked":
+		TODO
+
+
+- when connection is accepted: instantiate a IncomingRawRequest object with status header_incomplete
+
+- when socket is ready for reading:
+
+	receive header
+	parse header,
+	if no body is expected, done.
+	else, if content-length is known, receive_body_know_len
+
+
+
+class Accepted_connection
+{
+	string temp // leftover from last receive data that was consumed | to be joined with new incoming data
+	status: // what shall temp be used for?
+		- build header
+		- build body
+}
+
+
+
+
+
+------------
+accept connection
+instantiate a buffer for the client socket (Accepted_connection object)
+when socket is ready for reading operation: recv() up to BUFFER_SIZE (1 call only)
+check if the buffer contains a complete header
+	if yes, consume buffer and parse header
+	if not, consume buffer and store content in a incomplete_header string
+
+class HttpRequest
+{
+	// start-line (request-line)
+	string method
+	string target_location
+	string protocol_version
+
+	// header section
+	map<string, string> header_fields // pairs of field_name - field_value
+
+	// body status
+	int body_status // enum: no_body, incomplete, complete
+
+	// body
+	string body
+}
+
+
+ -----
+When socket ready to ready:
+	receive data
+	consume all data. possible destinations:
+		incomplete header (to be joined with more received data)
+		complete header (to be parsed)
+		incomplete body
+		complete body
+		leftover -> complete header, incomplete_header etc
+
+
+---
+function get_next_request(leftover, fd):
+	read from fd and:
+		parse data into a complete HttpRequest, and store leftover somewhere
+
+		
+Accepted_connection: fd, left_over, mode
+
+When socket ready to receive:
+new_data = recv()
+msg = left_over + new_data
+process_data()
+
+Process data:
+** mode: acquire header
+msg has no complete header:
+	left_over = msg
+	return
+
+msg has complete header
+	left_over = what's left after getting the header string
+	parse header
+	enqueue HttpRequest for response
+	a body is expected:
+		mode = acquire body
+		return
+	a body is not expected:
+		mode = acquire header
+		if left_over not empty:
+			call process data, return
+
+** mode: acquire body
+msg contains no complete body:
+	body += msg
+	msg = empty
+	return
+
+msg has complete body:
+	mode = acquire_header
+	left_over = what's left after getting the body complete
+	return
+
+
+loop:
+
+call poll
+
+for each fd in poll
+	if ready to write:
+		process first queued request for that fd
+			-> if body in not complete AND is ready to read: complete_body()
+
+	else if ready to read:
+		if listening_socket:
+			accept connection (instantiate Accepted_connection object)
+		else:
+			call get_next_request()
+
+
+------------------
+
+
+class Client
+{
+	string unprocessed_data;
+	status_recv: acquire_header / acquire_body
+	HttpRequest *incoming_request; // request's body might be incomplete
+
+	status_send: reponse_in_course, waiting_for_new_response ...
+	queue<HttpResponse> responses;
+	HttpResponse *sending_response;
+}
+
+HttpResponse
+{
+	int fd_ressource; // or fd_in
+	status fd: reading, finished
+	transfer_mode: size_known / chunks
+
+	status: assemble_header, sending header, sending from fd_ressource, etc
+
+	string reponse_line
+	map header_fields
+
+	string http_reponse_header;
+
+	string unsent_data;
+}
+
+set listening_sockets
+map fd->Client
+
+poll_array
+poll()
+for fd in poll_array:
+	if fd is ready for reading:
+		if fd is a listening_socket:
+			client_fd = accept() // accept new connection
+			insert new Client in map
+
+		else: // fd is an client_socket
+			handle_incoming_data()
+
+	if fd is ready for writing:
+		handle_outbound_data()
+
+
+handle_incoming_data():
+	recv()
+	unprocessed_data += received data
+	process_data(unprocessed_data)
+
+process_data(data):
+	if mode == acquire_header:
+		if data does NOT have header delimiter:
+			return
+		
+		remove header_data from unprocessed_data
+		parse header into a HttpRequest
+		(if valid request)
+		if method == GET:
+			handle_get_request()
+		if method == POST:
+			handle_post_request()
+		etc.
+	
+	if mode == acquire_body:
+		call request handler according to HttpRequest method
+
+handle_get_request(HttpRequest):
+	resolve virtual server (info needed: list of virtual servers for that port)
+	(idea: map client_fd->list of vservers, add to map when a connection is accepted)
+	resolve route
+	find file
+	fd_ressource = open file
+	create a HttpResponse and enqueue it 
+		create header of http response
+
+
+
+handle_post_request():
+	check if unprocessed_data contains the whole body
+	(depends on type of transfer-encoding: content-lenght, chunk...)
+	if yes:
+		process it
+		create HttpResponse and enqueue
+		change status to acquire_header
+		return
+
+	if not, change status to acquire_body
+		(chunk processing here)
+
+
+handle_outbound_data():
+	if client status_send is idle: (or if sending_response is NULL)
+		sending_response = dequeue response
+
+	if reponse_status is begin:
+		join header + payload (data from fd_ressource) until buffer capacity is full (or EOF)
+	else if response_status is ongoing:
+		join unsent_data with data from fd_ressource up to buffer capacity (or EOF)
+	
+	if all data form fd_ressource has been read, change its status to finished and close(fd)
+
+	send(), check return, update unsent_data 
+	if complete, change client_send status to idle, delete HttpResponse
+	else, change Response status to ongoing
+	
+
+Client could have status for both ends:
+	read_end: receive_new_request, ongoing_header_incomplete, ongoing_body incomplete
+
+	write_end: begin_new_response, ongoing_response
+	
