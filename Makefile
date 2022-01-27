@@ -2,7 +2,9 @@ SRC =	main.cpp \
 		listening_socket.cpp \
 		accept_connection.cpp \
 		handle_incoming_data.cpp \
-		handle_outbound_data.cpp
+		handle_outbound_data.cpp \
+		handle_get_request.cpp \
+		utils.cpp
 
 HEADER =	includes.hpp Poll_array.hpp
 

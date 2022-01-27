@@ -49,7 +49,7 @@ int main(void)
 
 				else	// an active connection is sending data
 				{
-					int ret = handle_incoming_data(poll_array[i].fd, clients_map);
+					int ret = handle_incoming_data(poll_array[i].fd, clients_map[poll_array[i].fd]);
 					if (ret == -1) // error
 						return (1);
 					if (ret == 0) // connection was closed
@@ -58,21 +58,22 @@ int main(void)
 						poll_array.tag_for_removal(i);
 						clients_map.erase(poll_array[i].fd);
 					}
-					if (ret == 1) // a request was received
-					{
+					if (ret == 1) // a request was received and processed
 						poll_array[i].events |= POLLOUT;
-					}
 				}
 			}
 			if (poll_array[i].revents & POLLOUT) // socket is ready for writing
 			{
 				std::cout << poll_array[i].fd << " is ready for writing" << std::endl;
-				handle_outbound_data(poll_array[i].fd);
+				int ret = handle_outbound_data(poll_array[i].fd, clients_map[poll_array[i].fd]);
 
+				if (ret == 0) // response has been sent
 				// no keep-alive for now
-				close(poll_array[i].fd);
-				poll_array.tag_for_removal(i);
-				clients_map.erase(poll_array[i].fd);
+				{
+					close(poll_array[i].fd);
+					poll_array.tag_for_removal(i);
+					clients_map.erase(poll_array[i].fd);
+				}
 			}
 
 		}

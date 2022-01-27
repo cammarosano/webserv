@@ -4,14 +4,16 @@
 
 // C++ stuff
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <map>
+#include <queue>
 #include <algorithm>
 
 // C stuff
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netinet/in.h> // struct sockadd_in
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
 #include <cstdio>
@@ -20,18 +22,43 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <poll.h>
+#include <sys/stat.h>
 
 // states
-enum e_states
+enum e_recv_state
 {
 	get_header
 };
 
+enum e_send_state
+{
+	start, load_ressource, data_ready
+};
+
 // structs
+struct HttpResponse
+{
+	// status-line
+	std::string http_version, status_code_phrase;
+
+	// header-fields
+	std::map<std::string, std::string> header_fields;
+
+	int fd_ressource;
+	size_t bytes_left;
+
+	e_send_state send_state;
+	std::string unsent_data;
+};
+
 struct Client
 {
+	e_recv_state recv_state;
 	std::string unprocessed_data;
-	e_states recv_state;
+
+	std::queue<HttpResponse> response_queue;
+
+
 };
 
 struct HttpRequest
@@ -44,7 +71,12 @@ struct HttpRequest
 // function prototypes
 int get_listening_socket(std::string host_IP, unsigned short port);
 int accept_connection(int listen_socket, std::map<int,Client> &m);
-int handle_incoming_data(int socket, std::map<int, Client> &m);
-int handle_outbound_data(int socket);
+int handle_incoming_data(int socket, Client &client);
+int handle_outbound_data(int socket, Client &client);
+int handle_get_request(HttpRequest &request, Client &client);
+
+
+// utils
+std::string long_to_str(long nb);
 
 #endif

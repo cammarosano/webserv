@@ -1,5 +1,4 @@
 #include "includes.hpp"
-#include <sstream>
 
 #define BUFFER_SIZE 1024
 
@@ -62,8 +61,7 @@ int process_data(Client &client)
 		parse_header(header_str, request);
 		if (request.method == "GET")
 		{
-			// TODO: handle_get_request
-
+			handle_get_request(request, client);
 		}
 
 		return (1);
@@ -79,9 +77,8 @@ int process_data(Client &client)
 // 0 if connection was closed by the client
 // 1 if a request was received
 // 2 if request is incomplete
-int handle_incoming_data(int socket, std::map<int, Client> &m)
+int handle_incoming_data(int socket, Client &client)
 {
-	Client &	client = m[socket];
 	char		buffer[BUFFER_SIZE + 1];
 	ssize_t		bytes_recvd;
 
