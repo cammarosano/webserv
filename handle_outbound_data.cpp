@@ -89,3 +89,24 @@ int handle_outbound_data(int socket, Client &client)
 	return (1);
 
 }
+
+// -1: write() error
+// 0: no data do send
+// 1: ok
+int send_to_client(int socket, std::map<int, Client> &clients_map)
+{
+	Client &client = clients_map[socket];
+	int bytes_sent;
+
+	if (client.unsent_data.empty())
+		return (0);
+	int bytes_send = write(socket, client.unsent_data.data(),
+							client.unsent_data.size());
+	if (bytes_sent == -1)
+	{
+		perror("write"); // which is not allowed by the subject!
+		return (-1);
+	}
+	client.unsent_data.erase(0, bytes_sent);
+	return (1);
+}

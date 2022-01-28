@@ -24,6 +24,9 @@
 #include <poll.h>
 #include <sys/stat.h>
 
+// my classes
+#include "Poll_array.hpp"
+
 // states
 enum e_recv_state
 {
@@ -51,10 +54,14 @@ struct HttpResponse
 	std::string unsent_data;
 };
 
+# define BUFFER_SIZE 1024
 struct Client
 {
 	e_recv_state recv_state;
-	std::string unprocessed_data;
+	std::string received_data;
+
+	e_send_state send_state;
+	std::string unsent_data;
 
 	std::queue<HttpResponse> response_queue;
 
@@ -70,11 +77,15 @@ struct HttpRequest
 
 // function prototypes
 int get_listening_socket(std::string host_IP, unsigned short port);
-int accept_connection(int listen_socket, std::map<int,Client> &m);
+int accept_connection(int listen_socket, std::map<int, Client> &m);
 int handle_incoming_data(int socket, Client &client);
 int handle_outbound_data(int socket, Client &client);
 int handle_get_request(HttpRequest &request, Client &client);
 
+
+// IO
+int recv_from_client(int socket, std::map<int, Client> &clients_map);
+int send_to_client(int socket, std::map<int, Client> &clients_map);
 
 // utils
 std::string long_to_str(long nb);

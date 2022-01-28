@@ -1,6 +1,5 @@
 #include "includes.hpp"
 
-#define BUFFER_SIZE 1024
 
 // for debugging
 void print_request(HttpRequest &request)
@@ -48,13 +47,13 @@ int process_data(Client &client)
 	if (client.recv_state == get_header)
 	{
 		// look for end-of-header delimiter: CRLF CRLF
-		size_t pos = client.unprocessed_data.find("\r\n\r\n");
+		size_t pos = client.received_data.find("\r\n\r\n");
 		if (pos == std::string::npos) // not found: header is incomplete
 			return (2);
 		
 		// header is complete
-		std::string header_str = client.unprocessed_data.substr(0, pos);
-		client.unprocessed_data.erase(0, pos + 4);
+		std::string header_str = client.received_data.substr(0, pos);
+		client.received_data.erase(0, pos + 4);
 
 		// parse header and call method_handler
 		HttpRequest request;
@@ -95,7 +94,35 @@ int handle_incoming_data(int socket, Client &client)
 		return (0);
 	}
 
-	client.unprocessed_data += buffer;
+	client.received_data += buffer;
 	return (process_data(client));
 
+}
+
+// 1: ok
+// 0: connection closed by the client (client is removed from map)
+// -1: read() error
+int recv_from_client(int socket, std::map<int, Client> &clients_map)
+{
+	char buffer[BUFFER_SIZE + 1];
+	Client &client = clients_map[socket];
+
+	int max_read = BUFFER_SIZE - client.received_data.size();
+	if (max_read <= 0)
+		return (1);
+	int ret = read(socket, buffer, max_read);
+	if (ret == -1)
+	{
+		perror("read");
+		return (-1);
+	}
+	if (ret == 0) // connection closed by the client
+	{
+		close(socket);
+		clients_map.erase(socket);
+		return (0);
+	}
+	buffer[ret] = '\0';
+	client.received_data += buffer;
+	return (1);
 }
