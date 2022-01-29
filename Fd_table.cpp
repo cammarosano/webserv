@@ -48,13 +48,25 @@ void Fd_table::remove_fd_read(int fd)
 
 void Fd_table::remove_client(int client_socket)
 {
-	// TODO:
 	// look into each queued Response for ressources (fd file, cgi process)
 	// and close them.
+	Client &client = *fd_map[client_socket].client;
+	while (!client.response_q.empty())
+	{
+		HttpResponse &response = client.response_q.front();
+		if (response.source_type == file)
+		{
+			close(response.fd_read);
+			remove_fd_read(response.fd_read); // remove from this table
+		}
+		// TODO: cgi stuff
 
-	delete fd_map[client_socket].client;
-	fd_map.erase(client_socket);
+		client.response_q.pop();
+	}
+
 	close(client_socket);
+	delete fd_map[client_socket].client; // free memory
+	fd_map.erase(client_socket);
 	poll_array.tag_for_removal_fd(client_socket);
 }
 

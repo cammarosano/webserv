@@ -2,6 +2,7 @@
 # define FD_TABLE_HPP
 
 # include "includes.hpp"
+# include "Poll_array.hpp"
 
 class Fd_table
 {

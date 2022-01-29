@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "Fd_table.hpp"
 
 // accept(), create new Client, update fd_table and poll_array
 // return  0 if ok, -1 if error

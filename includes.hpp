@@ -24,9 +24,8 @@
 #include <poll.h>
 #include <sys/stat.h>
 
-// my classes
-#include "Poll_array.hpp"
-#include "Fd_table.hpp"
+// forward declaration
+class Fd_table;
 
 // states
 enum e_recv_state
@@ -123,11 +122,12 @@ int send_to_client(int socket, Fd_table &table);
 
 // process
 int process_incoming_data(Fd_table &table, std::queue<HttpRequest> &requests);
-int handle_requests(std::queue<HttpRequest> &q, Fd_table &table);
+int handle_requests(std::queue<HttpRequest> &q);
 int handle_responses(Fd_table &table);
 
 // utils
 std::string long_to_str(long nb);
 std::string & str_tolower(std::string &s);
+void print_request(HttpRequest &request);
 
 #endif

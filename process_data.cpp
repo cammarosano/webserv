@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "Fd_table.hpp"
 
 // this parser must be improved: check errors...
 int parse_header(std::string &header_str, HttpRequest &request)

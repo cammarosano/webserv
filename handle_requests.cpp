@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "Fd_table.hpp"
 
 // this could be a method of a class HttpResponse
 void assemble_header(HttpResponse &response)
@@ -38,6 +39,12 @@ int handle_get_request(HttpRequest &request)
 		response.status_code_phrase = "404 Not Found";
 		response.source_type = none;
 	}
+	else if (S_ISDIR(buf.st_mode)) // it is a directory
+	{
+		response.status_code_phrase = "403 Forbidden";
+		response.source_type = none;
+		response.header_fields["content-length"] = "0";
+	}
 	else
 	{
 		int fd = open(ressource_path.c_str(), O_RDONLY);
@@ -46,6 +53,7 @@ int handle_get_request(HttpRequest &request)
 			perror("open");
 			response.status_code_phrase = "403 Forbidden";
 			response.source_type = none;
+			response.header_fields["content-length"] = "0";
 		}
 		else
 		{
@@ -64,7 +72,7 @@ int handle_get_request(HttpRequest &request)
 }
 
 // transforms HttpRequests into HttpResponses
-int handle_requests(std::queue<HttpRequest> &q, Fd_table &table)
+int handle_requests(std::queue<HttpRequest> &q)
 {
 	while (!q.empty())
 	{

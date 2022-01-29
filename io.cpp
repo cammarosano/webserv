@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "Fd_table.hpp"
 
 // 1: ok
 // 0: connection closed by the client
@@ -64,7 +65,7 @@ int send_to_client(int socket, Fd_table &table)
 
 	if (client.unsent_data.empty())
 		return (0);
-	int bytes_send = write(socket, client.unsent_data.data(),
+	bytes_sent = write(socket, client.unsent_data.data(),
 							client.unsent_data.size());
 	if (bytes_sent == -1)
 	{

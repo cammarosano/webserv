@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "Fd_table.hpp"
 
 int do_io(Fd_table &table)
 {
@@ -59,7 +60,7 @@ int main(void)
 
 		process_incoming_data(table, requests_queue);
 
-		handle_requests(requests_queue, table); // creates responses
+		handle_requests(requests_queue); // creates responses
 
 		handle_responses(table);
 	}

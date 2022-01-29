@@ -14,3 +14,16 @@ std::string & str_tolower(std::string &s)
 		*it = tolower(*it);
 	return (s);
 }
+
+// for debugging
+void print_request(HttpRequest &request)
+{
+	std::cout << "method: " << request.method << '\n'
+			<< "target: " << request.request_target << '\n'
+			<< "http-version: " << request.http_version << '\n';
+
+	for (std::map<std::string, std::string>::iterator it = request.header_fields.begin();
+			it != request.header_fields.end(); it++)
+		std::cout << it->first << ":" << it->second << '\n';
+		
+}

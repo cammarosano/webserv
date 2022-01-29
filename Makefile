@@ -1,12 +1,14 @@
-SRC =	main.cpp \
+SRC =	accept_connection.cpp \
+		Fd_table.cpp \
+		handle_requests.cpp \
+		handle_responses.cpp \
+		io.cpp \
 		listening_socket.cpp \
-		accept_connection.cpp \
-		handle_incoming_data.cpp \
-		handle_outbound_data.cpp \
-		handle_get_request.cpp \
+		main.cpp \
+		process_data.cpp \
 		utils.cpp
 
-HEADER =	includes.hpp Poll_array.hpp
+HEADER =	includes.hpp Poll_array.hpp Fd_table.hpp
 
 OBJ = $(SRC:.cpp=.o)
 CC = clang++
