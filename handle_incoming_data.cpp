@@ -99,30 +99,3 @@ int handle_incoming_data(int socket, Client &client)
 
 }
 
-// 1: ok
-// 0: connection closed by the client (client is removed from map)
-// -1: read() error
-int recv_from_client(int socket, std::map<int, Client> &clients_map)
-{
-	char buffer[BUFFER_SIZE + 1];
-	Client &client = clients_map[socket];
-
-	int max_read = BUFFER_SIZE - client.received_data.size();
-	if (max_read <= 0)
-		return (1);
-	int ret = read(socket, buffer, max_read);
-	if (ret == -1)
-	{
-		perror("read");
-		return (-1);
-	}
-	if (ret == 0) // connection closed by the client
-	{
-		close(socket);
-		clients_map.erase(socket);
-		return (0);
-	}
-	buffer[ret] = '\0';
-	client.received_data += buffer;
-	return (1);
-}

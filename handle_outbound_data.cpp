@@ -9,19 +9,6 @@
 
 # define SEND_BUF_SIZE 1024
 
-void assemble_header(HttpResponse &response)
-{
-	// status-line
-	response.unsent_data 	= response.http_version + ' '
-							+ response.status_code_phrase + "\r\n";
-	// header-fiels
-	for (std::map<std::string, std::string>::iterator it = response.header_fields.begin();
-			it != response.header_fields.end(); ++it)
-		response.unsent_data += it->first + ": " + it->second + "\r\n";
-
-	// end header
-	response.unsent_data += "\r\n";
-}
 
 // return 0 if read file has been completed
 int load_data_from_ressource(HttpResponse &response)
@@ -32,7 +19,7 @@ int load_data_from_ressource(HttpResponse &response)
 
 	char buffer[SEND_BUF_SIZE + 1];
 	
-	int ret = read(response.fd_ressource, buffer, max_read);
+	int ret = read(response.fd_read, buffer, max_read);
 	if (ret == -1)
 	{
 		perror("read");
@@ -43,7 +30,7 @@ int load_data_from_ressource(HttpResponse &response)
 	response.bytes_left -= ret;
 	if (response.bytes_left == 0)
 	{
-		close(response.fd_ressource);
+		close(response.fd_read);
 		return (0);
 	}
 	return (1);
@@ -52,25 +39,25 @@ int load_data_from_ressource(HttpResponse &response)
 // returns 0 if response transmission is complete, 1 if incomplete, -1 if error
 int handle_outbound_data(int socket, Client &client)
 {
-	HttpResponse &response = client.response_queue.front();
+	HttpResponse &response = client.response_q.front();
 
-	if (response.send_state == start)
+	if (response.state == start)
 	{
 		assemble_header(response);
 
 		if (response.status_code_phrase == "200 OK")
-			response.send_state = load_ressource;
+			response.state = sending_file;
 		else
-			response.send_state = data_ready;
+			response.state = data_ready;
 	}
 
-	if (response.send_state == load_ressource)
+	if (response.state == sending_file)
 	{
 		int ret = load_data_from_ressource(response);
 		if (ret == -1)
 			return (-1);
 		if (ret == 0)
-			response.send_state = data_ready; 
+			response.state = data_ready; 
 	}
 	
 	int bytes_sent = send(socket, response.unsent_data.data(),
@@ -81,32 +68,12 @@ int handle_outbound_data(int socket, Client &client)
 		return (-1);
 	}
 	response.unsent_data.erase(0, bytes_sent);
-	if (response.send_state == data_ready && response.unsent_data.size() == 0)
+	if (response.state == data_ready && response.unsent_data.size() == 0)
 	{
-		client.response_queue.pop();
+		client.response_q.pop();
 		return (0);
 	}
 	return (1);
 
 }
 
-// -1: write() error
-// 0: no data do send
-// 1: ok
-int send_to_client(int socket, std::map<int, Client> &clients_map)
-{
-	Client &client = clients_map[socket];
-	int bytes_sent;
-
-	if (client.unsent_data.empty())
-		return (0);
-	int bytes_send = write(socket, client.unsent_data.data(),
-							client.unsent_data.size());
-	if (bytes_sent == -1)
-	{
-		perror("write"); // which is not allowed by the subject!
-		return (-1);
-	}
-	client.unsent_data.erase(0, bytes_sent);
-	return (1);
-}

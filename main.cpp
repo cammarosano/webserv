@@ -1,50 +1,40 @@
 #include "includes.hpp"
-#include "Poll_array.hpp"
 
-int do_io(Poll_array &poll_array, std::map<int, Client> &clients_map, int listening_socket)
+int do_io(Fd_table &table)
 {
 	int	poll_ret;
+	Poll_array &poll_array = table.getPollArray();
 
 	poll_array.update();
-	std::cout << "About to call poll(). Array size: "<< poll_array.getLen() << std::endl;
 	poll_ret = poll(poll_array.getArray(), poll_array.getLen(), -1);
 	if (poll_ret == -1)
 	{
 		perror("poll");
 		return (-1);
 	}
-	std::cout << "poll() returned " << poll_ret << std::endl;
 	for (int i = 0; i < poll_array.getLen(); i++)
 	{
 		if (poll_array[i].revents & POLLIN) // socket is ready for reading
 		{
 			int fd = poll_array[i].fd;
-			std::cout << fd << " is ready for reading" << std::endl;
+			e_fd_type fd_type = table[fd].type;
 
-			if (fd == listening_socket) // request for new connection
-			{
-				int client_socket = accept_connection(fd, clients_map);
-				if (client_socket == -1)
-					return (-1);
-				// add client to poll_array
-				poll_array.tag_for_addition(client_socket);
-			}
-			else	// client is sending data
-			{
-				int ret = recv_from_client(fd, clients_map);
-				if (ret == -1) // error
-					return (-1);
-				if (ret == 0) // connection was closed
-					poll_array.tag_for_removal(i);
-			}
+			if (fd_type == fd_listening_socket)
+				accept_connection(fd, table);
+			else if (fd_type == fd_client_socket)
+				recv_from_client(fd, table);
+			else if (fd_type == fd_file)
+				recv_from_file(fd, table);
+			// TODO: cgi_out
 		}
 		if (poll_array[i].revents & POLLOUT) // socket is ready for writing
 		{
-			std::cout << poll_array[i].fd << " is ready for writing" << std::endl;
-			int ret = send_to_client(poll_array[i].fd, clients_map);
+			int fd = poll_array[i].fd;
+			e_fd_type fd_type = table[fd].type;
 
-			if (ret == -1) // error
-				return (-1);
+			if (fd_type == fd_client_socket)
+				send_to_client(poll_array[i].fd, table);
+			// TODO: cgi_in
 		}
 	}
 	return (0);
@@ -53,23 +43,25 @@ int do_io(Poll_array &poll_array, std::map<int, Client> &clients_map, int listen
 int main(void)
 {
 	int						listening_socket;
-	Poll_array				poll_array;
-	std::map<int, Client>	clients_map;
+	Fd_table				table;
+	std::queue<HttpRequest>	requests_queue;
 
 	// get listening socket and add it to poll_array
 	listening_socket = get_listening_socket("127.0.0.1", 8080);
 	if (listening_socket == -1)
 		return (1);
-	poll_array.tag_for_addition(listening_socket);
+	table.add_listening_socket(listening_socket);
 
 	while (1)
 	{
-		int ret = do_io(poll_array, clients_map, listening_socket);
-		if (ret == -1)
-			return (1);
+		do_io(table);
+
+		process_incoming_data(table, requests_queue);
+
+		handle_requests(requests_queue, clients_map); // creates responses
+
+		// do_response_actions(clients_map);
 		
-		// process data
-		// for client in clients, map, depending on the state, extract header or transfer data to somewhere else
 
 		
 				// if (ret == 1) // a request was received and processed

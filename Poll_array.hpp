@@ -17,12 +17,24 @@ public:
 	Poll_array(): len(0) {}
 	~Poll_array() {}
 
-	void tag_for_removal(int index)
+	void tag_for_removal_index(int index)
 	{
 		indexes_to_remove.insert(index);
 	}
 
-	void tag_for_addition(int fd, int read=1, int write=0)
+	void tag_for_removal_fd(int fd)
+	{
+		for (int i = 0; i < len; i++)
+		{
+			if (array[i].fd == fd)
+			{
+				indexes_to_remove.insert(i);
+				return ;
+			}
+		}
+	}
+
+	void tag_for_addition(int fd, bool read=true, bool write=false)
 	{
 		pollfd new_fd;
 		new_fd.fd = fd;

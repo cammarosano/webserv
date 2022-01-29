@@ -1,9 +1,8 @@
 #include "includes.hpp"
-#include "Poll_array.hpp"
 
-// accept(), add new Client to map<socket,Client>
-// return client_socket, -1 if error
-int accept_connection(int listen_socket, std::map<int, Client> &m)
+// accept(), create new Client, update fd_table and poll_array
+// return  0 if ok, -1 if error
+int accept_connection(int listen_socket, Fd_table &table)
 {
 	int client_socket;
 	sockaddr client_addr;
@@ -17,8 +16,8 @@ int accept_connection(int listen_socket, std::map<int, Client> &m)
 		return (-1);
 	}
 
-	// add to map of clients
-	m[client_socket].recv_state = get_header;
+	// create Client
+	table.add_client(client_socket);
 
 	// log to terminal
 	std::cout << "Connection accepted" << std::endl;
