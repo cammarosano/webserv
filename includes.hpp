@@ -36,7 +36,7 @@ enum e_recv_state
 
 enum e_response_state
 {
-	sending_header, start_send_file, sending_file, done
+	sending_header, start_send_file, sending_file, send_file_complete, done
 };
 
 enum e_body_source
@@ -49,17 +49,16 @@ struct HttpResponse
 {
 	e_response_state state;
 
+	// Http header
 	// status-line
 	std::string http_version, status_code_phrase;
-
 	// header-fields
 	std::map<std::string, std::string> header_fields;
-
 	// complete header
 	std::string header_str;
 
+	// Ressources
 	e_body_source source_type;	
-
 	// file or cgi
 	int fd_read;
 	// size_t bytes_left;
@@ -101,10 +100,12 @@ struct fd_info
 
 struct HttpRequest
 {
-	int client_socket;
+	Client &client;
 	std::string method, request_target, http_version;
 	std::map<std::string, std::string> header_fields;
 	std::string body;
+
+	HttpRequest(Client &client): client(client) {}
 };
 
 // function prototypes
@@ -121,9 +122,9 @@ int recv_from_file(int fd_file, Fd_table &table);
 int send_to_client(int socket, Fd_table &table);
 
 // process
-int process_incoming_data(std::map<int, Client> &clients,
-							std::queue<HttpRequest> &requests);
-int handle_requests(std::queue<HttpRequest> &q, std::map<int, Client> &clients);
+int process_incoming_data(Fd_table &table, std::queue<HttpRequest> &requests);
+int handle_requests(std::queue<HttpRequest> &q, Fd_table &table);
+int handle_responses(Fd_table &table);
 
 // utils
 std::string long_to_str(long nb);

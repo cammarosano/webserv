@@ -27,6 +27,7 @@ int recv_from_client(int socket, Fd_table &table)
 	return (1);
 }
 
+// response.state should be "sending_file"
 int recv_from_file(int fd_file, Fd_table &table)
 {
 	char buffer[BUFFER_SIZE + 1];
@@ -45,9 +46,7 @@ int recv_from_file(int fd_file, Fd_table &table)
 	if (ret == 0) // EOF
 	{
 		HttpResponse &response = *table[fd_file].response;
-
-		response.state = done;
-		table.remove_fd_read(fd_file);
+		response.state = send_file_complete; // responde handler will close the fd
 		return (0);
 	}
 	buffer[ret] = '\0';

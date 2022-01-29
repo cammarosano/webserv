@@ -14,11 +14,14 @@ public:
 	~Fd_table();
 
 	Poll_array & getPollArray();
+	std::map<int, fd_info> & getFd_map();
 	void add_listening_socket(int listening_socket);
 	void add_client(int client_socket);
-	void add_fd_file(int fd, Client *client, HttpResponse *response);
+	void add_fd_file(int fd, Client &client, HttpResponse &response);
 	void remove_fd_read(int fd);
 	void remove_client(int client_socket); 
+
+	void update_clients_out();
 
 	
 

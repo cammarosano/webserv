@@ -13,6 +13,11 @@ Poll_array & Fd_table::getPollArray()
 	return (poll_array);
 }
 
+std::map<int, fd_info> & Fd_table::getFd_map()
+{
+	return (fd_map);
+}
+
 void Fd_table::add_listening_socket(int listening_socket)
 {
 	fd_map[listening_socket].type = fd_listening_socket;
@@ -26,11 +31,11 @@ void Fd_table::add_client(int client_socket)
 	poll_array.tag_for_addition(client_socket);
 }
 
-void Fd_table::add_fd_file(int fd, Client *client, HttpResponse *response)
+void Fd_table::add_fd_file(int fd, Client &client, HttpResponse &response)
 {
 	fd_map[fd].type = fd_file;
-	fd_map[fd].client = client;
-	fd_map[fd].response = response;
+	fd_map[fd].client = &client;
+	fd_map[fd].response = &response;
 
 	poll_array.tag_for_addition(fd);
 }
@@ -56,4 +61,23 @@ void Fd_table::remove_client(int client_socket)
 fd_info & Fd_table::operator[](int fd)
 {
 	return (fd_map[fd]);
+}
+
+// only clients with unsent data will be |= POLLOUT
+void Fd_table::update_clients_out()
+{
+	struct pollfd * array = poll_array.getArray();
+	int len = poll_array.getLen();
+
+	for (int i = 0; i < len; i++)
+	{
+		fd_info info = fd_map[array[i].fd];
+		if (info.type == fd_client_socket)
+		{
+			if (info.client->unsent_data.empty())
+				array[i].events &= ~POLLOUT;
+			else
+				array[i].events |= POLLOUT;
+		}
+	}
 }

@@ -18,7 +18,7 @@ void assemble_header(HttpResponse &response)
 }
 
 // creates a HttpResponse object, and adds to the clients response queue 
-int handle_get_request(HttpRequest &request, Client &client)
+int handle_get_request(HttpRequest &request)
 {
 	// TODO: resolve virtual server, resolve route
 	std::string root = "web_root";
@@ -59,19 +59,18 @@ int handle_get_request(HttpRequest &request, Client &client)
 	}
 	assemble_header(response);
 	response.state = sending_header;
-	client.response_q.push(response);
+	request.client.response_q.push(response);
 	return (0);
 }
 
-int handle_requests(std::queue<HttpRequest> &q, std::map<int, Client> &clients)
+// transforms HttpRequests into HttpResponses
+int handle_requests(std::queue<HttpRequest> &q, Fd_table &table)
 {
 	while (!q.empty())
 	{
 		HttpRequest &request = q.front();
 		if (request.method == "GET")
-		{
-			handle_get_request(request, clients[request.client_socket]);
-		}
+			handle_get_request(request);
 		
 		// else: unsupported method. for now, simply discard it
 

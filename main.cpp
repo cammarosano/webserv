@@ -5,7 +5,8 @@ int do_io(Fd_table &table)
 	int	poll_ret;
 	Poll_array &poll_array = table.getPollArray();
 
-	poll_array.update();
+	poll_array.update(); // process aditions and removals
+	table.update_clients_out();
 	poll_ret = poll(poll_array.getArray(), poll_array.getLen(), -1);
 	if (poll_ret == -1)
 	{
@@ -58,19 +59,10 @@ int main(void)
 
 		process_incoming_data(table, requests_queue);
 
-		handle_requests(requests_queue, clients_map); // creates responses
+		handle_requests(requests_queue, table); // creates responses
 
-		// do_response_actions(clients_map);
-		
-
-		
-				// if (ret == 1) // a request was received and processed
-				// 	poll_array[i].events |= POLLOUT;
-
-				// 	// removing a write_watch form poll
-				// poll_array[i].events &= ~POLLOUT;
+		handle_responses(table);
 	}
-	
 
 	return (0);
 }
