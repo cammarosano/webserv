@@ -1,4 +1,8 @@
 process_incoming_data could be moved to inside the io loop
 	so we can get rid of the for-loop in the clients_map
+	(but it might degradate readability of the code)
 
 if a client's response grows to big, we should stop receiving data (new requests) from it
+
+
+OBS: buffer size must be big enough to fit a http-header

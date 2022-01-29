@@ -16,6 +16,8 @@ void assemble_header(HttpResponse &response)
 
 	// end header
 	response.header_str += "\r\n";
+
+
 }
 
 // creates a HttpResponse object, and adds to the clients response queue 
@@ -68,6 +70,12 @@ int handle_get_request(HttpRequest &request)
 	assemble_header(response);
 	response.state = sending_header;
 	request.client.response_q.push(response);
+
+	// debug
+	std::cout << "The following response header will be sent to client at "
+				<< "socket "  << request.client.socket << "\n"
+			<< response.header_str << std::flush;
+
 	return (0);
 }
 

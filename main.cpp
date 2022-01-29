@@ -8,7 +8,12 @@ int do_io(Fd_table &table)
 
 	poll_array.update(); // process aditions and removals
 	table.update_clients_out();
+	// debug
+	std::cout << "Blocking at poll(). Array size is " << poll_array.getLen()
+				<< std::endl;
 	poll_ret = poll(poll_array.getArray(), poll_array.getLen(), -1);
+	// debug
+	std::cout << "poll() returned " << poll_ret << std::endl;
 	if (poll_ret == -1)
 	{
 		perror("poll");
@@ -48,7 +53,7 @@ int main(void)
 	Fd_table				table;
 	std::queue<HttpRequest>	requests_queue;
 
-	// get listening socket and add it to poll_array
+	// get listening socket and add it to table
 	listening_socket = get_listening_socket("127.0.0.1", 8080);
 	if (listening_socket == -1)
 		return (1);

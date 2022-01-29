@@ -21,8 +21,17 @@ int recv_from_client(int socket, Fd_table &table)
 	if (ret == 0) // connection closed by the client
 	{
 		table.remove_client(socket);
+		// debug
+		std::cout << "Connection at socket " << socket
+				<< " was closed by the client " << std::endl;
+
 		return (0);
 	}
+
+	// debug
+	std::cout << "Received " << ret << " bytes from client at socket "
+				<< socket << std::endl;
+
 	buffer[ret] = '\0';
 	client.received_data += buffer;
 	return (1);
@@ -50,6 +59,9 @@ int recv_from_file(int fd_file, Fd_table &table)
 		response.state = send_file_complete; // responde handler will close the fd
 		return (0);
 	}
+	// debug
+	std::cout << ret << " bytes were read from file at fd " << fd_file
+				<< std::endl;
 	buffer[ret] = '\0';
 	client.unsent_data += buffer;
 	return (1);
@@ -72,6 +84,9 @@ int send_to_client(int socket, Fd_table &table)
 		perror("write"); // which is not allowed by the subject!
 		return (-1);
 	}
+	// debug
+	std::cout << bytes_sent << " bytes were sent to client at socket "
+			<< socket << std::endl;
 	client.unsent_data.erase(0, bytes_sent);
 	return (1);
 }

@@ -38,6 +38,10 @@ int get_request_header(Client &client, std::queue<HttpRequest> &requests)
 	std::string header_str = client.received_data.substr(0, pos);
 	client.received_data.erase(0, pos + 4);
 
+	// debug
+	std::cout << "The following request header was received:\n"
+				<< header_str << "\n" << std::endl;
+
 	// parse header into a new Request
 	HttpRequest request(client);
 	parse_header(header_str, request);

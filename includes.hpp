@@ -64,9 +64,11 @@ struct HttpResponse
 
 };
 
-# define BUFFER_SIZE 1024
+# define BUFFER_SIZE 4096
 struct Client
 {
+	int socket; // only needed for debugging pourposes?
+
 	e_recv_state recv_state;
 	std::string received_data;
 
@@ -74,7 +76,7 @@ struct Client
 
 	std::queue<HttpResponse> response_q;
 
-	Client(): recv_state(get_header) {}
+	Client(int socket): socket(socket), recv_state(get_header) {}
 
 };
 

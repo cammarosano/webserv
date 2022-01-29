@@ -26,7 +26,7 @@ void Fd_table::add_listening_socket(int listening_socket)
 
 void Fd_table::add_client(int client_socket)
 {
-	fd_map[client_socket].client = new Client();
+	fd_map[client_socket].client = new Client(client_socket);
 	fd_map[client_socket].type = fd_client_socket;
 	poll_array.tag_for_addition(client_socket);
 }

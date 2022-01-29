@@ -21,7 +21,8 @@ int accept_connection(int listen_socket, Fd_table &table)
 	table.add_client(client_socket);
 
 	// log to terminal
-	std::cout << "Connection accepted" << std::endl;
+	std::cout << "Connection accepted. Client socket: "
+			<< client_socket << std::endl;
 
 	return (client_socket);
 }
