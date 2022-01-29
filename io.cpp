@@ -6,19 +6,21 @@
 // -1: read() error
 int recv_from_client(int socket, Fd_table &table)
 {
-	char buffer[BUFFER_SIZE + 1];
+	char buffer[BUFFER_SIZE];
 	Client &client = *table[socket].client;
+	int max_read;
+	int recvd_bytes;
 
-	int max_read = BUFFER_SIZE - client.received_data.size();
+	max_read = BUFFER_SIZE - client.received_data.size();
 	if (max_read <= 0)
 		return (1);
-	int ret = read(socket, buffer, max_read);
-	if (ret == -1)
+	recvd_bytes = read(socket, buffer, max_read);
+	if (recvd_bytes == -1)
 	{
 		perror("read");
 		return (-1);
 	}
-	if (ret == 0) // connection closed by the client
+	if (recvd_bytes == 0) // connection closed by the client
 	{
 		table.remove_client(socket);
 		// debug
@@ -29,41 +31,42 @@ int recv_from_client(int socket, Fd_table &table)
 	}
 
 	// debug
-	std::cout << "Received " << ret << " bytes from client at socket "
+	std::cout << "Received " << recvd_bytes << " bytes from client at socket "
 				<< socket << std::endl;
 
-	buffer[ret] = '\0';
-	client.received_data += buffer;
+	client.received_data.append(buffer, recvd_bytes);
 	return (1);
 }
 
 // response.state should be "sending_file"
-int recv_from_file(int fd_file, Fd_table &table)
+int read_from_file(int fd_file, Fd_table &table)
 {
-	char buffer[BUFFER_SIZE + 1];
+	char buffer[BUFFER_SIZE];
 	int max_read;
+	int read_bytes;
 	Client &client = *table[fd_file].client;
 
 	max_read = BUFFER_SIZE - client.unsent_data.size();
 	if (max_read <= 0)
 		return (1);
-	int ret = read(fd_file, buffer, max_read);
-	if (ret == -1)
+	read_bytes = read(fd_file, buffer, max_read);
+	if (read_bytes == -1)
 	{
 		perror("read");
 		return (-1);
 	}
-	if (ret == 0) // EOF
+	if (read_bytes == 0) // EOF
 	{
 		HttpResponse &response = *table[fd_file].response;
 		response.state = send_file_complete; // responde handler will close the fd
 		return (0);
 	}
+	client.unsent_data.append(buffer, read_bytes);
+
 	// debug
-	std::cout << ret << " bytes were read from file at fd " << fd_file
-				<< std::endl;
-	buffer[ret] = '\0';
-	client.unsent_data += buffer;
+	std::cout << read_bytes << " bytes were read from file at fd " << fd_file
+			<< " destinated to client at socket " << client.socket << std::endl;
+
 	return (1);
 }
 

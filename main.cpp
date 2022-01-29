@@ -31,7 +31,7 @@ int do_io(Fd_table &table)
 			else if (fd_type == fd_client_socket)
 				recv_from_client(fd, table);
 			else if (fd_type == fd_file)
-				recv_from_file(fd, table);
+				read_from_file(fd, table);
 			// TODO: cgi_out
 		}
 		if (poll_array[i].revents & POLLOUT) // socket is ready for writing

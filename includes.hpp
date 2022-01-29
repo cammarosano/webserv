@@ -119,7 +119,7 @@ int handle_get_request(HttpRequest &request, Client &client);
 
 // IO
 int recv_from_client(int socket, Fd_table &table);
-int recv_from_file(int fd_file, Fd_table &table);
+int read_from_file(int fd_file, Fd_table &table);
 int send_to_client(int socket, Fd_table &table);
 
 // process
