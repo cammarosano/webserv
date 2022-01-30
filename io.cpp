@@ -1,10 +1,10 @@
 #include "includes.hpp"
-#include "Fd_table.hpp"
+#include "FdManager.hpp"
 
 // 1: ok
 // 0: connection closed by the client
 // -1: read() error
-int recv_from_client(int socket, Fd_table &table)
+int recv_from_client(int socket, FdManager &table)
 {
 	char buffer[BUFFER_SIZE];
 	Client &client = *table[socket].client;
@@ -22,7 +22,8 @@ int recv_from_client(int socket, Fd_table &table)
 	}
 	if (recvd_bytes == 0) // connection closed by the client
 	{
-		table.remove_client(socket);
+		table.remove_fd(socket);
+
 		// debug
 		std::cout << "Connection at socket " << socket
 				<< " was closed by the client " << std::endl;
@@ -39,7 +40,7 @@ int recv_from_client(int socket, Fd_table &table)
 }
 
 // response.state should be "sending_file"
-int read_from_file(int fd_file, Fd_table &table)
+int read_from_file(int fd_file, FdManager &table)
 {
 	char buffer[BUFFER_SIZE];
 	int max_read;
@@ -62,6 +63,7 @@ int read_from_file(int fd_file, Fd_table &table)
 		return (0);
 	}
 	client.unsent_data.append(buffer, read_bytes);
+	table.set_pollout(client.socket);
 
 	// debug
 	std::cout << read_bytes << " bytes were read from file at fd " << fd_file
@@ -73,12 +75,12 @@ int read_from_file(int fd_file, Fd_table &table)
 // -1: write() error
 // 0: no data do send
 // 1: ok
-int send_to_client(int socket, Fd_table &table)
+int send_to_client(int socket, FdManager &table)
 {
 	Client &client = *table[socket].client;
 	int bytes_sent;
 
-	if (client.unsent_data.empty())
+	if (client.unsent_data.empty()) // POLLOUT should not be set in the first place...
 		return (0);
 	bytes_sent = write(socket, client.unsent_data.data(),
 							client.unsent_data.size());
@@ -91,5 +93,7 @@ int send_to_client(int socket, Fd_table &table)
 	std::cout << bytes_sent << " bytes were sent to client at socket "
 			<< socket << std::endl;
 	client.unsent_data.erase(0, bytes_sent);
+	if (client.unsent_data.empty())
+		table.unset_pollout(client.socket);
 	return (1);
 }

@@ -1,5 +1,5 @@
 #include "includes.hpp"
-#include "Fd_table.hpp"
+#include "FdManager.hpp"
 
 // this parser must be improved: check errors...
 int parse_header(std::string &header_str, HttpRequest &request)
@@ -53,19 +53,15 @@ int get_request_header(Client &client, std::queue<HttpRequest> &requests)
 }
 
 // transforms incoming data into HttpRequest objects
-int process_incoming_data(Fd_table &table, std::queue<HttpRequest> &requests)
+int process_incoming_data(FdManager &table, std::queue<HttpRequest> &requests)
 {
-	typedef std::map<int, fd_info>::iterator map_iter;
-
-	std::map<int, fd_info> &fd_map = table.getFd_map();
-
 	// for each Client, containing unprocessed data, in get_header state
-	for (map_iter it = fd_map.begin(); it != fd_map.end(); ++it)
+	for (int fd = 3; fd < table.len(); fd++)
 	{
-		if (it->second.type != fd_client_socket)
+		if (table[fd].type != fd_client_socket)
 			continue;
 
-		Client &client = *it->second.client;
+		Client &client = *table[fd].client;
 
 		if (client.received_data.empty())
 			continue;

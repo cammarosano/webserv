@@ -1,9 +1,9 @@
 #include "includes.hpp"
-#include "Fd_table.hpp"
+#include "FdManager.hpp"
 
 // accept(), create new Client, update fd_table and poll_array
 // return  0 if ok, -1 if error
-int accept_connection(int listen_socket, Fd_table &table)
+int accept_connection(int listen_socket, FdManager &table)
 {
 	int client_socket;
 	sockaddr client_addr;
@@ -18,7 +18,7 @@ int accept_connection(int listen_socket, Fd_table &table)
 	}
 
 	// create Client
-	table.add_client(client_socket, listen_socket);
+	table.add_client_socket(client_socket, listen_socket);
 
 	// log to terminal
 	std::cout << "Connection accepted. Client socket: "

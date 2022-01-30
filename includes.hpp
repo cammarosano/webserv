@@ -29,7 +29,7 @@
 # define BUFFER_SIZE 4096
 
 // forward declaration
-class Fd_table;
+class FdManager;
 
 // states
 enum e_recv_state
@@ -133,19 +133,19 @@ struct HttpRequest
 // function prototypes
 
 // setup
-int setup(Fd_table &table);
+int setup(FdManager &table);
 int get_listening_socket(std::string host_IP, unsigned short port);
 
 // IO
-int accept_connection(int listen_socket, Fd_table &table);
-int recv_from_client(int socket, Fd_table &table);
-int read_from_file(int fd_file, Fd_table &table);
-int send_to_client(int socket, Fd_table &table);
+int accept_connection(int listen_socket, FdManager &table);
+int recv_from_client(int socket, FdManager &table);
+int read_from_file(int fd_file, FdManager &table);
+int send_to_client(int socket, FdManager &table);
 
 // process
-int process_incoming_data(Fd_table &table, std::queue<HttpRequest> &requests);
+int process_incoming_data(FdManager &table, std::queue<HttpRequest> &requests);
 int handle_requests(std::queue<HttpRequest> &q);
-int handle_responses(Fd_table &table);
+int handle_responses(FdManager &table);
 
 // utils
 std::string long_to_str(long nb);

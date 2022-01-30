@@ -1,5 +1,4 @@
 #include "includes.hpp"
-#include "Fd_table.hpp"
 
 // this could be a method of a class HttpResponse
 void assemble_header(HttpResponse &response)

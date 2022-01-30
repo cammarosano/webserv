@@ -1,5 +1,5 @@
 #include "includes.hpp"
-#include "Fd_table.hpp"
+#include "FdManager.hpp"
 
 // hardcoded configuration for testing purposes
 void get_test_config(std::map<ip_port, std::list<Vserver> > &config)
@@ -60,7 +60,7 @@ int parse_config_file(std::map<ip_port, std::list<Vserver> > &config)
 	return (0);
 }
 
-int open_listening_sockets(Fd_table &table,
+int open_listening_sockets(FdManager &table,
 							std::map<ip_port, std::list<Vserver> > &config)
 {
 	typedef std::map<ip_port, std::list<Vserver> >::iterator iterator;
@@ -73,12 +73,12 @@ int open_listening_sockets(Fd_table &table,
 		int listening_socket = get_listening_socket(ip, port);
 		// skipping error check... :/
 
-		table.add_listening_socket(listening_socket, it->second);
+		table.add_listen_socket(listening_socket, it->second);
 	}
 	return (0);
 }
 
-int setup(Fd_table &table)
+int setup(FdManager &table)
 {
 	std::map<ip_port, std::list<Vserver> > config;
 

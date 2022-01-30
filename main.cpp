@@ -1,29 +1,29 @@
 #include "includes.hpp"
-#include "Fd_table.hpp"
+#include "FdManager.hpp"
 
-int do_io(Fd_table &table)
+int do_io(FdManager &table)
 {
 	int	poll_ret;
-	Poll_array &poll_array = table.getPollArray();
 
-	poll_array.update(); // process aditions and removals
-	table.update_clients_out();
 	// debug
-	std::cout << "Blocking at poll(). Array size is " << poll_array.getLen()
-				<< std::endl;
-	poll_ret = poll(poll_array.getArray(), poll_array.getLen(), -1);
+	std::cout << "Blocking at poll()" << std::endl;
+
+	// call poll()
+	poll_ret = poll(table.get_poll_array(), table.len(), -1);
+
 	// debug
 	std::cout << "poll() returned " << poll_ret << std::endl;
+
 	if (poll_ret == -1)
 	{
 		perror("poll");
 		return (-1);
 	}
-	for (int i = 0; i < poll_array.getLen(); i++)
+
+	for (int fd = 3; fd < table.len(); fd++)
 	{
-		if (poll_array[i].revents & POLLIN) // socket is ready for reading
+		if (table.get_poll_array()[fd].revents & POLLIN) // fd ready for reading
 		{
-			int fd = poll_array[i].fd;
 			e_fd_type fd_type = table[fd].type;
 
 			if (fd_type == fd_listen_socket)
@@ -34,13 +34,12 @@ int do_io(Fd_table &table)
 				read_from_file(fd, table);
 			// TODO: cgi_out
 		}
-		if (poll_array[i].revents & POLLOUT) // socket is ready for writing
+		if (table.get_poll_array()[fd].revents & POLLOUT) // fd ready for writing
 		{
-			int fd = poll_array[i].fd;
 			e_fd_type fd_type = table[fd].type;
 
 			if (fd_type == fd_client_socket)
-				send_to_client(poll_array[i].fd, table);
+				send_to_client(fd, table);
 			// TODO: cgi_in
 		}
 	}
@@ -49,7 +48,7 @@ int do_io(Fd_table &table)
 
 int main(void)
 {
-	Fd_table				table;
+	FdManager				table;
 	std::queue<HttpRequest>	requests_queue;
 
 	setup(table);

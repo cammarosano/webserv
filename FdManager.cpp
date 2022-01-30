@@ -6,7 +6,7 @@ FdManager::FdManager(): capacity(10)
 	poll_array = new pollfd[capacity];
 
 	// initialise poll_array
-	for (size_t i = 0; i < capacity; i++)
+	for (int i = 0; i < capacity; i++)
 		poll_array[i].fd = -1;
 }
 
@@ -21,10 +21,10 @@ void FdManager::reallocate()
 	// get new poll_array
 	pollfd *new_poll_array = new pollfd[new_capacity];
 	// copy old stuff
-	for (size_t i = 0; i < capacity; i++)
+	for (int i = 0; i < capacity; i++)
 		new_poll_array[i] = poll_array[i];
 	// free the old one
-		delete[] poll_array;
+	delete[] poll_array;
 	// initialize new stuff
 	for (size_t i = capacity; i < new_capacity; i++)
 		new_poll_array[i].fd = -1;
@@ -32,10 +32,10 @@ void FdManager::reallocate()
 	// get new fd_table (initialization already done by default constructor)
 	fd_info *new_fd_table = new fd_info[new_capacity];
 	// copy old stuff
-	for (size_t i = 0; i < capacity; i++)
+	for (int i = 0; i < capacity; i++)
 		new_fd_table[i] = fd_table[i];
 	// free the old one
-		delete[] fd_table;
+	delete[] fd_table;
 	
 	// update member variables
 	capacity = new_capacity;
@@ -45,7 +45,7 @@ void FdManager::reallocate()
 
 // returns maximum fd + 1
 // use this as upper bound for looping through the poll array of fd_table
-size_t FdManager::len() const
+int	FdManager::len() const
 {
 	int max_fd = *fd_set.rbegin();
 	return max_fd + 1;
@@ -121,10 +121,13 @@ void	FdManager::free_client_ressources(Client *client)
 	delete client;
 }
 
+// close() fd as well
 void FdManager::remove_fd(int fd)
 {
 	if (fd_table[fd].type == fd_client_socket)
 		free_client_ressources(fd_table[fd].client);
+
+	close(fd);
 
 	fd_table[fd].type = fd_none;
 	fd_table[fd].client = NULL;

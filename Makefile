@@ -1,5 +1,5 @@
 SRC =	accept_connection.cpp \
-		Fd_table.cpp \
+		FdManager.cpp \
 		handle_requests.cpp \
 		handle_responses.cpp \
 		io.cpp \
@@ -9,7 +9,7 @@ SRC =	accept_connection.cpp \
 		setup.cpp \
 		utils.cpp
 
-HEADER =	includes.hpp Poll_array.hpp Fd_table.hpp
+HEADER =	includes.hpp FdManager.hpp
 
 OBJ = $(SRC:.cpp=.o)
 CC = clang++

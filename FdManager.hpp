@@ -27,7 +27,7 @@ class FdManager
 private:
 	pollfd *		poll_array;
 	fd_info *		fd_table;
-	size_t			capacity;
+	int				capacity;
 	std::set<int>	fd_set;
 	
 	std::map<int, std::list<Vserver> >	vservers_map;
@@ -39,7 +39,7 @@ public:
 	FdManager();
 	~FdManager();
 	
-	size_t	len() const;
+	int		len() const;
 	pollfd	*get_poll_array();
 	void 	add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
 	void 	add_client_socket(int client_socket, int listen_socket);
