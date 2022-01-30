@@ -26,7 +26,7 @@ int do_io(Fd_table &table)
 			int fd = poll_array[i].fd;
 			e_fd_type fd_type = table[fd].type;
 
-			if (fd_type == fd_listening_socket)
+			if (fd_type == fd_listen_socket)
 				accept_connection(fd, table);
 			else if (fd_type == fd_client_socket)
 				recv_from_client(fd, table);

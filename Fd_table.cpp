@@ -21,7 +21,7 @@ std::map<int, fd_info> & Fd_table::getFd_map()
 void Fd_table::add_listening_socket(int listening_socket,
 									std::list<Vserver> vservers)
 {
-	fd_map[listening_socket].type = fd_listening_socket;
+	fd_map[listening_socket].type = fd_listen_socket;
 	vservers_map[listening_socket] = vservers;
 	poll_array.tag_for_addition(listening_socket);
 }

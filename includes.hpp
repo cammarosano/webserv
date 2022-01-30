@@ -9,6 +9,7 @@
 #include <map>
 #include <queue>
 #include <list>
+#include <set>
 #include <utility>
 
 // C stuff
@@ -114,14 +115,7 @@ struct Client
 
 };
 
-enum e_fd_type
-{
-	fd_listening_socket,
-	fd_client_socket,
-	fd_file,
-	fd_cgi_output,
-	fd_cgi_input
-};
+
 
 // structs
 

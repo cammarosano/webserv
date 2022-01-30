@@ -4,6 +4,15 @@
 # include "includes.hpp"
 # include "Poll_array.hpp"
 
+enum e_fd_type
+{
+	fd_listen_socket,
+	fd_client_socket,
+	fd_file,
+	fd_cgi_output,
+	fd_cgi_input
+};
+
 struct fd_info
 {
 	e_fd_type		type;
