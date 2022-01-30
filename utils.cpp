@@ -15,11 +15,23 @@ std::string & str_tolower(std::string &s)
 	return (s);
 }
 
+// changes s in place
+std::string & remove_trailing_spaces(std::string &s)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < s.length() && isspace(s[i]))
+		++i;
+	s.erase(0, i);
+	return (s);	
+}
+
 // for debugging
 void print_request(HttpRequest &request)
 {
 	std::cout << "method: " << request.method << '\n'
-			<< "target: " << request.request_target << '\n'
+			<< "target: " << request.target << '\n'
 			<< "http-version: " << request.http_version << '\n';
 
 	for (std::map<std::string, std::string>::iterator it = request.header_fields.begin();

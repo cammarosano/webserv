@@ -6,6 +6,8 @@ SRC =	accept_connection.cpp \
 		listening_socket.cpp \
 		main.cpp \
 		process_data.cpp \
+		resolve_vserver_route.cpp \
+		responses.cpp \
 		setup.cpp \
 		utils.cpp
 

@@ -1,6 +1,8 @@
 #include "includes.hpp"
 #include "FdManager.hpp"
 
+// I made localhost-example and localhost-example2 map to 127.0.0.1 on my machine
+
 // hardcoded configuration for testing purposes
 void get_test_config(std::map<ip_port, std::list<Vserver> > &config)
 {
@@ -22,6 +24,7 @@ void get_test_config(std::map<ip_port, std::list<Vserver> > &config)
 
 		vs.listen = ip_port("127.0.0.1", 8080);
 		vs.server_names.push_back("localhost");
+		vs.server_names.push_back("localhost-example");
 		{
 			Route r("/");
 

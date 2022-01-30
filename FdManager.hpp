@@ -50,6 +50,7 @@ public:
 	void	unset_pollout(int fd);
 
 	fd_info & operator[](int fd);
+
 };
 
 

@@ -1,7 +1,6 @@
 #ifndef INCLUDES_HPP
 # define INCLUDES_HPP
 
-
 // C++ stuff
 #include <iostream>
 #include <sstream>
@@ -46,6 +45,8 @@ enum e_body_source
 {
 	none, file
 };
+
+// structs
 
 struct Route
 {
@@ -96,6 +97,8 @@ struct HttpResponse
 	// file or cgi
 	int fd_read;
 	// size_t bytes_left;
+
+	HttpResponse(): state(sending_header) {}
 };
 
 struct Client
@@ -115,14 +118,10 @@ struct Client
 
 };
 
-
-
-// structs
-
 struct HttpRequest
 {
 	Client &client;
-	std::string method, request_target, http_version;
+	std::string method, target, http_version;
 	std::map<std::string, std::string> header_fields;
 	std::string body;
 
@@ -147,9 +146,19 @@ int process_incoming_data(FdManager &table, std::queue<HttpRequest> &requests);
 int handle_requests(std::queue<HttpRequest> &q);
 int handle_responses(FdManager &table);
 
+// resolving
+Vserver & resolve_vserver(HttpRequest &request);
+Route * resolve_route(Vserver &vserver, std::string &request_target);
+
+// responses
+int issue_404_response(HttpRequest &request);
+int issue_403_response(HttpRequest &request);
+int issue_200_response(HttpRequest &request, int fd_file, struct stat &sb);
+
 // utils
 std::string long_to_str(long nb);
 std::string & str_tolower(std::string &s);
 void print_request(HttpRequest &request);
+std::string & remove_trailing_spaces(std::string &s);
 
 #endif

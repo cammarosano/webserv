@@ -7,7 +7,7 @@ int parse_header(std::string &header_str, HttpRequest &request)
 	std::istringstream	stream(header_str);
 
 	stream >> request.method;
-	stream >> request.request_target;
+	stream >> request.target;
 	stream >> request.http_version;
 	
 	while (!stream.eof())
@@ -19,7 +19,9 @@ int parse_header(std::string &header_str, HttpRequest &request)
 			continue;
 		std::string field_name = line.substr(0, delimiter_pos);
 		str_tolower(field_name);
-		request.header_fields[field_name] = line.substr(delimiter_pos + 1);
+		std::string field_value = line.substr(delimiter_pos + 1);
+		remove_trailing_spaces(field_value);
+		request.header_fields[field_name] = field_value;
 	}
 	return (0);
 }

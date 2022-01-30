@@ -15,6 +15,8 @@ uri... case sensitive??
 
 make file_fd non-blocking ?
 
+test nginx and see what happens when no route matches
+
 Notes:
 process_incoming_data could be moved to inside the io loop
 	so we can get rid of the for-loop in the clients_map
@@ -27,16 +29,6 @@ OBS: buffer size must be big enough to fit a http-header
 
 Optimizations:
 
-every map that is int->something... could be simply replaced by and array (or vector) (!)
-	create a class that contains an array that auto grows (like a vector)
-	do operator overload of []. if bigger then last elem, grow array to this size and
-		return reference to that elem. Do it templated on the the mapped value.
-		removing from the map is trickier: maybe use a type "none" to signal that a 
-			file_info is not in use (no element at that index)
-		class fdmap<value>
-			iterator = pointer
-			begin: first elem
-			end: pointer to past the end
 
 count fd's in the poll loop in order to stop it sooner.
 
