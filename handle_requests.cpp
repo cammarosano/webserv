@@ -16,15 +16,30 @@ void assemble_header(HttpResponse &response)
 
 	// end header
 	response.header_str += "\r\n";
+}
 
+Vserver & resolve_vserver(HttpRequest &request)
+{
+	// TODO (for now, returning the first of the list)
+	return (request.client.vservers.front());
+}
 
+// what if no route match??
+Route & resolve_route(Vserver &vserver, std::string &request_target)
+{
+	// TODO (for now, returning the first of the list)
+	(void)request_target;
+	return (vserver.routes.front());
 }
 
 // creates a HttpResponse object, and adds to the clients response queue 
 int handle_get_request(HttpRequest &request)
 {
-	// TODO: resolve virtual server, resolve route
-	std::string root = "web_root";
+	Vserver	&vserver = resolve_vserver(request);
+	Route	&route = resolve_route(vserver, request.request_target);
+	// remember that the matching part of the uri with the location must be
+	// removed before appending to the root
+	std::string root = route.root;
 
 	// instantiate response
 	HttpResponse response;

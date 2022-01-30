@@ -49,24 +49,15 @@ int do_io(Fd_table &table)
 
 int main(void)
 {
-	int						listening_socket;
 	Fd_table				table;
 	std::queue<HttpRequest>	requests_queue;
 
-	// get listening socket and add it to table
-	listening_socket = get_listening_socket("127.0.0.1", 8080);
-	if (listening_socket == -1)
-		return (1);
-	table.add_listening_socket(listening_socket);
-
+	setup(table);
 	while (1)
 	{
 		do_io(table);
-
 		process_incoming_data(table, requests_queue);
-
 		handle_requests(requests_queue); // creates responses
-
 		handle_responses(table);
 	}
 

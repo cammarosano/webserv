@@ -18,15 +18,18 @@ std::map<int, fd_info> & Fd_table::getFd_map()
 	return (fd_map);
 }
 
-void Fd_table::add_listening_socket(int listening_socket)
+void Fd_table::add_listening_socket(int listening_socket,
+									std::list<Vserver> vservers)
 {
 	fd_map[listening_socket].type = fd_listening_socket;
+	vservers_map[listening_socket] = vservers;
 	poll_array.tag_for_addition(listening_socket);
 }
 
-void Fd_table::add_client(int client_socket)
+void Fd_table::add_client(int client_socket, int listening_socket)
 {
-	fd_map[client_socket].client = new Client(client_socket);
+	fd_map[client_socket].client = new Client(client_socket, 
+											vservers_map[listening_socket]);
 	fd_map[client_socket].type = fd_client_socket;
 	poll_array.tag_for_addition(client_socket);
 }

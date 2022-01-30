@@ -6,6 +6,7 @@ SRC =	accept_connection.cpp \
 		listening_socket.cpp \
 		main.cpp \
 		process_data.cpp \
+		setup.cpp \
 		utils.cpp
 
 HEADER =	includes.hpp Poll_array.hpp Fd_table.hpp

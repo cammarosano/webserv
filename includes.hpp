@@ -8,7 +8,8 @@
 #include <string>
 #include <map>
 #include <queue>
-#include <algorithm>
+#include <list>
+#include <utility>
 
 // C stuff
 #include <sys/socket.h>
@@ -23,6 +24,8 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/stat.h>
+
+# define BUFFER_SIZE 4096
 
 // forward declaration
 class Fd_table;
@@ -43,7 +46,38 @@ enum e_body_source
 	none, file
 };
 
-// structs
+struct Route
+{
+	std::string				prefix;	// location
+	std::list<std::string>	accepted_methods;
+	// todo: redirection
+	std::string				root;
+	bool					auto_index; // directory listing
+	std::string				default_index;
+
+	// cgi
+	std::string				cgi_extension;
+	std::string				cgi_interpreter; // program name/path
+
+	// upload
+	bool					upload_accepted;
+	std::string				upload_dir;	// where to store
+
+	Route(std::string prefix): prefix(prefix) {}
+};
+
+typedef	std::pair<std::string, unsigned short> ip_port;
+struct Vserver
+{
+	ip_port					listen;
+	std::list<std::string>	server_names;
+	std::string				default_404;	// default error page
+	std::string				default_403;	// default error page
+	// etc...
+	size_t					body_size_limit;
+	std::list<Route>		routes;
+};
+
 struct HttpResponse
 {
 	e_response_state state;
@@ -61,13 +95,12 @@ struct HttpResponse
 	// file or cgi
 	int fd_read;
 	// size_t bytes_left;
-
 };
 
-# define BUFFER_SIZE 4096
 struct Client
 {
 	int socket; // only needed for debugging pourposes?
+	std::list<Vserver> &vservers;
 
 	e_recv_state recv_state;
 	std::string received_data;
@@ -76,7 +109,8 @@ struct Client
 
 	std::queue<HttpResponse> response_q;
 
-	Client(int socket): socket(socket), recv_state(get_header) {}
+	Client(int socket, std::list<Vserver> &vservers):
+	socket(socket), vservers(vservers), recv_state(get_header) {}
 
 };
 
@@ -89,15 +123,7 @@ enum e_fd_type
 	fd_cgi_input
 };
 
-struct fd_info
-{
-	e_fd_type		type;
-	Client 			*client;
-	HttpResponse	*response;
-
-	fd_info(): client(NULL), response(NULL) {}
-};
-
+// structs
 
 struct HttpRequest
 {
@@ -109,15 +135,15 @@ struct HttpRequest
 	HttpRequest(Client &client): client(client) {}
 };
 
-// function prototypes
-int get_listening_socket(std::string host_IP, unsigned short port);
-int accept_connection(int listen_socket, Fd_table &table);
-int handle_incoming_data(int socket, Client &client);
-int handle_outbound_data(int socket, Client &client);
-int handle_get_request(HttpRequest &request, Client &client);
 
+// function prototypes
+
+// setup
+int setup(Fd_table &table);
+int get_listening_socket(std::string host_IP, unsigned short port);
 
 // IO
+int accept_connection(int listen_socket, Fd_table &table);
 int recv_from_client(int socket, Fd_table &table);
 int read_from_file(int fd_file, Fd_table &table);
 int send_to_client(int socket, Fd_table &table);

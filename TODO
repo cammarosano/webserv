@@ -1,0 +1,34 @@
+
+resolve vserver, resolve route
+
+receive body of a POST request (read RFF: is GET without body? is Post with body?)
+	first, just store it as an uploaded file
+	then, send body content to a CGI script
+
+CGI!
+
+break down handle_get_request function into smaller functions
+
+Response: add a field for keep-alive or not.
+
+uri... case sensitive??
+
+
+Notes:
+process_incoming_data could be moved to inside the io loop
+	so we can get rid of the for-loop in the clients_map
+	(but it might degradate readability of the code)
+
+if a client's response grows to big, we should stop receiving data (new requests) from it
+
+
+OBS: buffer size must be big enough to fit a http-header
+
+every map that is int->something... could be simply replaced by and array (or vector) (!)
+	create a class that contains an array that auto grows (like a vector)
+	do operator overload of []. if bigger then last elem, grow array to this size and
+		return reference to that elem. Do it templated on the the mapped value.
+		class fdmap<value>
+			iterator = pointer
+			begin: first elem
+			end: pointer to past the end
