@@ -25,6 +25,24 @@ int handle_get_request(HttpRequest &request, Vserver &vserver, Route &route)
 	return (issue_200_response(request, fd, sb));	
 }
 
+
+int handle_post_request(HttpRequest &request, Vserver &vserver, Route &route)
+{
+	(void)vserver;
+	(void)route;
+
+	request.client.recv_state = get_body;
+
+	// for now, assuming content-length is present
+	int size = atoi(request.header_fields["content-length"].c_str());
+	request.client.body_bytes_left = size;
+
+	//TODO: look for ressource (cgi-script), pipe, fork, exec,
+	// issue response with cgi process and fds for reading and writing
+
+	return (issue_200_post_resp(request, size));
+}
+
 // transforms HttpRequests into HttpResponses
 int handle_requests(std::queue<HttpRequest> &q)
 {
@@ -38,6 +56,8 @@ int handle_requests(std::queue<HttpRequest> &q)
 			issue_404_response(request);
 		else if (request.method == "GET")
 			handle_get_request(request, vserver, *route);
+		else if (request.method == "POST")
+			handle_post_request(request, vserver, *route);
 		
 		// else: unsupported method. for now, simply discard it
 

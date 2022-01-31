@@ -16,7 +16,28 @@ void transfer_header_to_buffer(Client &client, HttpResponse &response,
 			response.state = done;
 		else if (response.source_type == file)
 			response.state = start_send_file;
+		// experimental stuff
+		else if (response.source_type == qstring)
+			response.state = sending_qstring;
 	}
+}
+
+void transfer_qstring_to_buffer(Client &client, HttpResponse &response,
+								FdManager &table)
+{
+
+	int max_bytes = BUFFER_SIZE - client.unsent_data.size();
+	if (max_bytes <= 0) // buffer is full
+		return ;
+	if (client.processed_data.empty()) // data not yet processed
+		return;
+	client.unsent_data += client.processed_data.substr(0, max_bytes);
+	client.processed_data.erase(0, max_bytes);
+	table.set_pollout(client.socket);
+	
+	// I probably need a state for the processed data buffer
+	if (client.recv_state != get_body && client.processed_data.empty())
+		response.state = done;
 }
 
 // handle the response at the front of the client's queue
@@ -38,6 +59,12 @@ int handle_front_response(Client &client, FdManager &table)
 		table.remove_fd(response.fd_read);
 		response.state = done;
 	}
+
+	// experimental!
+	if (response.state == sending_qstring)
+		transfer_qstring_to_buffer(client, response, table);
+
+
 	if (response.state == done)
 		client.response_q.pop();
 

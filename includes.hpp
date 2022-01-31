@@ -24,6 +24,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <sys/stat.h>
+#include <stdlib.h> // atoi
 
 # define BUFFER_SIZE 4096
 
@@ -33,17 +34,18 @@ class FdManager;
 // states
 enum e_recv_state
 {
-	get_header
+	get_header, get_body
 };
 
 enum e_response_state
 {
-	sending_header, start_send_file, sending_file, send_file_complete, done
+	sending_header, start_send_file, sending_file, send_file_complete, done,
+	sending_qstring // experimental!
 };
 
 enum e_body_source
 {
-	none, file
+	none, file, qstring
 };
 
 // structs
@@ -108,8 +110,11 @@ struct Client
 
 	e_recv_state recv_state;
 	std::string received_data;
-
 	std::string unsent_data;
+
+	// info needed for when receiving the body
+	int body_bytes_left;
+	std::string processed_data;
 
 	std::queue<HttpResponse> response_q;
 
@@ -160,5 +165,8 @@ std::string long_to_str(long nb);
 std::string & str_tolower(std::string &s);
 void print_request(HttpRequest &request);
 std::string & remove_trailing_spaces(std::string &s);
+
+// weird stuff
+int issue_200_post_resp(HttpRequest &request, int payload_size);
 
 #endif

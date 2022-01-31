@@ -87,3 +87,26 @@ int issue_200_response(HttpRequest &request, int fd_file, struct stat &sb)
 	return (0);
 }
 
+// experimental!
+int issue_200_post_resp(HttpRequest &request, int payload_size)
+{
+	HttpResponse response;
+
+	// populate attributes
+	response.http_version = "HTTP/1.1";
+	response.status_code_phrase = "200 OK";
+	response.source_type = qstring;
+	response.header_fields["content-length"] = long_to_str(payload_size);
+	response.header_fields["content-type"] = "text/plain";
+		// TODO: and many other header_fields here....
+
+	// make header_str
+	assemble_header(response);
+
+	// enqueue
+	request.client.response_q.push(response);
+
+	DEBUG_LOG
+	return (0);
+}
+	

@@ -1,7 +1,4 @@
-
-resolve vserver, resolve route
-
-receive body of a POST request (read RFF: is GET without body? is Post with body?)
+receive body of a POST request (read RFF: is GET always without body? is Post always with body?)
 	first, just store it as an uploaded file
 	then, send body content to a CGI script
 
@@ -17,12 +14,18 @@ make file_fd non-blocking ?
 
 test nginx and see what happens when no route matches
 
+accept a simple line break too, be more tolerant (instead of CRLF)
+
+do a overload of set_pollout to accept Client & too.
+
 Notes:
 process_incoming_data could be moved to inside the io loop
 	so we can get rid of the for-loop in the clients_map
 	(but it might degradate readability of the code)
 
 if a client's response grows too big, we should stop receiving data (new requests) from it
+
+consider switching off POLLIN when the unprocessed_data buffer if full
 
 
 OBS: buffer size must be big enough to fit a http-header

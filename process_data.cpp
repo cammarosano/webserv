@@ -41,7 +41,7 @@ int get_request_header(Client &client, std::queue<HttpRequest> &requests)
 	client.received_data.erase(0, pos + 4);
 
 	// debug
-	std::cout << "The following request header was received:\n"
+	std::cout << "---------\nThe following request header was received:\n"
 				<< header_str << "\n" << std::endl;
 
 	// parse header into a new Request
@@ -52,6 +52,29 @@ int get_request_header(Client &client, std::queue<HttpRequest> &requests)
 	requests.push(request);
 
 	return (1);
+}
+
+// this must handle also chunked data
+int get_request_body(Client &client)
+{
+	// consume data from buffer
+	std::string body_str =
+		client.received_data.substr(0, client.body_bytes_left);
+	client.received_data.erase(0, client.body_bytes_left);
+	client.body_bytes_left -= body_str.length();
+
+	client.processed_data += body_str;
+
+	if (client.body_bytes_left == 0)
+		client.recv_state = get_header;
+
+
+	// debug
+	std::cout << "----------\nThe following request BODY was received:\n"
+				<< body_str << "\n" << std::endl;
+	
+	// for now, do nothing
+	return (0);
 }
 
 // transforms incoming data into HttpRequest objects
@@ -69,6 +92,8 @@ int process_incoming_data(FdManager &table, std::queue<HttpRequest> &requests)
 			continue;
 		if (client.recv_state == get_header)
 			get_request_header(client, requests);
+		else if (client.recv_state == get_body)
+			get_request_body(client);
 
 		// todo: recv_state = get_body	??	
 	}

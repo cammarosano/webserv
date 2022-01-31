@@ -5,7 +5,7 @@ Vserver & resolve_vserver(HttpRequest &request)
 	typedef std::list<Vserver>::iterator iter_vserver_list;
 	typedef std::list<std::string>::iterator iter_string_list;
 
-	// this might create an empty string as "host" (no problem)
+	// this might create an empty string as "host" (no problem) - actually, maybe this is demanded by HTTP/1.1
 	std::string req_host_name = request.header_fields["host"];
 
 	// remove eventual ":port_number" after the server name

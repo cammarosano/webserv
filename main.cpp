@@ -55,6 +55,7 @@ int main(void)
 	while (1)
 	{
 		do_io(table);
+		// raw-data -> request header (Resquest object) or payload (processed_data)
 		process_incoming_data(table, requests_queue);
 		handle_requests(requests_queue); // creates responses
 		handle_responses(table);
