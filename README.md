@@ -1,5 +1,9 @@
 # webserv
 
+## BIG OBS:
+I have some ideas to restructure the code into more segmented/dividable functions/classes/etc. That is, into more dividable/assignable tasks.
+I'll be making such restructuration in the next few days. In the meanwhile, **I suggest you ignore this code/repo...**
+
 What it does at this point:
 - serve static files (GET requests)
 - echoes back the body of POST requests (working to get CGI working)
