@@ -58,8 +58,7 @@ int read_from_file(int fd_file, FdManager &table)
 	}
 	if (read_bytes == 0) // EOF
 	{
-		HttpResponse &response = *table[fd_file].response;
-		response.state = send_file_complete; // responde handler will close the fd
+		table[fd_file].is_EOF = true;
 		return (0);
 	}
 	client.unsent_data.append(buffer, read_bytes);

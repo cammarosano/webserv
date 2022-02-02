@@ -49,15 +49,17 @@ int handle_front_response(Client &client, FdManager &table)
 		transfer_header_to_buffer(client, response, table);
 	if (response.state == start_send_file)
 	{
-		table.add_file_fd(response.fd_read, client, response);
+		table.add_file_fd(response.fd_read, client);
 		response.state = sending_file;
 		return (0);
 	}
-	// if state == sending_file, do nothing
-	if (response.state == send_file_complete)
+	if (response.state == sending_file)
 	{
-		table.remove_fd(response.fd_read);
-		response.state = done;
+		if (table[response.fd_read].is_EOF)
+		{
+			table.remove_fd(response.fd_read);
+			response.state = done;
+		}
 	}
 
 	// experimental!

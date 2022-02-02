@@ -89,14 +89,14 @@ void FdManager::add_client_socket(int client_socket, int listen_socket)
 	fd_set.insert(client_socket);
 }
 
-void FdManager::add_file_fd(int file_fd, Client &client, HttpResponse &response)
+void FdManager::add_file_fd(int file_fd, Client &client)
 {
 	while (file_fd >= capacity)
 		reallocate();
 	
 	fd_table[file_fd].type = fd_file;
 	fd_table[file_fd].client = &client;
-	fd_table[file_fd].response = &response;
+	fd_table[file_fd].is_EOF = false;
 
 	poll_array[file_fd].fd = file_fd;
 	poll_array[file_fd].events = POLLIN;
@@ -105,6 +105,7 @@ void FdManager::add_file_fd(int file_fd, Client &client, HttpResponse &response)
 	fd_set.insert(file_fd);
 }
 
+// change this after Response class has been changed
 void	FdManager::free_client_ressources(Client *client)
 {
 	while (!client->response_q.empty())
@@ -131,7 +132,7 @@ void FdManager::remove_fd(int fd)
 
 	fd_table[fd].type = fd_none;
 	fd_table[fd].client = NULL;
-	fd_table[fd].response = NULL;
+	fd_table[fd].is_EOF = false;
 
 	poll_array[fd].fd = -1;
 

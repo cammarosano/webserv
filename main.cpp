@@ -24,6 +24,7 @@ int do_io(FdManager &table)
 	{
 		if (table.get_poll_array()[fd].revents & POLLIN) // fd ready for reading
 		{
+			std::cout << fd << " if ready to read" << std::endl;
 			e_fd_type fd_type = table[fd].type;
 
 			if (fd_type == fd_listen_socket)
@@ -36,6 +37,7 @@ int do_io(FdManager &table)
 		}
 		if (table.get_poll_array()[fd].revents & POLLOUT) // fd ready for writing
 		{
+			std::cout << fd << " if ready to write" << std::endl;
 			e_fd_type fd_type = table[fd].type;
 
 			if (fd_type == fd_client_socket)

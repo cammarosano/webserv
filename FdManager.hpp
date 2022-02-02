@@ -17,9 +17,9 @@ struct fd_info
 {
 	e_fd_type		type;
 	Client 			*client;
-	HttpResponse	*response;
+	bool			is_EOF;
 
-	fd_info(): type(fd_none), client(NULL), response(NULL) {}
+	fd_info(): type(fd_none), client(NULL), is_EOF(false) {}
 };
 
 class FdManager
@@ -43,7 +43,7 @@ public:
 	pollfd	*get_poll_array();
 	void 	add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
 	void 	add_client_socket(int client_socket, int listen_socket);
-	void 	add_file_fd(int file_fd, Client &client, HttpResponse &response);
+	void 	add_file_fd(int file_fd, Client &client);
 	void 	remove_fd(int fd);
 
 	void	set_pollout(int fd);
