@@ -66,7 +66,7 @@ int get_request_body(Client &client)
 	client.processed_data += body_str;
 
 	if (client.body_bytes_left == 0)
-		client.recv_state = get_header;
+		client.state = recv_header;
 
 
 	// debug
@@ -90,9 +90,9 @@ int process_incoming_data(FdManager &table, std::queue<HttpRequest> &requests)
 
 		if (client.received_data.empty())
 			continue;
-		if (client.recv_state == get_header)
+		if (client.state == recv_header)
 			get_request_header(client, requests);
-		else if (client.recv_state == get_body)
+		else if (client.state == handling_response)
 			get_request_body(client);
 
 		// todo: recv_state = get_body	??	

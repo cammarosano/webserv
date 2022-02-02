@@ -30,12 +30,10 @@
 
 // forward declaration
 class FdManager;
+class ARequestHandler;
 
 // states
-enum e_recv_state
-{
-	get_header, get_body
-};
+
 
 enum e_response_state
 {
@@ -84,23 +82,15 @@ struct Vserver
 
 struct HttpResponse
 {
-	e_response_state state;
-
-	// Http header
 	// status-line
 	std::string http_version, status_code_phrase;
 	// header-fields
 	std::map<std::string, std::string> header_fields;
-	// complete header
-	std::string header_str;
+};
 
-	// Ressources
-	e_body_source source_type;	
-	// file or cgi
-	int fd_read;
-	// size_t bytes_left;
-
-	HttpResponse(): state(sending_header) {}
+enum e_client_state
+{
+	recv_header, handling_response
 };
 
 struct Client
@@ -108,27 +98,30 @@ struct Client
 	int socket; // only needed for debugging pourposes?
 	std::list<Vserver> &vservers;
 
-	e_recv_state recv_state;
+	e_client_state state;
+
+	// buffers
 	std::string received_data;
 	std::string unsent_data;
-
-	// info needed for when receiving the body
-	int body_bytes_left;
 	std::string processed_data;
 
-	std::queue<HttpResponse> response_q;
+	// ongoing response
+	ARequestHandler *ongoing_response;
 
+	// initialization
 	Client(int socket, std::list<Vserver> &vservers):
-	socket(socket), vservers(vservers), recv_state(get_header) {}
+	socket(socket), vservers(vservers), state(recv_header),
+	ongoing_response(NULL) {}
 
 };
 
 struct HttpRequest
 {
 	Client &client;
+	Vserver *vserver; // resolved
+	Route	*route; // resolved
 	std::string method, target, http_version;
 	std::map<std::string, std::string> header_fields;
-	std::string body;
 
 	HttpRequest(Client &client): client(client) {}
 };

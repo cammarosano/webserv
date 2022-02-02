@@ -1,4 +1,5 @@
 #include "FdManager.hpp"
+#include "ARequestHandler.hpp"
 
 FdManager::FdManager(): capacity(10)
 {
@@ -108,17 +109,8 @@ void FdManager::add_file_fd(int file_fd, Client &client)
 // change this after Response class has been changed
 void	FdManager::free_client_ressources(Client *client)
 {
-	while (!client->response_q.empty())
-	{
-		HttpResponse &response = client->response_q.front();
-		if (response.source_type == file)
-		{
-			close(response.fd_read);
-			remove_fd(response.fd_read);
-		}
-		// TODO: cgi stuff
-		client->response_q.pop();
-	}
+	if (client->state == handling_response)
+		client->ongoing_response->abort();
 	delete client;
 }
 

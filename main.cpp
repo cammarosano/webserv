@@ -1,5 +1,6 @@
 #include "includes.hpp"
 #include "FdManager.hpp"
+#include "ARequestHandler.hpp"
 
 int do_io(FdManager &table)
 {
@@ -50,16 +51,15 @@ int do_io(FdManager &table)
 
 int main(void)
 {
-	FdManager				table;
-	std::queue<HttpRequest>	requests_queue;
+	FdManager					table;
+	std::list<ARequestHandler*>	req_handlers_lst;
 
 	setup(table);
 	while (1)
 	{
 		do_io(table);
 
-		// raw-data -> request header (Resquest object) or payload (processed_data)
-		process_incoming_data(table, requests_queue);
+		// check for new requests
 		handle_requests(requests_queue); // creates responses
 		handle_responses(table);
 	}

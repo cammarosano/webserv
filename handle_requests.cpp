@@ -31,7 +31,7 @@ int handle_post_request(HttpRequest &request, Vserver &vserver, Route &route)
 	(void)vserver;
 	(void)route;
 
-	request.client.recv_state = get_body;
+	request.client.state = handling_response;
 
 	// for now, assuming content-length is present
 	int size = atoi(request.header_fields["content-length"].c_str());

@@ -36,7 +36,7 @@ void transfer_qstring_to_buffer(Client &client, HttpResponse &response,
 	table.set_pollout(client.socket);
 	
 	// I probably need a state for the processed data buffer
-	if (client.recv_state != get_body && client.processed_data.empty())
+	if (client.state != handling_response && client.processed_data.empty())
 		response.state = done;
 }
 
