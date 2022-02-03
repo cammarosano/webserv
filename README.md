@@ -8,5 +8,9 @@ Not much error checking/handling. Http response headers very incomplete.
 <br>
 <br>
 <br>
+### What is does:
 ![img](web_root/imgs/get_static.png)
+
+### What it shall do:
+![img](web_root/imgs/all.png)
 
