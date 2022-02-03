@@ -1,34 +1,12 @@
 #include "includes.hpp"
 #include "FdManager.hpp"
 #include "StaticRH.hpp"
-
-// this parser must be improved: check errors...
-int parse_header(std::string &header_str, HttpRequest &request)
-{
-	std::istringstream	stream(header_str);
-
-	stream >> request.method;
-	stream >> request.target;
-	stream >> request.http_version;
-	
-	while (!stream.eof())
-	{
-		std::string line;
-		getline(stream, line);
-		size_t delimiter_pos = line.find(':');
-		if (delimiter_pos == std::string::npos) 
-			continue;
-		std::string field_name = line.substr(0, delimiter_pos);
-		str_tolower(field_name);
-		std::string field_value = line.substr(delimiter_pos + 1);
-		remove_trailing_spaces(field_value);
-		request.header_fields[field_name] = field_value;
-	}
-	return (0);
-}
+#include "HttpRequest.hpp"
 
 // extracts data from the client's received_data buffer into a HttpRequest object
 // return NULL if buffer does not contain a complete request header
+// TODO: watch out for request bodies that end with an empty line
+// eventual trailing CRLF must be removed!!
 HttpRequest * new_HttpRequest(Client &client)
 {
 	// look for end-of-header delimiter: 2CRLF
@@ -46,23 +24,12 @@ HttpRequest * new_HttpRequest(Client &client)
 				<< header_str << "\n" << std::endl;
 	
 	// create HttpRequest object
-	HttpRequest *request = new HttpRequest(client);
-
-	// parse header into a new Request
-	parse_header(header_str, *request);
-
-	return (request);
+	return new HttpRequest(client, header_str);
 }
 
+// resolve type of response: static of CGI
 ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 {
-	// resolve vserver and route
-	// TODO: transform these into methods of HttpRequest
-	Vserver &vserver = resolve_vserver(request);
-	request.vserver = &vserver;
-	request.route = resolve_route(vserver, request.target);
-
-	// resolve type
 	e_rhtype type;
 
 	// TODO. for now, type is t_static

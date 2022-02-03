@@ -4,9 +4,13 @@ receive body of a POST request (read RFF: is GET always without body? is Post al
 
 CGI!
 
-break down handle_get_request function into smaller functions
+Python tests
 
-Response: add a field for keep-alive or not.
+Parse config file
+
+Time out inactive clients
+
+Response: handle keep-alive or not.
 
 uri... case sensitive??
 
@@ -16,27 +20,14 @@ test nginx and see what happens when no route matches
 
 accept a simple line break too, be more tolerant (instead of CRLF)
 
-do a overload of set_pollout to accept Client & too.
+do an overload of set_pollout to accept Client & too.
 
 Notes:
-process_incoming_data could be moved to inside the io loop
-	so we can get rid of the for-loop in the clients_map
-	(but it might degradate readability of the code)
 
-if a client's response grows too big, we should stop receiving data (new requests) from it
-
-consider switching off POLLIN when the unprocessed_data buffer if full
-
+consider switching off POLLIN when the received_data buffer if full
 
 OBS: buffer size must be big enough to fit a http-header
 
 Optimizations:
 
-
 count fd's in the poll loop in order to stop it sooner.
-
-when is poll array used:
-	- client is added
-	- fd ressource is added
-	- client read() returns 0
-	- data is read from

@@ -83,6 +83,7 @@ void StaticRH::setup_200_response(struct stat &sb)
 	assemble_header_str();
 }
 
+// TODO: check if vserver does not have a different default_403 page
 void StaticRH::setup_403_response()
 {
 	struct stat sb;

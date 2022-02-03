@@ -31,20 +31,7 @@
 // forward declaration
 class FdManager;
 class ARequestHandler;
-
-// states
-
-
-enum e_response_state
-{
-	sending_header, start_send_file, sending_file, send_file_complete, done,
-	sending_qstring // experimental!
-};
-
-enum e_body_source
-{
-	none, file, qstring
-};
+struct HttpRequest;
 
 // structs
 
@@ -69,6 +56,7 @@ struct Route
 };
 
 typedef	std::pair<std::string, unsigned short> ip_port;
+
 struct Vserver
 {
 	ip_port					listen;
@@ -115,18 +103,6 @@ struct Client
 
 };
 
-struct HttpRequest
-{
-	Client &client;
-	Vserver *vserver; // resolved
-	Route	*route; // resolved
-	std::string method, target, http_version;
-	std::map<std::string, std::string> header_fields;
-
-	HttpRequest(Client &client): client(client) {}
-};
-
-
 // function prototypes
 
 // setup
@@ -138,10 +114,6 @@ int accept_connection(int listen_socket, FdManager &table);
 int recv_from_client(int socket, FdManager &table);
 int read_from_file(int fd_file, FdManager &table);
 int send_to_client(int socket, FdManager &table);
-
-// resolving
-Vserver & resolve_vserver(HttpRequest &request);
-Route * resolve_route(Vserver &vserver, std::string &request_target);
 
 // process requests
 int check4new_requests(FdManager &table,

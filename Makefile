@@ -5,12 +5,12 @@ SRC =	accept_connection.cpp \
 		io.cpp \
 		listening_socket.cpp \
 		main.cpp \
-		resolve_vserver_route.cpp \
+		HttpRequest.cpp \
 		setup.cpp \
 		StaticRH.cpp \
 		utils.cpp
 
-HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp
+HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp HttpRequest.hpp
 HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)

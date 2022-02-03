@@ -1,4 +1,5 @@
 #include "includes.hpp"
+#include "HttpRequest.hpp"
 
 std::string long_to_str(long nb)
 {

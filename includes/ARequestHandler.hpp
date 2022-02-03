@@ -3,6 +3,7 @@
 
 # include "includes.hpp"
 # include "FdManager.hpp"
+# include "HttpRequest.hpp"
 
 enum e_rhstate
 {
