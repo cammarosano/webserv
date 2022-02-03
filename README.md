@@ -36,3 +36,8 @@ HTTP tuto if you're still scared of diving into the RFCs:
 And CGI! (short read)
 [CGI Made Really Easy](https://www.jmarshall.com/easy/cgi/)
 
+Asking ~~Paul~~ poll() which file descriptors are ready for reading/writing:
+[IBM - Using poll()](https://www.ibm.com/docs/en/i/7.2?topic=designs-using-poll-instead-select)
+
+The real deal:
+[RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230)
