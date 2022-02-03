@@ -106,7 +106,6 @@ void FdManager::add_file_fd(int file_fd, Client &client)
 	fd_set.insert(file_fd);
 }
 
-// change this after Response class has been changed
 void	FdManager::free_client_ressources(Client *client)
 {
 	if (client->state == handling_response)
@@ -114,7 +113,6 @@ void	FdManager::free_client_ressources(Client *client)
 	delete client;
 }
 
-// close() fd as well
 void FdManager::remove_fd(int fd)
 {
 	if (fd_table[fd].type == fd_client_socket)

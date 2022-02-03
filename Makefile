@@ -1,21 +1,22 @@
 SRC =	accept_connection.cpp \
+		ARequestHandler.cpp \
+		check4new_requests.cpp \
 		FdManager.cpp \
-		handle_requests.cpp \
-		handle_responses.cpp \
 		io.cpp \
 		listening_socket.cpp \
 		main.cpp \
-		process_data.cpp \
 		resolve_vserver_route.cpp \
-		responses.cpp \
 		setup.cpp \
+		StaticRH.cpp \
 		utils.cpp
 
-HEADER =	includes.hpp FdManager.hpp
+HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp
+HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)
 CC = clang++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
+INCLUDES = -I includes
 NAME = webserv
 
 all:	$(NAME)
@@ -23,8 +24,8 @@ all:	$(NAME)
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@
 
-%.o:		%.cpp $(HEADER)
-			$(CC) $(CFLAGS) -c $< -o $@
+%.o:		%.cpp $(HEADERS)
+			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
 			rm -f $(OBJ)

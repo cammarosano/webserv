@@ -12,9 +12,6 @@ int do_io(FdManager &table)
 	// call poll()
 	poll_ret = poll(table.get_poll_array(), table.len(), -1);
 
-	// debug
-	std::cout << "poll() returned " << poll_ret << std::endl;
-
 	if (poll_ret == -1)
 	{
 		perror("poll");
@@ -25,7 +22,6 @@ int do_io(FdManager &table)
 	{
 		if (table.get_poll_array()[fd].revents & POLLIN) // fd ready for reading
 		{
-			std::cout << fd << " if ready to read" << std::endl;
 			e_fd_type fd_type = table[fd].type;
 
 			if (fd_type == fd_listen_socket)
@@ -38,13 +34,43 @@ int do_io(FdManager &table)
 		}
 		if (table.get_poll_array()[fd].revents & POLLOUT) // fd ready for writing
 		{
-			std::cout << fd << " if ready to write" << std::endl;
 			e_fd_type fd_type = table[fd].type;
 
 			if (fd_type == fd_client_socket)
 				send_to_client(fd, table);
 			// TODO: cgi_in
 		}
+	}
+	return (0);
+}
+
+int handle_requests(std::list<ARequestHandler*> &list)
+{
+	std::list<ARequestHandler*>::iterator it;
+	int ret;;
+
+	// iterate over list of request handlers
+	it = list.begin();
+	while (it != list.end())
+	{
+		ARequestHandler *req_handler = *it;
+		// do response actions
+		ret = req_handler->respond();
+		if (ret == 1) // finished successfully
+		{
+			// free memory, update client's state and remove from list
+			req_handler->getClient().state = recv_header;
+			delete req_handler;
+			it = list.erase(it); // returns iterator to next elem of list
+		}
+		else if (ret == -1) // aborted due to connection closed
+		{
+			// client object does not exist anymore
+			delete req_handler;
+			it = list.erase(it);
+		}
+		else // ret == 0: response is not yet finished
+			++it;
 	}
 	return (0);
 }
@@ -60,8 +86,10 @@ int main(void)
 		do_io(table);
 
 		// check for new requests
-		handle_requests(requests_queue); // creates responses
-		handle_responses(table);
+		check4new_requests(table, req_handlers_lst);
+
+		// handle requests
+		handle_requests(req_handlers_lst);
 	}
 
 	return (0);

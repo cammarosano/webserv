@@ -6,7 +6,8 @@
 
 enum e_rhstate
 {
-	s_setup, s_sending_header, s_start_send_file, s_sending_file, s_done
+	s_setup, s_sending_header, s_start_send_file, s_sending_file, s_done,
+	s_abort
 };
 
 enum e_rhtype
@@ -19,28 +20,19 @@ enum e_rhtype
 class ARequestHandler
 {
 protected:
-	int			type; // static , cgi_get, cgi_post
+	// int			type; // static , cgi_get, cgi_post
 	e_rhstate	state;
 	HttpRequest	*request;
 	FdManager	&table;
 
 public:
 	ARequestHandler(HttpRequest *request, FdManager &table);
-	~ARequestHandler();
+	virtual ~ARequestHandler();
 
 	virtual int respond() = 0;
 	virtual void abort() = 0;
+
+	Client & getClient();
 };
-
-ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table):
-request(request), table(table)
-{
-}
-
-ARequestHandler::~ARequestHandler()
-{
-	delete request;
-}
-
 
 #endif

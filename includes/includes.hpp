@@ -139,27 +139,19 @@ int recv_from_client(int socket, FdManager &table);
 int read_from_file(int fd_file, FdManager &table);
 int send_to_client(int socket, FdManager &table);
 
-// process
-int process_incoming_data(FdManager &table, std::queue<HttpRequest> &requests);
-int handle_requests(std::queue<HttpRequest> &q);
-int handle_responses(FdManager &table);
-
 // resolving
 Vserver & resolve_vserver(HttpRequest &request);
 Route * resolve_route(Vserver &vserver, std::string &request_target);
 
-// responses
-int issue_404_response(HttpRequest &request);
-int issue_403_response(HttpRequest &request);
-int issue_200_response(HttpRequest &request, int fd_file, struct stat &sb);
+// process requests
+int check4new_requests(FdManager &table,
+						std::list<ARequestHandler*> &req_handlers_lst);
+int handle_requests(std::list<ARequestHandler*> &list);
 
 // utils
 std::string long_to_str(long nb);
 std::string & str_tolower(std::string &s);
 void print_request(HttpRequest &request);
 std::string & remove_trailing_spaces(std::string &s);
-
-// weird stuff
-int issue_200_post_resp(HttpRequest &request, int payload_size);
 
 #endif

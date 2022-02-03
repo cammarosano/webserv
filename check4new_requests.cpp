@@ -92,6 +92,7 @@ int check4new_requests(FdManager &table,
 		ARequestHandler *req_handler = init_response(*request, table);
 		req_handlers_lst.push_back(req_handler);
 		client.state = handling_response;
+		client.ongoing_response = req_handler;
 	}
 	return (0);
 }

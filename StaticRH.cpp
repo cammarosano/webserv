@@ -1,8 +1,9 @@
 #include "StaticRH.hpp"
 
 StaticRH::StaticRH(HttpRequest *request, FdManager &table):
-ARequestHandler(request, table)
+ARequestHandler(request, table) 
 {
+	state = s_setup;
 }
 
 StaticRH::~StaticRH()
@@ -27,7 +28,6 @@ void StaticRH::setup()
 {
 	std::string ressource_path;
 	struct stat sb;
-	int fd;
 
 	// assemble ressource_path
 	if (request->route == NULL)
@@ -86,16 +86,13 @@ void StaticRH::setup_200_response(struct stat &sb)
 void StaticRH::setup_403_response()
 {
 	struct stat sb;
-	char *default_403_page;
 
-	default_403_page = "error_pages/403.html";
-
-	fd_file = open(default_403_page, O_RDONLY);
+	fd_file = open(DEFAULT_403_PAGE, O_RDONLY);
 	if (fd_file == -1) // TODO: handle this
 	{
 		perror("open() default 403 page");
 	}
-	if (stat(default_403_page, &sb) == -1) // TODO: handle this
+	if (stat(DEFAULT_403_PAGE, &sb) == -1) // TODO: handle this
 	{
 		perror("stat() default 403 page");
 	}
@@ -109,16 +106,13 @@ void StaticRH::setup_403_response()
 void StaticRH::setup_404_response()
 {
 	struct stat sb;
-	char *default_404_page;
 
-	default_404_page = "error_pages/404.html";
-
-	fd_file = open(default_404_page, O_RDONLY);
+	fd_file = open(DEFAULT_404_PAGE, O_RDONLY);
 	if (fd_file == -1) // TODO: handle this
 	{
 		perror("open() default 404 page");
 	}
-	if (stat(default_404_page, &sb) == -1) // TODO: handle this
+	if (stat(DEFAULT_404_PAGE, &sb) == -1) // TODO: handle this
 	{
 		perror("stat() default 404 page");
 	}
@@ -147,7 +141,9 @@ int StaticRH::send_header()
 }
 
 // perform the necessary sequence of steps to respond to a request
-// returns 1 if response if complete, 0 otherwise
+// returns 1 if response if complete
+// 0 if response not yet complete
+// -1 if response was aborted
 int StaticRH::respond()
 {
 	if (state == s_setup) // this could be moved to the constructor
@@ -176,7 +172,8 @@ int StaticRH::respond()
 	}
 	if (state == s_done)
 		return (1);
-
+	if (state == s_abort)
+		return (-1);
 	return (0);
 }
 
@@ -185,5 +182,5 @@ int StaticRH::respond()
 void StaticRH::abort()
 {
 	table.remove_fd(fd_file);
-	state == s_done; // so it can be removed from the list of request_handlers
+	state = s_abort; // so it can be removed from the list of request_handlers
 }
