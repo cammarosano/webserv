@@ -27,17 +27,42 @@ HttpRequest * new_HttpRequest(Client &client)
 	return new HttpRequest(client, header_str);
 }
 
-// resolve type of response: static of CGI
+// request.route cannot be NULL
+std::string assemble_ressource_path(HttpRequest &request)
+{
+	std::string route_root = request.route->root;
+	std::string route_prefix = request.route->prefix;
+	std::string path = route_root + '/' + 
+						request.target.substr(route_prefix.length());
+	// debug
+	std::cout << "ressource path: " << path << std::endl;
+
+	return (path);
+
+}
+
+// resolve type of response: static_file, CGI, directory, error...
 ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 {
-	e_rhtype type;
+	std::string resource_path;
+	struct stat sb;
 
-	// TODO. for now, type is t_static
-	type = t_static;
+	// assemble ressource path
+	if (!request.route)
+		return (NULL); // todo new ErrorRH(404);
+	resource_path = assemble_ressource_path(request);
 
-	// if (type == t_static)
+	// check if ressource is available
+	if (stat(resource_path.c_str(), &sb) == -1) // not found
+		return (NULL); // todo new ErrorRH(404);
+	
+	// check if it is a directory
+	if (S_ISDIR(sb.st_mode)) // is a directory
+		return (NULL); // todo new DirectoryRH
+	
+	// TODO: check if CGI response (match extension)
 
-	return (new StaticRH(&request, table));
+	return (new StaticRH(&request, table, resource_path));
 }
 
 int check4new_requests(FdManager &table,

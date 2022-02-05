@@ -1,7 +1,9 @@
 #include "StaticRH.hpp"
 
-StaticRH::StaticRH(HttpRequest *request, FdManager &table):
-ARequestHandler(request, table) 
+// TODO: receive ressource_path as a parameter
+StaticRH::StaticRH(HttpRequest *request, FdManager &table,
+	std::string &resource_path):
+ARequestHandler(request, table), resource_path(resource_path)
 {
 	state = s_setup;
 }
@@ -10,52 +12,27 @@ StaticRH::~StaticRH()
 {
 }
 
-std::string StaticRH::assemble_ressource_path() const
-{
-	std::string route_root = request->route->root;
-	std::string route_prefix = request->route->prefix;
-	std::string path = route_root + '/' + 
-						request->target.substr(route_prefix.length());
-	// debug
-	std::cout << "ressource path: " << path << std::endl;
-
-	return (path);
-
-}
-
 // get fd for ressource, generate response header
-void StaticRH::setup()
+// TODO: FIX THIS MESS
+int StaticRH::setup()
 {
-	std::string ressource_path;
-	struct stat sb;
-
-	// assemble ressource_path
-	if (request->route == NULL)
-	{
-		setup_404_response();
-		return;
-	}
-	ressource_path = assemble_ressource_path();
-
-	// check if ressource is available
-	if (stat(ressource_path.c_str(), &sb) == -1) // not found 
-	{
-		setup_404_response();
-		return;
-	}
-	if (S_ISDIR(sb.st_mode)) // is a directory
-	{
-		setup_403_response(); // for now, no directory listing
-		return;
-	}
-	fd_file = open(ressource_path.c_str(), O_RDONLY); // no access
+	fd_file = open(resource_path.c_str(), O_RDONLY); // no access
 	if (fd_file == -1)
 	{
-		setup_403_response();
-		return;
+		// TODO, handle this
+		return -1;
 	}
 
-	setup_200_response(sb);
+	struct stat sb;
+
+	stat(resource_path.c_str(), &sb); // todo: handle error
+	response.http_version = "HTTP/1.1";
+	response.status_code_phrase = "200 OK";
+	response.header_fields["content-length"] = long_to_str(sb.st_size);
+	// TODO: and many other header_fields here.....
+	assemble_header_str();
+
+	return (0); // ok
 }
 
 void StaticRH::assemble_header_str()
@@ -74,54 +51,7 @@ void StaticRH::assemble_header_str()
 	header_str += "\r\n";
 }
 
-void StaticRH::setup_200_response(struct stat &sb)
-{
-	response.http_version = "HTTP/1.1";
-	response.status_code_phrase = "200 OK";
-	response.header_fields["content-length"] = long_to_str(sb.st_size);
-	// TODO: and many other header_fields here.....
-	assemble_header_str();
-}
 
-// TODO: check if vserver does not have a different default_403 page
-void StaticRH::setup_403_response()
-{
-	struct stat sb;
-
-	fd_file = open(DEFAULT_403_PAGE, O_RDONLY);
-	if (fd_file == -1) // TODO: handle this
-	{
-		perror("open() default 403 page");
-	}
-	if (stat(DEFAULT_403_PAGE, &sb) == -1) // TODO: handle this
-	{
-		perror("stat() default 403 page");
-	}
-	response.http_version = "HTTP/1.1";
-	response.status_code_phrase = "403 Forbidden";
-	response.header_fields["content-length"] = long_to_str(sb.st_size);
-	assemble_header_str();
-}
-
-// ! repeated code ! TODO: refactor this...
-void StaticRH::setup_404_response()
-{
-	struct stat sb;
-
-	fd_file = open(DEFAULT_404_PAGE, O_RDONLY);
-	if (fd_file == -1) // TODO: handle this
-	{
-		perror("open() default 404 page");
-	}
-	if (stat(DEFAULT_404_PAGE, &sb) == -1) // TODO: handle this
-	{
-		perror("stat() default 404 page");
-	}
-	response.http_version = "HTTP/1.1";
-	response.status_code_phrase = "404 Not Found";
-	response.header_fields["content-length"] = long_to_str(sb.st_size);
-	assemble_header_str();
-}
 
 // transfer header_str to Client's unsent_data buffer
 // return 1 if complete, 0 if incomplete
@@ -150,6 +80,7 @@ int StaticRH::respond()
 	if (state == s_setup) // this could be moved to the constructor
 	{
 		setup();
+		// TODO: handle errors
 		state = s_sending_header;
 	}
 	if (state == s_sending_header)

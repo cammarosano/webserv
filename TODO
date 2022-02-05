@@ -1,3 +1,8 @@
+class ErrorRH : public ARequestHandler
+
+	ErrorRH(int error_code, ...)
+
+
 receive body of a POST request (read RFF: is GET always without body? is Post always with body?)
 	first, just store it as an uploaded file
 	then, send body content to a CGI script

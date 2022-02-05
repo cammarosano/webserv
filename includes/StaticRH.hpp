@@ -13,17 +13,17 @@ private:
 	int	fd_file;
 	std::string header_str;
 	HttpResponse response;
+	std::string resource_path;
 
-	void setup();
-	void setup_404_response();
-	void setup_403_response();
-	void setup_200_response(struct stat &sb);
-	std::string assemble_ressource_path() const;
+	int setup();
+
+protected:
 	void assemble_header_str();
 	int send_header();
 
 public:
-	StaticRH(HttpRequest *request, FdManager &table);
+	StaticRH(HttpRequest *request, FdManager &table,
+				std::string &resource_path);
 	~StaticRH();
 
 	virtual int respond();
