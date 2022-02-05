@@ -8,8 +8,6 @@ ARequestHandler(request, table)
 
 StaticRH::~StaticRH()
 {
-	close(fd_file);
-	table.remove_fd(fd_file);
 }
 
 std::string StaticRH::assemble_ressource_path() const
@@ -169,6 +167,8 @@ int StaticRH::respond()
 	{
 		if (table[fd_file].is_EOF)
 		{
+			close(fd_file);
+			table.remove_fd(fd_file);
 			state = s_done;
 		}
 	}
@@ -180,8 +180,10 @@ int StaticRH::respond()
 }
 
 // to be used in case of abrubt connection close from the client side
-// clear ressources and change state to s_done
+// clear ressources and change state
 void StaticRH::abort()
 {
+	close(fd_file);
+	table.remove_fd(fd_file);
 	state = s_abort; // so it can be removed from the list of request_handlers
 }

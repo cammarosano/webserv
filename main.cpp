@@ -47,7 +47,7 @@ int do_io(FdManager &table)
 int handle_requests(std::list<ARequestHandler*> &list)
 {
 	std::list<ARequestHandler*>::iterator it;
-	int ret;;
+	int ret;
 
 	// iterate over list of request handlers
 	it = list.begin();
@@ -56,21 +56,19 @@ int handle_requests(std::list<ARequestHandler*> &list)
 		ARequestHandler *req_handler = *it;
 		// do response actions
 		ret = req_handler->respond();
-		if (ret == 1) // finished successfully
+		if (ret == 0) // response not yet finished
+			++it;
+		else
 		{
-			// free memory, update client's state and remove from list
-			req_handler->getClient().state = recv_header;
+			if (ret == 1) // finished successfully
+				// update Client's state
+				req_handler->getRequest()->client.state = recv_header;
+
+			// free memory (request and req handler) and remove rh from list
+			delete req_handler->getRequest();
 			delete req_handler;
 			it = list.erase(it); // returns iterator to next elem of list
 		}
-		else if (ret == -1) // aborted due to connection closed
-		{
-			// client object does not exist anymore
-			delete req_handler;
-			it = list.erase(it);
-		}
-		else // ret == 0: response is not yet finished
-			++it;
 	}
 	return (0);
 }

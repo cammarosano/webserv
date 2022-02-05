@@ -16,12 +16,9 @@ enum e_rhtype
 	t_static, t_cgi
 };
 
-// construction takes a pointer to heap allocated HttpRequest, which is freed
-// upon destruction
 class ARequestHandler
 {
 protected:
-	// int			type; // static , cgi_get, cgi_post
 	e_rhstate	state;
 	HttpRequest	*request;
 	FdManager	&table;
@@ -33,7 +30,7 @@ public:
 	virtual int respond() = 0;
 	virtual void abort() = 0;
 
-	Client & getClient();
+	HttpRequest * getRequest();
 };
 
 #endif

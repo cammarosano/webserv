@@ -7,10 +7,9 @@ request(request), table(table)
 
 ARequestHandler::~ARequestHandler()
 {
-	delete request;
 }
 
-Client & ARequestHandler::getClient()
+HttpRequest * ARequestHandler::getRequest()
 {
-	return request->client;
+	return request;
 }
