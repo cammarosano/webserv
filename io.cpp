@@ -1,5 +1,9 @@
 #include "includes.hpp"
 #include "FdManager.hpp"
+#include "ARequestHandler.hpp"
+
+// TODO: small functions: clear_client()
+
 
 // 1: ok
 // 0: connection closed by the client
@@ -22,9 +26,15 @@ int recv_from_client(int socket, FdManager &table)
 	}
 	if (recvd_bytes == 0) // connection closed by the client
 	{
+		// clear Client
+		close(socket);
+		// Obs: request handler must clear clients ressources
+		if (client.state == handling_response)
+			client.ongoing_response->abort();
+		delete &client;
 		table.remove_fd(socket);
 
-		// debug
+		// debug // TODO: include client's address in the Client struct
 		std::cout << "Connection at socket " << socket
 				<< " was closed by the client " << std::endl;
 

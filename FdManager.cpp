@@ -74,14 +74,13 @@ void FdManager::add_listen_socket(int listen_socket,
 	fd_set.insert(listen_socket);
 }
 
-void FdManager::add_client_socket(int client_socket, int listen_socket)
+void FdManager::add_client_socket(int client_socket, Client *client)
 {
 	if (client_socket >= capacity)
 		reallocate();
 	
 	fd_table[client_socket].type = fd_client_socket;
-	fd_table[client_socket].client = new Client(client_socket,
-												vservers_map[listen_socket]);
+	fd_table[client_socket].client = client;
 
 	poll_array[client_socket].fd = client_socket;
 	poll_array[client_socket].events = POLLIN;
@@ -106,19 +105,9 @@ void FdManager::add_file_fd(int file_fd, Client &client)
 	fd_set.insert(file_fd);
 }
 
-void	FdManager::free_client_ressources(Client *client)
-{
-	if (client->state == handling_response)
-		client->ongoing_response->abort();
-	delete client;
-}
-
 void FdManager::remove_fd(int fd)
 {
-	if (fd_table[fd].type == fd_client_socket)
-		free_client_ressources(fd_table[fd].client);
-
-	close(fd);
+	// todo: request handler or do_io must close de fd
 
 	fd_table[fd].type = fd_none;
 	fd_table[fd].client = NULL;
@@ -143,4 +132,9 @@ void	FdManager::set_pollout(int fd)
 void	FdManager::unset_pollout(int fd)
 {
 	poll_array[fd].events &= ~POLLOUT;
+}
+
+std::list<Vserver> & FdManager::get_vserver_lst(int listen_socket)
+{
+	return vservers_map[listen_socket];
 }

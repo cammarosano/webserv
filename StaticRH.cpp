@@ -8,6 +8,8 @@ ARequestHandler(request, table)
 
 StaticRH::~StaticRH()
 {
+	close(fd_file);
+	table.remove_fd(fd_file);
 }
 
 std::string StaticRH::assemble_ressource_path() const
@@ -167,7 +169,6 @@ int StaticRH::respond()
 	{
 		if (table[fd_file].is_EOF)
 		{
-			table.remove_fd(fd_file);
 			state = s_done;
 		}
 	}
@@ -182,6 +183,5 @@ int StaticRH::respond()
 // clear ressources and change state to s_done
 void StaticRH::abort()
 {
-	table.remove_fd(fd_file);
 	state = s_abort; // so it can be removed from the list of request_handlers
 }

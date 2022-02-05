@@ -18,7 +18,11 @@ int accept_connection(int listen_socket, FdManager &table)
 	}
 
 	// create Client
-	table.add_client_socket(client_socket, listen_socket);
+	Client *client = new Client(client_socket,
+						table.get_vserver_lst(listen_socket));
+	
+	// add to table
+	table.add_client_socket(client_socket, client);
 
 	// log to terminal
 	std::cout << "Connection accepted. Client socket: "
