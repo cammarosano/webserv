@@ -10,16 +10,23 @@
 class ErrorRH: public ARequestHandler
 {
 private:
-	int fd_file;
+	int error_code;
+	std::string html_page;
 
 	int setup();
+	void generate_error_page();
+	int send_html_str();
+
+	static std::map<int, std::string> reason_phrases;
 
 public:
-	ErrorRH(HttpRequest *request, FdManager &table);
+	ErrorRH(HttpRequest *request, FdManager &table, int error_code);
 	~ErrorRH();
 
 	virtual int respond();
 	virtual void abort();
+
+	static std::map<int, std::string> init_map();
 
 };
 
