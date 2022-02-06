@@ -1,23 +1,20 @@
-#include "StaticRH.hpp"
+#include "ErrorRH.hpp"
 
-// TODO: receive ressource_path as a parameter
-StaticRH::StaticRH(HttpRequest *request, FdManager &table,
-	std::string &resource_path):
-ARequestHandler(request, table), resource_path(resource_path)
+ErrorRH::ErrorRH(HttpRequest *request, FdManager &table):
+ARequestHandler(request, table)
 {
 	state = s_setup;
 }
 
-StaticRH::~StaticRH()
+ErrorRH::~ErrorRH()
 {
 }
 
-// get fd for ressource, generate response header
-// TODO: FIX THIS MESS
-int StaticRH::setup()
+// TODO: default page, different errors codes...
+int ErrorRH::setup()
 {
-	fd_file = open(resource_path.c_str(), O_RDONLY); 
-	if (fd_file == -1) // no access
+	fd_file = open(DEFAULT_404_PAGE, O_RDONLY);
+	if (fd_file == -1) 
 	{
 		// TODO, handle this
 		return -1;
@@ -27,21 +24,20 @@ int StaticRH::setup()
 
 	fstat(fd_file, &sb); // todo: handle error
 	response.http_version = "HTTP/1.1";
-	response.status_code_phrase = "200 OK";
+	response.status_code_phrase = "404 Not Found";
 	response.header_fields["content-length"] = long_to_str(sb.st_size);
 	// TODO: and many other header_fields here.....
 	assemble_header_str();
 
-	return (0); // ok
+	return (0);
 }
 
-// perform the necessary sequence of steps to respond to a request
 // returns 1 if response if complete
 // 0 if response not yet complete
 // -1 if response was aborted
-int StaticRH::respond()
+int ErrorRH::respond()
 {
-	if (state == s_setup) // this could be moved to the constructor
+	if (state == s_setup)
 	{
 		setup();
 		// TODO: handle errors
@@ -74,9 +70,7 @@ int StaticRH::respond()
 	return (0);
 }
 
-// to be used in case of abrubt connection close from the client side
-// clear ressources and change state
-void StaticRH::abort()
+void ErrorRH::abort()
 {
 	close(fd_file);
 	table.remove_fd(fd_file);

@@ -1,6 +1,7 @@
 #include "includes.hpp"
 #include "FdManager.hpp"
 #include "StaticRH.hpp"
+#include "ErrorRH.hpp"
 #include "HttpRequest.hpp"
 
 // extracts data from the client's received_data buffer into a HttpRequest object
@@ -49,16 +50,16 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 
 	// assemble ressource path
 	if (!request.route)
-		return (NULL); // todo new ErrorRH(404);
+		return (new ErrorRH(&request, table)); // todo new ErrorRH(404);
 	resource_path = assemble_ressource_path(request);
 
 	// check if ressource is available
 	if (stat(resource_path.c_str(), &sb) == -1) // not found
-		return (NULL); // todo new ErrorRH(404);
+		return (new ErrorRH(&request, table)); // todo new ErrorRH(404);
 	
 	// check if it is a directory
 	if (S_ISDIR(sb.st_mode)) // is a directory
-		return (NULL); // todo new DirectoryRH
+		return (new ErrorRH(&request, table)); // todo new DirectoryRH
 	
 	// TODO: check if CGI response (match extension)
 

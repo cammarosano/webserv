@@ -11,17 +11,17 @@ enum e_rhstate
 	s_abort
 };
 
-enum e_rhtype
-{
-	t_static, t_cgi
-};
-
 class ARequestHandler
 {
 protected:
 	e_rhstate	state;
 	HttpRequest	*request;
 	FdManager	&table;
+	std::string header_str;
+	HttpResponse response;
+
+	void assemble_header_str();
+	int send_header();
 
 public:
 	ARequestHandler(HttpRequest *request, FdManager &table);

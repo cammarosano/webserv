@@ -1,6 +1,7 @@
 SRC =	accept_connection.cpp \
 		ARequestHandler.cpp \
 		check4new_requests.cpp \
+		ErrorRH.cpp \
 		FdManager.cpp \
 		io.cpp \
 		listening_socket.cpp \
@@ -10,7 +11,8 @@ SRC =	accept_connection.cpp \
 		StaticRH.cpp \
 		utils.cpp
 
-HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp HttpRequest.hpp
+HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
+		HttpRequest.hpp ErrorRH.hpp
 HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)
