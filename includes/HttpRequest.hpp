@@ -3,6 +3,12 @@
 
 # include "includes.hpp"
 
+/*
+Holds all info from the HEADER of an HTTP request.
+Upon construction, a string containing the header of a request is parsed,
+the virtual server is resolved (based on the "host" header-field) and the route
+is resolved (based on the "target" field).
+*/
 struct HttpRequest
 {
 	Client &client;

@@ -4,7 +4,9 @@
 # include "includes.hpp"
 # include "ARequestHandler.hpp"
 
-
+/*
+Request handler for serving a static file.
+*/
 class StaticRH: public ARequestHandler
 {
 private:

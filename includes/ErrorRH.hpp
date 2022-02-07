@@ -7,6 +7,9 @@
 # define DEFAULT_403_PAGE "error_pages/403.html"
 # define DEFAULT_404_PAGE "error_pages/404.html"
 
+/*
+Request handler for error responses
+*/
 class ErrorRH: public ARequestHandler
 {
 private:

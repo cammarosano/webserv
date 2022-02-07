@@ -11,6 +11,11 @@ enum e_rhstate
 	s_abort, s_sending_html_str
 };
 
+/* 
+Abstract class for request handlers
+Request handlers for a specific kind of response (ex: serve a static file)
+inherit from this class an define the respond() method
+*/
 class ARequestHandler
 {
 protected:

@@ -22,10 +22,16 @@ struct fd_info
 	fd_info(): type(fd_none), client(NULL), is_EOF(false) {}
 };
 
-// Keeps a table of fds (type, related client)
-// Takes care of the poll array
-// Does NOT do any ressource aquisition (new or open()) nor
-// freeing (delete or close())
+/*
+Keeps track of all opened file descriptors, their role (ex: client socket,
+listening socket, file in disk etc) and the Client to which it is
+related.
+A single instance of this class is used by the program.
+It also maintains the array used by poll().
+This class does not own any of these resources (Client objects or file 
+descriptors). It does not acquire (new, open) nor releases (delete, close)
+any of these resources.
+*/
 class FdManager
 {
 private:

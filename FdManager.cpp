@@ -13,6 +13,8 @@ FdManager::FdManager(): capacity(10)
 
 FdManager::~FdManager()
 {
+	delete[] poll_array;
+	delete[] fd_table;
 }
 
 void FdManager::reallocate()
