@@ -35,6 +35,7 @@ struct HttpRequest;
 
 // structs
 
+// equivalent to nginx's "location"
 struct Route
 {
 	std::string				prefix;	// location
@@ -57,6 +58,7 @@ struct Route
 
 typedef	std::pair<std::string, unsigned short> ip_port;
 
+// equivalent to nginx's "server"
 struct Vserver
 {
 	ip_port					listen;
