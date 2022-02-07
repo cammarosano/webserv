@@ -1,9 +1,4 @@
-class ErrorRH : public ARequestHandler
-
-	ErrorRH(int error_code, ...)
-
-
-receive body of a POST request (read RFF: is GET always without body? is Post always with body?)
+receive body of a POST request (read RFC: is GET always without body? is Post always with body?)
 	first, just store it as an uploaded file
 	then, send body content to a CGI script
 
@@ -12,6 +7,13 @@ CGI!
 Python tests
 
 Parse config file
+
+Expand ErrorRH:
+Error pages informed by the vserver
+
+class DirRH (directory response handler)
+Response when target is directory (seach for a default file or
+	generate a directory listing)
 
 Time out inactive clients
 
@@ -36,3 +38,29 @@ OBS: buffer size must be big enough to fit a http-header
 Optimizations:
 
 count fd's in the poll loop in order to stop it sooner.
+
+
+NOTES:
+
+Object ownership:
+
+	Client objects and sockets:
+		created/opened by accept_connection()
+		FdManager table holds a pointer to it
+		freed/closed by recv_from_client when connection is closed
+			by the client
+
+	HttpRequest objects:
+		created (allocated) by check4new_requests()
+		a request handler object holds a pointer to it
+		are freed by handle_requests() when response is complete
+
+	Request handlers:
+		created by init_response() (called by check4new_requests())
+		the req_handlers_lst holds a pointer to it
+		are freed by handle_requests() when response is complete
+	
+	Fd for files:
+		opened and closed by the request handler
+
+	FdManager does not own any object!

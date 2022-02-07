@@ -74,13 +74,13 @@ void FdManager::add_listen_socket(int listen_socket,
 	fd_set.insert(listen_socket);
 }
 
-void FdManager::add_client_socket(int client_socket, Client *client)
+void FdManager::add_client_socket(int client_socket, Client &client)
 {
 	if (client_socket >= capacity)
 		reallocate();
 	
 	fd_table[client_socket].type = fd_client_socket;
-	fd_table[client_socket].client = client;
+	fd_table[client_socket].client = &client;
 
 	poll_array[client_socket].fd = client_socket;
 	poll_array[client_socket].events = POLLIN;

@@ -45,7 +45,7 @@ public:
 	int		len() const;
 	pollfd	*get_poll_array();
 	void 	add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
-	void 	add_client_socket(int client_socket, Client *client);
+	void 	add_client_socket(int client_socket, Client &client);
 	void 	add_file_fd(int file_fd, Client &client);
 	void 	remove_fd(int fd);
 

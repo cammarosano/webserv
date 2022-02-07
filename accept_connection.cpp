@@ -22,7 +22,7 @@ int accept_connection(int listen_socket, FdManager &table)
 						table.get_vserver_lst(listen_socket));
 	
 	// add to table
-	table.add_client_socket(client_socket, client);
+	table.add_client_socket(client_socket, *client);
 
 	// log to terminal
 	std::cout << "Connection accepted. Client socket: "
