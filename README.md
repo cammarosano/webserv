@@ -15,6 +15,7 @@ Not much error checking/handling. Http response headers very incomplete.
 ![img](web_root/imgs/all.png)
 
 
+-------------------
 ## Resources 
 (credits to David for most of the links below)
 
@@ -43,6 +44,8 @@ Asking ~~Paul~~ poll() which file descriptors are ready for reading/writing:
 The real deal:
 [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230)
 
+------------------------
+
 ## Program design
 I suggest you take a look at the contents of the **includes** directory before you read the code starting from main.cpp. Here's a brief description of some classes/structs:
 
@@ -63,6 +66,9 @@ The structs **Vserver** and **Route** represent blocks in the configuration file
 ### FdManager
 The class **FdManager** ... well, manages file descriptors. And also organizes the array used for calling poll(). So an instance of this class, "table", is seen everywhere in the code. It allows us to know what a given file descriptor refers to (a listening socket, a client socket, a file in disk, the output of a CGI script, etc). And also allow us to define whether a file descriptor will be polled for reading and/or writing operations.
 
+### ARequestHandler
+Base class for specific request handlers (like StaticRH and ErrorRH). A request handler performs a sequence of actions to respond to a request. Ex: assemble the header of the HTTP reponse, open a file in disk, set it up of reading operation when IO is done, close de fd when done, etc.
+
 -----------------------------
 A quick overview of the loop in main():
 ### The main loop:
@@ -82,3 +88,38 @@ handle_request():
 * the respond() method of the RequestHandler will perform the sequence of steps in order to send a response to the client (ex: assemble the header of the HTTP reponse, open a file in disk, set it up of reading operation when IO is done, close de fd when done, etc.)
 * most often times, a single call of a RequestHandler's repond() method does not complete the response, because it will depend on a IO operation (which can only be done after poll()ing). For this reason, the RequestHandler object keeps track of the **state** of the ongoing response, so it knows what to do when the response() method is called a second (or third, fourth...) time.
 * When a reponse is complete, the HttpRequest object and RequestHandler are deleted and removed from the list
+
+------------
+
+## Big TODO's
+
+* ### configuration file parser
+	* parse a config file into into a ``` map<ip_port, list<Vserver> > ```
+
+* 	### request handler class for CGI GET request
+	* pipe()
+	* fork()
+	* dup2() to redirect CGI script's stdout to the pipe
+	* setup an env with the variables described in the CGI standard (a null-terminated array of char *, envp)
+	* exec() the cgi interpreter (ex: python) with the script (ex: script.py as argument) and the envp
+	* read from the pipe (CGI output) into Client's unsent_data buffer
+	* wait() for CGI process (with a NONBLOCKING flag)
+
+* ### request handler class for CGI POST request
+	* all of the above + :
+	* another pipe to send data to CGI's input
+	* receive request's body, unchunk if necessary, and send it to CGI's input
+
+* ### extend request handler class for errors (class ErrorRH)
+	* at this moment it only generates an error page
+	* but it should be able to serve default error pages defined in the config file for that vserver
+
+* ### request handler class for Redirections
+
+* ### request handler class for Directory listing
+	* generates an HTML page with the directory listing (auto-index)
+
+* ### write a testing program
+	* in python ?
+	* automate tests
+	* stress-test the webserver (multiple clients, multiple requests)

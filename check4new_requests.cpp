@@ -29,6 +29,7 @@ HttpRequest * new_HttpRequest(Client &client)
 }
 
 // request.route cannot be NULL
+// TODO: handle query string
 std::string assemble_ressource_path(HttpRequest &request)
 {
 	std::string route_root = request.route->root;
