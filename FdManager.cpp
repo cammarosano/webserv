@@ -109,8 +109,6 @@ void FdManager::add_file_fd(int file_fd, Client &client)
 
 void FdManager::remove_fd(int fd)
 {
-	// todo: request handler or do_io must close de fd
-
 	fd_table[fd].type = fd_none;
 	fd_table[fd].client = NULL;
 	fd_table[fd].is_EOF = false;

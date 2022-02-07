@@ -2,6 +2,8 @@
 #include "FdManager.hpp"
 #include "ARequestHandler.hpp"
 
+// calls poll()
+// does all read() and write() operations
 int do_io(FdManager &table)
 {
 	int	poll_ret;
@@ -11,13 +13,13 @@ int do_io(FdManager &table)
 
 	// call poll()
 	poll_ret = poll(table.get_poll_array(), table.len(), -1);
-
 	if (poll_ret == -1)
 	{
 		perror("poll");
 		return (-1);
 	}
 
+	// iterate over poll_array
 	for (int fd = 3; fd < table.len(); fd++)
 	{
 		if (table.get_poll_array()[fd].revents & POLLIN) // fd ready for reading
@@ -44,6 +46,9 @@ int do_io(FdManager &table)
 	return (0);
 }
 
+// calls the respond() method of each request handler in
+// the list. deletes request and request handler when
+// the response is complete.
 int handle_requests(std::list<ARequestHandler*> &list)
 {
 	std::list<ARequestHandler*>::iterator it;
@@ -55,7 +60,7 @@ int handle_requests(std::list<ARequestHandler*> &list)
 	{
 		ARequestHandler *req_handler = *it;
 		// do response actions
-		ret = req_handler->respond();
+		ret = req_handler->respond(); // subtype polymorphism
 		if (ret == 0) // response not yet finished
 			++it;
 		else
@@ -82,11 +87,7 @@ int main(void)
 	while (1)
 	{
 		do_io(table);
-
-		// check for new requests
 		check4new_requests(table, req_handlers_lst);
-
-		// handle requests
 		handle_requests(req_handlers_lst);
 	}
 

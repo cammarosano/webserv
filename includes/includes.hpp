@@ -28,7 +28,7 @@
 
 # define BUFFER_SIZE 4096
 
-// forward declaration
+// forward declarations
 class FdManager;
 class ARequestHandler;
 struct HttpRequest;
@@ -83,7 +83,7 @@ enum e_client_state
 
 struct Client
 {
-	int socket; // only needed for debugging pourposes?
+	int socket; 
 	std::list<Vserver> &vservers;
 
 	e_client_state state;
@@ -106,21 +106,25 @@ struct Client
 // function prototypes
 
 // setup
+
 int setup(FdManager &table);
 int get_listening_socket(std::string host_IP, unsigned short port);
 
 // IO
+
 int accept_connection(int listen_socket, FdManager &table);
 int recv_from_client(int socket, FdManager &table);
 int read_from_file(int fd_file, FdManager &table);
 int send_to_client(int socket, FdManager &table);
 
 // process requests
+
 int check4new_requests(FdManager &table,
 						std::list<ARequestHandler*> &req_handlers_lst);
 int handle_requests(std::list<ARequestHandler*> &list);
 
 // utils
+
 std::string long_to_str(long nb);
 std::string & str_tolower(std::string &s);
 void print_request(HttpRequest &request);

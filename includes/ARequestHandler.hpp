@@ -14,7 +14,7 @@ enum e_rhstate
 /* 
 Abstract class for request handlers
 Request handlers for a specific kind of response (ex: serve a static file)
-inherit from this class an define the respond() method
+inherit from this class and define the respond() and abort() methods
 */
 class ARequestHandler
 {

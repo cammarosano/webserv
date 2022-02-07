@@ -1,7 +1,7 @@
 #include "includes.hpp"
 #include "FdManager.hpp"
 
-// accept(), create new Client, update fd_table and poll_array
+// accept() a new connection, create a Client object
 // return  0 if ok, -1 if error
 int accept_connection(int listen_socket, FdManager &table)
 {
@@ -28,5 +28,5 @@ int accept_connection(int listen_socket, FdManager &table)
 	std::cout << "Connection accepted. Client socket: "
 			<< client_socket << std::endl;
 
-	return (client_socket);
+	return (0);
 }

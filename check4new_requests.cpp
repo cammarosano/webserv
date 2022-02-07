@@ -4,8 +4,8 @@
 #include "ErrorRH.hpp"
 #include "HttpRequest.hpp"
 
-// extracts data from the client's received_data buffer into a HttpRequest object
-// return NULL if buffer does not contain a complete request header
+// extracts data from the client's received_data buffer into an HttpRequest object
+// returns NULL if buffer does not contain a complete request header
 // TODO: watch out for request bodies that end with an empty line
 // eventual trailing CRLF must be removed!!
 HttpRequest * new_HttpRequest(Client &client)
@@ -43,6 +43,7 @@ std::string assemble_ressource_path(HttpRequest &request)
 }
 
 // resolve type of response: static_file, CGI, directory, error...
+// instantiate the correct request handler
 ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 {
 	std::string resource_path;
@@ -59,13 +60,15 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 	
 	// check if it is a directory
 	if (S_ISDIR(sb.st_mode)) // is a directory
-		return (new ErrorRH(&request, table, 403)); // todo new DirectoryRH (for now, 403)
+		return (new ErrorRH(&request, table, 403)); // TODO: new DirectoryRH (for now, 403)
 	
 	// TODO: check if CGI response (match extension)
 
 	return (new StaticRH(&request, table, resource_path));
 }
 
+// checks each Client's received_data buffer for a request header, 
+// instantiates a new HttpRequest and a request handler
 int check4new_requests(FdManager &table,
 						std::list<ARequestHandler*> &req_handlers_lst)
 {
@@ -82,7 +85,7 @@ int check4new_requests(FdManager &table,
 		HttpRequest *request = new_HttpRequest(client);
 		if (!request)
 			continue;
-		ARequestHandler *req_handler = init_response(*request, table);
+		ARequestHandler *req_handler = init_response(*request, table); // subtype polymorphism
 		req_handlers_lst.push_back(req_handler);
 		client.state = handling_response;
 		client.ongoing_response = req_handler;
