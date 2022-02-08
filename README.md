@@ -70,9 +70,9 @@ The class **FdManager** ... well, manages file descriptors. And also organizes t
 Base class for specific request handlers (like StaticRH and ErrorRH). A request handler performs a sequence of actions to respond to a request. Ex: assemble the header of the HTTP reponse, open a file in disk, set it up of reading operation when IO is done, close de fd when done, etc.
 
 -----------------------------
-A quick overview of the loop in main():
+An overview of the loop in main():
 ### The main loop:
-do_io(): does IO operations (no shit!!!!). Calls poll(), loops over the poll array and, depending on the type of file descriptor:
+do_io(): does IO operations (no shit!!). Calls poll(), loops over the poll array and, depending on the type of file descriptor:
 * accepts a new connection (creating a new Client object)
 * receives data from a client socket
 * sends data to a client socket
@@ -88,6 +88,10 @@ handle_request():
 * the respond() method of the RequestHandler will perform the sequence of steps in order to send a response to the client (ex: assemble the header of the HTTP reponse, open a file in disk, set it up of reading operation when IO is done, close de fd when done, etc.)
 * most often times, a single call of a RequestHandler's repond() method does not complete the response, because it will depend on a IO operation (which can only be done after poll()ing). For this reason, the RequestHandler object keeps track of the **state** of the ongoing response, so it knows what to do when the response() method is called a second (or third, fourth...) time.
 * When a reponse is complete, the HttpRequest object and RequestHandler are deleted and removed from the list
+
+This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=956792833423) ilustrates a static file response.
+
+[This](https://miro.com/welcomeonboard/MUJub3YwcDIwUkZMd3Eyb1FhdWUxN3NGeENrd0tGQUh4Q3Z6SHdJcnI4ek5zMThNUDJzejJEaHd3QVZ1a2dVc3wzNDU4NzY0NTE4MjMwNTU0NTUz?invite_link_id=398884532576) is a link if you wish to collaborate
 
 ------------
 
