@@ -49,7 +49,7 @@ int recv_from_client(int socket, FdManager &table)
 	return (1);
 }
 
-// response.state should be "sending_file"
+// Request handler's state should be "s_sending_file"
 int read_from_file(int fd_file, FdManager &table)
 {
 	char buffer[BUFFER_SIZE];
