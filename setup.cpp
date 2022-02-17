@@ -9,7 +9,7 @@ void get_test_config(std::map<ip_port, std::list<Vserver> > &config)
 	{
 		Vserver vs;
 
-		vs.listen = ip_port("127.0.0.1", 8080);
+		vs.listen = ip_port("127.0.0.1", 3000);
 		{
 			Route r("/");
 
@@ -22,7 +22,7 @@ void get_test_config(std::map<ip_port, std::list<Vserver> > &config)
 	{
 		Vserver vs;
 
-		vs.listen = ip_port("127.0.0.1", 8080);
+		vs.listen = ip_port("127.0.0.1", 3000);
 		vs.server_names.push_back("localhost");
 		vs.server_names.push_back("localhost-example");
 		{
@@ -37,7 +37,7 @@ void get_test_config(std::map<ip_port, std::list<Vserver> > &config)
 	{
 		Vserver vs;
 
-		vs.listen = ip_port("127.0.0.1", 8081);
+		vs.listen = ip_port("127.0.0.1", 3001);
 		vs.server_names.push_back("localhost");
 		{
 			Route r("/");
