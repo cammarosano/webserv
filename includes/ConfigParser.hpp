@@ -11,6 +11,7 @@ class ConfigParser {
    private:
     std::map<ip_port, std::list<Vserver> > _config;
     std::fstream _f;
+    Vserver *curr_vs;
 
    public:
     ConfigParser(std::string &file_name);
@@ -25,6 +26,7 @@ class ConfigParser {
     int _parse_server_block(std::istringstream &prev_iss);
     int _parse_port(std::istringstream &curr_iss);
     int _parse_server_names(std::istringstream &curr_iss);
+    int _parse_location(std::istringstream &curr_iss);
 };
 
 #endif  // __CONFIG_PARSER_H__

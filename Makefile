@@ -9,7 +9,8 @@ SRC =	accept_connection.cpp \
 		HttpRequest.cpp \
 		setup.cpp \
 		StaticRH.cpp \
-		utils.cpp
+		utils.cpp \
+		ConfigParser.cpp \
 
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
 		HttpRequest.hpp ErrorRH.hpp
@@ -17,7 +18,7 @@ HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)
 CC = clang++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
+CFLAGS = #-Wall -Wextra -Werror -std=c++98 -g
 INCLUDES = -I includes
 NAME = webserv
 
