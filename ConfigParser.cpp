@@ -1,6 +1,7 @@
 
 #include "ConfigParser.hpp"
 
+
 ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
     _f.open(file_name);
 
@@ -99,6 +100,7 @@ int ConfigParser::_parse_server_block(std::istringstream &prev_iss) {
     // can check for synyax erros using prev_iss
     std::string str;
     std::string line;
+    (void)prev_iss;
 
     // parse everything in the server block
     while (std::getline(_f, line)) {

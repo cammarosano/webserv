@@ -1,29 +1,26 @@
 #ifndef STATICRH_HPP
-# define STATICRH_HPP
+#define STATICRH_HPP
 
-# include "includes.hpp"
-# include "ARequestHandler.hpp"
+#include "ARequestHandler.hpp"
+#include "includes.hpp"
 
 /*
 Request handler for serving a static file.
 */
-class StaticRH: public ARequestHandler
-{
-private:
-	int	fd_file;
-	std::string resource_path;
+class StaticRH : public ARequestHandler {
+   private:
+    int fd_file;
+    std::string resource_path;
 
-	int setup();
+    int setup();
 
-public:
-	StaticRH(HttpRequest *request, FdManager &table,
-				std::string &resource_path);
-	~StaticRH();
+   public:
+    StaticRH(HttpRequest *request, FdManager &table,
+             std::string &resource_path);
+    ~StaticRH();
 
-	virtual int respond();
-	virtual void abort();
+    virtual int respond();
+    virtual void abort();
 };
-
-
 
 #endif
