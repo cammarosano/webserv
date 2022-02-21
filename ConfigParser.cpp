@@ -1,7 +1,6 @@
 
 #include "ConfigParser.hpp"
 
-
 ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
     _f.open(file_name);
 
@@ -42,13 +41,34 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
             }
             temp = temp.substr(0, c);
             r.root = temp;
-            curr_vs->routes.push_back(r);
+        } else if (temp == "autoindex") {
+            temp.clear();
+            iss >> temp;
+            size_t c = temp.find(";");
+            if (c == std::string::npos) {
+                std::cout << "Error: config file" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            temp = temp.substr(0, c);
+            if (temp == "on") {
+                std::cout << "setting auto_index: " << temp << std::endl;
+                r.auto_index = true;
+            } else if (temp == "off") {
+                std::cout << "setting auto_index: " << temp << std::endl;
+                r.auto_index = false;
+            } else {
+                std::cerr
+                    << "invalide value for autoindex, it should be (on | off)"
+                    << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
         // only parsing root, should parse others (cgi, auto_index, ...)
         // TODO: check for syntax errors
         // assume there is no syntax error for now :)
         if (temp == "}") break;
     }
+    curr_vs->routes.push_back(r);
     return 0;
 }
 

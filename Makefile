@@ -18,7 +18,7 @@ HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)
 CC = clang++
-CFLAGS = #-Wall -Wextra -Werror -std=c++98 -g
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 INCLUDES = -I includes
 NAME = webserv
 
@@ -29,6 +29,9 @@ $(NAME):	$(OBJ)
 
 %.o:		%.cpp $(HEADERS)
 			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+parse: includes/ConfigParser.hpp ConfigParser.cpp parse_config.cpp
+		$(CC) $(CFLAGS) -I ./includes ConfigParser.cpp parse_config.cpp -o $@
 
 clean:
 			rm -f $(OBJ)

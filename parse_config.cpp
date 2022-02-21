@@ -14,6 +14,10 @@ int main() {
     for (; it != config.end(); ++it) {
         std::list<Vserver>::iterator vsit = it->second.begin();
         for (; vsit != it->second.end(); ++vsit) {
+            std::list<Route>::iterator rou_it = (*vsit).routes.begin();
+            for (; rou_it != (*vsit).routes.end(); rou_it++) {
+                std::cout << "Auto index: " << rou_it->auto_index << std::endl;
+            }
             std::list<std::string>::iterator snit =
                 (*vsit).server_names.begin();
             std::cout << "<" << (*vsit).listen.first << " "

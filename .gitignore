@@ -1,2 +1,4 @@
 .vscode
 *.o
+parse
+parse.dSYM/
