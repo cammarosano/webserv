@@ -1,8 +1,9 @@
 
 #include "ConfigParser.hpp"
+#include <string>
 
 ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
-    _f.open(file_name);
+    _f.open(file_name.c_str());
 
     if (!_f.good()) {
         std::cout << "Error: failed to open: " << file_name << std::endl;
@@ -110,7 +111,7 @@ int ConfigParser::_parse_port(std::istringstream &curr_iss) {
         exit(EXIT_FAILURE);
     }
     port = port.substr(0, c);
-    vs.listen = std::make_pair("127.0.0.1", std::stoi(port));
+    vs.listen = std::make_pair("127.0.0.1", std::atoi(port.c_str()));
     _config[vs.listen].push_back(vs);
     curr_vs = &(*_config[vs.listen].rbegin());
     return 0;

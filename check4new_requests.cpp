@@ -1,3 +1,4 @@
+#include "DirectoryRH.hpp"
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
 #include "HttpRequest.hpp"
@@ -56,9 +57,12 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
         return (new ErrorRH(&request, table, 404));  // todo new ErrorRH(404);
 
     // check if it is a directory
-    if (S_ISDIR(sb.st_mode))  // is a directory
-        return (new ErrorRH(&request, table,
-                            403));  // TODO: new DirectoryRH (for now, 403)
+    if (S_ISDIR(sb.st_mode)) {
+        if (request.route->auto_index)
+            return new DirectoryRH(&request, table, resource_path);
+        else
+            return ( new ErrorRH(&request, table, 404));
+    }
 
     // TODO: check if CGI response (match extension)
     return (new StaticRH(&request, table, resource_path));

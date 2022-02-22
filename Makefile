@@ -11,9 +11,10 @@ SRC =	accept_connection.cpp \
 		StaticRH.cpp \
 		utils.cpp \
 		ConfigParser.cpp \
+		DirectoryRH.cpp \
 
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
-		HttpRequest.hpp ErrorRH.hpp
+		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp
 HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)
