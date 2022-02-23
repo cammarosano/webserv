@@ -2,13 +2,13 @@
 
 #include <ostream>
 
-#include "ARequestHandler.hpp"
-
 DirectoryRH::DirectoryRH(HttpRequest *request, FdManager &table,
                          const std::string &path)
     : ARequestHandler(request, table), ressource_path(path) {}
 
 DirectoryRH::~DirectoryRH() {}
+
+void DirectoryRH::_get_html_template() {}
 
 int DirectoryRH::respond() {
     DIR *d;
@@ -16,17 +16,27 @@ int DirectoryRH::respond() {
     struct dirent *dir;
 
     d = opendir(ressource_path.c_str());
+    res << "<!DOCTYPE html>\n";
+    res << "<html>\n";
+    res << "<head>\n";
+    res << "<title>" << ressource_path << "</title>\n";
+    res << "</head>\n";
+    res << "<body>\n";
     if (d) {
         while ((dir = readdir(d)) != NULL) {
-            if (*dir->d_name == '.') continue;
+            std::string param = request->target;
+            std::string::iterator it = --(param.end());
+            if (*it == '/') param.erase(it);
+            if (param == "/") param.clear();
             res << "<a href="
-                << "\"" << request->target << "/" << dir->d_name << "\" >"
-                << dir->d_name;
+                << "\"" << param << "/" << dir->d_name << "\" >" << dir->d_name;
             if (dir->d_type == DT_DIR) res << "/";
             res << "</a> <br>";
         }
         closedir(d);
     }
+    res << "</body>\n";
+    res << "</html>";
     // res might be bigger than 4096
     std::ostringstream oss;
     oss << "HTTP/1.1 200 OK\n";
@@ -38,4 +48,4 @@ int DirectoryRH::respond() {
     return 1;
 }
 
-void DirectoryRH::abort() {}
+void DirectoryRH::abort() { state = s_abort; }

@@ -3,6 +3,7 @@
 
 #include "ARequestHandler.hpp"
 #include <dirent.h>
+#include <ostream>
 
 class DirectoryRH : public ARequestHandler {
    private:
@@ -15,6 +16,9 @@ class DirectoryRH : public ARequestHandler {
 
     virtual int respond();
     virtual void abort();
+
+    private:
+     void _get_html_template();
 };
 
 #endif  // __DIRECTORY_RH_H__
