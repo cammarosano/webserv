@@ -146,7 +146,7 @@ int ConfigParser::_parse_port(std::istringstream &curr_iss) {
 }
 
 int ConfigParser::_parse_server_block(std::istringstream &prev_iss) {
-    // can check for synyax erros using prev_iss
+    // can check for syntax erros using prev_iss
     std::string str;
     std::string line;
     (void)prev_iss;
@@ -155,6 +155,8 @@ int ConfigParser::_parse_server_block(std::istringstream &prev_iss) {
     while (std::getline(_f, line)) {
         std::istringstream iss(line);
         iss >> str;
+        if (*(str.begin()) == '#') continue;
+
         if (str == "listen") {
             _parse_port(iss);
         } else if (str == "server_name") {
