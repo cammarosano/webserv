@@ -113,16 +113,16 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
 
 ## Big TODO's
 
-- ### configuration file parser
+- # configuration file parser
 
   - ## parse a config file into into a ``` map<ip_port, list<Vserver> > ```
-  - # parse server block
+  - ### parse server block
     - [x] listening port
     - [x] server names
     - [ ] error page 404
     - [ ] error page 403
     - [ ] body size limit
-  - # parse location
+  - ### parse location block
     - [x] root
     - [x] auto_index
     - [x] default index file
@@ -131,6 +131,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
     - [ ] accepted method
     - [ ] upload accepted
     - [ ] upload dir
+    - [ ] redirection
 
 - ### request handler class for CGI GET request
 
@@ -158,7 +159,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
 - ### request handler class for Directory listing
 
   - [x] generates an HTML page with the directory listing (auto-index)
-  - [ ] files/dir (display folder first then files)
+  - [ ] display folder first then files (optional)
 
 - ### write a testing program
 
