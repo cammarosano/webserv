@@ -10,7 +10,7 @@ int main(int argc, char const *argv[]) {
                     "GATEWAY_INTERFACE=CGI/1.1",
                     "REQUEST_METHOD=GET",
                     "SCRIPT_NAME=CGI/ubuntu_cgi_tester",
-                    "PATH_INFO=./",
+                    "PATH_INFO=/index.html/",
                     NULL};
 
     char *ex = "./ubuntu_cgi_tester";
