@@ -1,3 +1,4 @@
+#include "CgiRH.hpp"
 #include "DirectoryRH.hpp"
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
@@ -32,13 +33,20 @@ HttpRequest *new_HttpRequest(Client &client) {
 // request.route cannot be NULL
 // TODO: handle query string
 std::string assemble_ressource_path(HttpRequest &request) {
+    std::string path;
     std::string route_root = request.route->root;
     std::string route_prefix = request.route->prefix;
-    std::string path =
-        route_root + '/' + request.target.substr(route_prefix.length());
+
+    if (request.target.empty() || request.target == "/") {
+        if (!request.route->default_index.empty()) {
+            path = route_root + '/' + request.route->default_index;
+            std::cout << "default index is: " << path << std::endl;
+            return path;
+        }
+    }
+    path = route_root + '/' + request.target.substr(route_prefix.length());
     // debug
     std::cout << "ressource path: " << path << std::endl;
-
     return (path);
 }
 
@@ -61,10 +69,13 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
         if (request.route->auto_index)
             return new DirectoryRH(&request, table, resource_path);
         else
-            return ( new ErrorRH(&request, table, 404));
+            return (new ErrorRH(&request, table, 404));
     }
-
     // TODO: check if CGI response (match extension)
+    if (request.target.find(request.route->cgi_extension) !=
+        std::string::npos) {
+        return new CgiRH(&request, table);
+    }
     return (new StaticRH(&request, table, resource_path));
 }
 
@@ -79,12 +90,8 @@ int check4new_requests(FdManager &table,
 
         Client &client = *table[fd].client;
 
-        if (client.state != recv_header || client.received_data.empty()) {
-            // std::cout << "No received data yet\n";
-            COUTDEBUG("no data received yet", GREEN);
+        if (client.state != recv_header || client.received_data.empty())
             continue;
-        }
-        COUTDEBUG("Request received", GREEN);
         HttpRequest *request = new_HttpRequest(client);
         if (!request) continue;
         ARequestHandler *req_handler =

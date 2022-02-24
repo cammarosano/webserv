@@ -39,7 +39,6 @@ int recv_from_client(int socket, FdManager &table) {
     // debug
     std::cout << "Received " << recvd_bytes << " bytes from client at socket "
               << socket << std::endl;
-    COUTDEBUG(buffer, GREEN);
     client.received_data.append(buffer, recvd_bytes);
     return (1);
 }

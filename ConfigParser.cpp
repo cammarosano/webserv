@@ -1,12 +1,13 @@
 
 #include "ConfigParser.hpp"
+
 #include <string>
 
 ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
     _f.open(file_name.c_str());
 
     if (!_f.good()) {
-        std::cout << "Error: failed to open: " << file_name << std::endl;
+        std::cerr << "Error: failed to open: " << file_name << std::endl;
         exit(EXIT_FAILURE);
     }
     _parse_config_file();
@@ -14,6 +15,7 @@ ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
 
 ConfigParser::~ConfigParser() {}
 
+// TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss) {
     std::string temp;
     std::string line;
@@ -37,7 +39,7 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
             iss >> temp;
             size_t c = temp.find(";");
             if (c == std::string::npos) {
-                std::cout << "Error: config file" << std::endl;
+                std::cerr << "Error: config file" << std::endl;
                 exit(EXIT_FAILURE);
             }
             temp = temp.substr(0, c);
@@ -47,15 +49,13 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
             iss >> temp;
             size_t c = temp.find(";");
             if (c == std::string::npos) {
-                std::cout << "Error: config file" << std::endl;
+                std::cerr << "Error: config file" << std::endl;
                 exit(EXIT_FAILURE);
             }
             temp = temp.substr(0, c);
             if (temp == "on") {
-                std::cout << "setting auto_index: " << temp << std::endl;
                 r.auto_index = true;
             } else if (temp == "off") {
-                std::cout << "setting auto_index: " << temp << std::endl;
                 r.auto_index = false;
             } else {
                 std::cerr
@@ -63,6 +63,34 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
                     << std::endl;
                 exit(EXIT_FAILURE);
             }
+        } else if (temp == "index") {
+            iss >> temp;
+            size_t c = temp.find(";");
+            if (c == std::string::npos) {
+                std::cerr << "Error: config file" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            temp = temp.substr(0, c);
+            r.default_index = temp;
+        } else if (temp == "cgi_interpreter") {
+            iss >> temp;
+            size_t c = temp.find(";");
+            if (c == std::string::npos) {
+                std::cerr << "Error: config file" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            temp = temp.substr(0, c);
+            r.cgi_interpreter = temp;
+        } else if (temp == "cgi_extension") {
+            iss >> temp;
+            size_t c = temp.find(";");
+            if (c == std::string::npos) {
+                std::cerr << "Error: config file" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            temp = temp.substr(0, c);
+            r.cgi_extension = temp;
+            std::cout << "Cgi extension is: " << r.cgi_extension << std::endl;
         }
         // only parsing root, should parse others (cgi, auto_index, ...)
         // TODO: check for syntax errors

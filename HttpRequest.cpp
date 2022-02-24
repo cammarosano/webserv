@@ -7,6 +7,7 @@ HttpRequest::HttpRequest(Client &client, std::string &header_str)
     parse_header(header_str);
     resolve_vserver();
     resolve_route();
+    setup_cgi_env();
 }
 
 // TODO: this parser must be improved: check errors...
@@ -28,6 +29,8 @@ int HttpRequest::parse_header(std::string &header_str) {
         std::string field_value = line.substr(delimiter_pos + 1);
         remove_trailing_spaces(field_value);
         header_fields[field_name] = field_value;
+        std::cout << GREEN << field_name << ": " << field_value << RESET
+                  << std::endl;
     }
     return (0);
 }
@@ -41,7 +44,6 @@ void HttpRequest::resolve_vserver() {
     // this might create an empty string as "host" (no problem)
     // actually, maybe this is demanded by HTTP/1.1 ... TODO: check it!
     std::string req_host_name = header_fields["host"];
-    COUTDEBUG(req_host_name, GREEN);
     // remove eventual ":port_number" after the server name
     req_host_name = req_host_name.substr(0, req_host_name.find(':'));
 
@@ -83,4 +85,17 @@ void HttpRequest::resolve_route() {
         }
     }
     route = best_match;
+}
+
+void HttpRequest::setup_cgi_env() {
+    size_t c = header_fields["host"].find(":");
+    std::string port = header_fields["host"].substr(c + 1, std::string::npos);
+    std::string server_name = header_fields["host"].substr(0, c);
+    cgi_env["SERVER_PORT"] = port;
+    cgi_env["SERVER_NAME"] = server_name;
+    cgi_env["SERVER_SOFTWARE"] = "webserv/0.1";
+    cgi_env["SERVER_PROTOCOL"] = http_version;
+    cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+    cgi_env["REQUEST_METHOD"] = method;
+    cgi_env["SCRIPT_NAME"] = route->cgi_interpreter;
 }
