@@ -143,6 +143,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
 - ### request handler class for Directory listing
 
   - ~generates an HTML page with the directory listing (auto-index)~
+  - [ ] files/dir (display folder first then files)
 
 - ### write a testing program
 
