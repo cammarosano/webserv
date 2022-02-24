@@ -29,8 +29,6 @@ int HttpRequest::parse_header(std::string &header_str) {
         std::string field_value = line.substr(delimiter_pos + 1);
         remove_trailing_spaces(field_value);
         header_fields[field_name] = field_value;
-        std::cout << GREEN << field_name << ": " << field_value << RESET
-                  << std::endl;
     }
     return (0);
 }
@@ -98,4 +96,5 @@ void HttpRequest::setup_cgi_env() {
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi_env["REQUEST_METHOD"] = method;
     cgi_env["SCRIPT_NAME"] = route->cgi_interpreter;
+    cgi_env["DOCUMENT_ROOT"] = route->root;
 }
