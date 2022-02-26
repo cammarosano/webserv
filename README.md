@@ -128,7 +128,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
       - [x] default index file
       - [x] cgi extension
       - [x] cgi interpreter
-      - [ ] accepted method
+      - [x] accepted method
       - [ ] upload accepted
       - [ ] upload dir
       - [ ] redirection
