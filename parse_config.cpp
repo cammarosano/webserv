@@ -17,6 +17,12 @@ int main() {
             std::list<Route>::iterator rou_it = (*vsit).routes.begin();
             for (; rou_it != (*vsit).routes.end(); rou_it++) {
                 std::cout << "Auto index: " << rou_it->auto_index << std::endl;
+                std::list<std::string> am = rou_it->accepted_methods;
+                for (std::list<std::string>::iterator am_it = am.begin();
+                     am_it != am.end(); ++am_it) {
+                    std::cout << "allowed methods " << *am_it << ", ";
+                }
+                std::cout << '\n';
             }
             std::list<std::string>::iterator snit =
                 (*vsit).server_names.begin();

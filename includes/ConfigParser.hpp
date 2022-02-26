@@ -27,6 +27,14 @@ class ConfigParser {
     int _parse_port(std::istringstream &curr_iss);
     int _parse_server_names(std::istringstream &curr_iss);
     int _parse_location(std::istringstream &curr_iss);
+
+    void _parse_root(std::istringstream &iss, Route &r);
+    void _parse_auto_index(std::istringstream &iss, Route &r);
+    void _parse_default_index(std::istringstream &iss, Route &r);
+    void _parse_cgi_interpreter(std::istringstream &iss, Route &r);
+    void _parse_cgi_extension(std::istringstream &iss, Route &r);
+    void _parse_allowed_methods(std::istringstream &iss, Route &r);
+
 };
 
 #endif  // __CONFIG_PARSER_H__

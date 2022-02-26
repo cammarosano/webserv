@@ -15,6 +15,99 @@ ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
 
 ConfigParser::~ConfigParser() {}
 
+void ConfigParser::_parse_root(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(";");
+    if (c == std::string::npos) {
+        std::cerr << "Error: config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, c);
+    r.root = parsed;
+}
+
+void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(";");
+    if (c == std::string::npos) {
+        std::cerr << "Error: config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, c);
+    if (parsed == "on") {
+        r.auto_index = true;
+    } else if (parsed == "off") {
+        r.auto_index = false;
+    } else {
+        std::cerr << "invalide value for autoindex, it should be (on | off)"
+                  << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void ConfigParser::_parse_default_index(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(";");
+    if (c == std::string::npos) {
+        std::cerr << "Error: config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, c);
+    r.default_index = parsed;
+}
+
+void ConfigParser::_parse_cgi_interpreter(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(";");
+    if (c == std::string::npos) {
+        std::cerr << "Error: config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, c);
+    r.cgi_interpreter = parsed;
+}
+
+void ConfigParser::_parse_cgi_extension(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(";");
+    if (c == std::string::npos) {
+        std::cerr << "Error: config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, c);
+    r.cgi_extension = parsed;
+}
+
+void ConfigParser::_parse_allowed_methods(std::istringstream &iss, Route &r) {
+    std::string parsed;
+    size_t c;
+
+    iss >> parsed;
+    while (!parsed.empty()) {
+        c = parsed.find(";");
+        if (c != std::string::npos) {
+            parsed = parsed.substr(0, c);
+        }
+        r.accepted_methods.push_back(parsed);
+        parsed.clear();
+        iss >> parsed;
+    }
+    if (c == std::string::npos) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
 // TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss) {
     std::string temp;
@@ -35,66 +128,19 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
         std::istringstream iss(line);
         iss >> temp;
         if (temp == "root") {
-            temp.clear();
-            iss >> temp;
-            size_t c = temp.find(";");
-            if (c == std::string::npos) {
-                std::cerr << "Error: config file" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            temp = temp.substr(0, c);
-            r.root = temp;
+            _parse_root(iss, r);
         } else if (temp == "autoindex") {
-            temp.clear();
-            iss >> temp;
-            size_t c = temp.find(";");
-            if (c == std::string::npos) {
-                std::cerr << "Error: config file" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            temp = temp.substr(0, c);
-            if (temp == "on") {
-                r.auto_index = true;
-            } else if (temp == "off") {
-                r.auto_index = false;
-            } else {
-                std::cerr
-                    << "invalide value for autoindex, it should be (on | off)"
-                    << std::endl;
-                exit(EXIT_FAILURE);
-            }
+            _parse_auto_index(iss, r);
         } else if (temp == "index") {
-            iss >> temp;
-            size_t c = temp.find(";");
-            if (c == std::string::npos) {
-                std::cerr << "Error: config file" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            temp = temp.substr(0, c);
-            r.default_index = temp;
+            _parse_default_index(iss, r);
         } else if (temp == "cgi_interpreter") {
-            iss >> temp;
-            size_t c = temp.find(";");
-            if (c == std::string::npos) {
-                std::cerr << "Error: config file" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            temp = temp.substr(0, c);
-            r.cgi_interpreter = temp;
+            _parse_cgi_interpreter(iss, r);
         } else if (temp == "cgi_extension") {
-            iss >> temp;
-            size_t c = temp.find(";");
-            if (c == std::string::npos) {
-                std::cerr << "Error: config file" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            temp = temp.substr(0, c);
-            r.cgi_extension = temp;
-            std::cout << "Cgi extension is: " << r.cgi_extension << std::endl;
+            _parse_cgi_extension(iss, r);
+        } else if (temp == "allowed_methods") {
+            _parse_allowed_methods(iss, r);
         }
-        // only parsing root, should parse others (cgi, auto_index, ...)
-        // TODO: check for syntax errors
-        // assume there is no syntax error for now :)
+        /* TODO: advenced syntax error checking */
         if (temp == "}") break;
     }
     curr_vs->routes.push_back(r);
