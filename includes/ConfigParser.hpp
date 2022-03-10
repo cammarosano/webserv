@@ -35,6 +35,8 @@ class ConfigParser {
     void _parse_cgi_extension(std::istringstream &iss, Route &r);
     void _parse_allowed_methods(std::istringstream &iss, Route &r);
 
+    void _parse_error_page(std::istringstream &iss);
+
 };
 
 #endif  // __CONFIG_PARSER_H__

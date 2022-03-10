@@ -3,6 +3,7 @@
 ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
     : ARequestHandler(request, table), error_code(error_code) {
     state = s_setup;
+    res_type = sending_default;
 }
 
 ErrorRH::~ErrorRH() {}
@@ -45,17 +46,36 @@ int ErrorRH::send_html_str() {
 // TODO: look if vserver/route define a default error page and use it
 // instead of generating the standard one
 int ErrorRH::setup() {
-    generate_error_page();
+    struct stat sb;
 
+    try {
+        std::string err_page = request->vserver->err_pages.at(error_code);
+        std::cout << GREEN << err_page << RESET << std::endl;
+        fd = open(err_page.c_str(), O_RDONLY);
+        if (fd < 0) {
+            res_type = sending_default;
+            generate_error_page();
+        } else {
+            res_type = sending_file;
+        }
+    } catch (const std::exception &e) {
+        res_type = sending_default;
+        generate_error_page();
+    }
     // fill-in header
     response.http_version = "HTTP/1.1";
     response.status_code_phrase =
         long_to_str(error_code) + ' ' + reason_phrases[error_code];
-    response.header_fields["content-length"] = long_to_str(html_page.length());
+
+    if (fstat(fd, &sb) == -1) {
+        response.header_fields["content-length"] =
+            long_to_str(html_page.length());
+    } else {
+        response.header_fields["content-length"] = long_to_str(sb.st_size);
+    }
     // TODO: and many other header_fields here.....
 
     assemble_header_str();
-
     return (0);
 }
 
@@ -68,10 +88,26 @@ int ErrorRH::respond() {
         state = s_sending_header;
     }
     if (state == s_sending_header) {
-        if (send_header() == 1) state = s_sending_html_str;
+        if (send_header() == 1) {
+            if (res_type == sending_default)
+                state = s_sending_html_str;
+            else
+                state = s_start_send_file;
+        }
     }
     if (state == s_sending_html_str) {
         if (send_html_str() == 1) state = s_done;
+    } else if (state == s_start_send_file) {
+        table.add_file_fd(fd, request->client);
+        state = s_sending_file;
+        return 0;
+    }
+    if (state == s_sending_file) {
+        if (table[fd].is_EOF) {
+            close(fd);
+            table.remove_fd(fd);
+            state = s_done;
+        }
     }
     if (state == s_done) return (1);
     if (state == s_abort) return (-1);

@@ -32,8 +32,8 @@ $(NAME):	$(OBJ)
 %.o:		%.cpp $(HEADERS)
 			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-parse: includes/ConfigParser.hpp ConfigParser.cpp parse_config.cpp
-		$(CC) $(CFLAGS) -I ./includes ConfigParser.cpp parse_config.cpp -o $@
+parse: includes/ConfigParser.hpp ConfigParser.cpp parse_config.cpp utils.cpp
+		$(CC) $(CFLAGS) -I ./includes ConfigParser.cpp parse_config.cpp utils.cpp -o $@
 
 clean:
 			rm -f $(OBJ)
