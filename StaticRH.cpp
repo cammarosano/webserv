@@ -27,7 +27,6 @@ int StaticRH::setup() {
     response.header_fields["content-length"] = long_to_str(sb.st_size);
     // TODO: and many other header_fields here.....
     assemble_header_str();
-
     return (0);  // ok
 }
 

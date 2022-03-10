@@ -72,8 +72,9 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
             return (new ErrorRH(&request, table, 404));
     }
     // TODO: check if CGI response (match extension)
-    if (request.target.find(request.route->cgi_extension) !=
-        std::string::npos) {
+    if (!request.route->cgi_extension.empty() &&
+        request.target.find(request.route->cgi_extension) !=
+            std::string::npos) {
         return new CgiRH(&request, table);
     }
     return (new StaticRH(&request, table, resource_path));
