@@ -23,10 +23,12 @@ class ConfigParser {
 
    private:
     int _parse_config_file();
-    int _parse_server_block(std::istringstream &prev_iss);
-    int _parse_port(std::istringstream &curr_iss);
-    int _parse_server_names(std::istringstream &curr_iss);
-    int _parse_location(std::istringstream &curr_iss);
+    int _parse_server_block(std::istringstream &iss);
+    int _parse_port(std::istringstream &iss);
+    int _parse_server_names(std::istringstream &iss);
+    int _parse_location(std::istringstream &iss);
+    void _parse_error_page(std::istringstream &iss);
+    void _parse_redirection(std::istringstream &iss);
 
     void _parse_root(std::istringstream &iss, Route &r);
     void _parse_auto_index(std::istringstream &iss, Route &r);
@@ -35,8 +37,6 @@ class ConfigParser {
     void _parse_cgi_extension(std::istringstream &iss, Route &r);
     void _parse_allowed_methods(std::istringstream &iss, Route &r);
     void _parse_route_error_page(std::istringstream &iss, Route &r);
-
-    void _parse_error_page(std::istringstream &iss);
 };
 
 #endif  // __CONFIG_PARSER_H__

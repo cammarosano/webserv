@@ -3,6 +3,7 @@
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
 #include "HttpRequest.hpp"
+#include "RedirectRH.hpp"
 #include "StaticRH.hpp"
 #include "includes.hpp"
 
@@ -55,6 +56,8 @@ std::string assemble_ressource_path(HttpRequest &request) {
 ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
     struct stat sb;
+
+    if (request.vserver->redirected) return (new RedirectRH(&request, table));
 
     // assemble ressource path
     if (!request.route) return (new ErrorRH(&request, table, 404));

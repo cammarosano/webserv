@@ -233,6 +233,25 @@ void ConfigParser::_parse_error_page(std::istringstream &iss) {
     }
     curr_vs->err_pages[err_code] = parsed.substr(0, c);
 }
+void ConfigParser::_parse_redirection(std::istringstream &iss) {
+    std::string parsed;
+
+    iss >> parsed;
+    if (!str_is_number(parsed)) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    int status_code = std::stoi(parsed);
+    iss >> parsed;
+    size_t c = parsed.find(';');
+    if (c == std::string::npos) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    curr_vs->redirected = true;
+    curr_vs->redirect.location = parsed.substr(0, c);
+    curr_vs->redirect.status_code = status_code;
+}
 
 int ConfigParser::_parse_server_block(std::istringstream &prev_iss) {
     // can check for syntax erros using prev_iss
@@ -254,6 +273,8 @@ int ConfigParser::_parse_server_block(std::istringstream &prev_iss) {
             _parse_location(iss);
         } else if (str == "error_page") {
             _parse_error_page(iss);
+        } else if (str == "return") {
+            _parse_redirection(iss);
         }
         str.clear();
     }

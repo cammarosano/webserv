@@ -118,7 +118,13 @@ int ErrorRH::respond() {
     return (0);
 }
 
-void ErrorRH::abort() { state = s_abort; }
+void ErrorRH::abort() {
+    if (res_type == sending_file) {
+        state = s_abort;
+        close(fd);
+        table.remove_fd(fd);
+    }
+}
 
 // static function
 std::map<int, std::string> ErrorRH::init_map() {

@@ -67,12 +67,19 @@ struct Route {
 
 typedef std::pair<std::string, unsigned short> ip_port;
 
+struct Redirection {
+    std::string location;
+    int status_code;
+};
+
 // equivalent to nginx's "server"
 struct Vserver {
     ip_port listen;
+    bool redirected;
     std::list<std::string> server_names;
     std::string default_404;  // default error page
     std::string default_403;  // default error page
+    Redirection redirect;
 
     // key is the code value is the page path ex 404 => 404.html
     std::map<int, std::string> err_pages;
