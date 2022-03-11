@@ -47,10 +47,14 @@ int ErrorRH::send_html_str() {
 // instead of generating the standard one
 int ErrorRH::setup() {
     struct stat sb;
+    std::string err_page;
 
     try {
-        std::string err_page = request->vserver->err_pages.at(error_code);
-        std::cout << GREEN << err_page << RESET << std::endl;
+        if (request->route->error_pages.empty()) {
+            err_page = request->vserver->err_pages.at(error_code);
+        } else {
+            err_page = request->route->error_pages.at(error_code);
+        }
         fd = open(err_page.c_str(), O_RDONLY);
         if (fd < 0) {
             res_type = sending_default;

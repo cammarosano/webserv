@@ -108,6 +108,28 @@ void ConfigParser::_parse_allowed_methods(std::istringstream &iss, Route &r) {
     }
 }
 
+void ConfigParser::_parse_route_error_page(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    if (!str_is_number(parsed)) {
+        std::cerr << "Error: Config file: error code should be a number"
+                  << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    int err_code = std::stoi(parsed);
+    iss >> parsed;
+    size_t c = parsed.find(';');
+    if (c == std::string::npos) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    r.error_pages[err_code] = parsed.substr(0, c);
+    std::map<int, std::string>::iterator it = r.error_pages.begin();
+    std::cout << GREEN << "error code: " << it->first
+              << " error page path: " << it->second << RESET << std::endl;
+}
+
 // TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss) {
     std::string temp;
@@ -139,6 +161,8 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
             _parse_cgi_extension(iss, r);
         } else if (temp == "allowed_methods") {
             _parse_allowed_methods(iss, r);
+        } else if (temp == "error_page") {
+            _parse_route_error_page(iss, r);
         }
         /* TODO: advenced syntax error checking */
         if (temp == "}") break;

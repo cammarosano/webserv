@@ -59,6 +59,9 @@ struct Route {
     bool upload_accepted;
     std::string upload_dir;  // where to store
 
+    // route error pages
+    std::map<int, std::string> error_pages;
+
     Route(std::string prefix) : prefix(prefix) {}
 };
 
