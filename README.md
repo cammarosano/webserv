@@ -119,8 +119,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
     - ### parse server block
       - [x] listening port
       - [x] server names
-      - [ ] error page 404
-      - [ ] error page 403
+      - [x] error pages
       - [ ] body size limit
     - ### parse location block
       - [x] root
@@ -131,7 +130,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
       - [x] accepted method
       - [ ] upload accepted
       - [ ] upload dir
-      - [ ] redirection
+      - [x] redirection
 
 - ### request handler class for CGI GET request
 
@@ -155,6 +154,8 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
   - but it should be able to serve default error pages defined in the config file for that vserver
 
 - ### request handler class for Redirections
+  - [x] redirect server
+  - [ ] redirect location
 
 - ### request handler class for Directory listing
 

@@ -10,10 +10,10 @@ int main() {
     ConfigParser parser(file_name);
     std::map<ip_port, std::list<Vserver> > config = parser.getConfig();
     std::map<ip_port, std::list<Vserver> >::iterator it = config.begin();
-    std::cout << "config size: " << config.size() << std::endl;
     for (; it != config.end(); ++it) {
         std::list<Vserver>::iterator vsit = it->second.begin();
         for (; vsit != it->second.end(); ++vsit) {
+            std::cout << "----------------------------------\n";
             std::list<Route>::iterator rou_it = (*vsit).routes.begin();
             for (; rou_it != (*vsit).routes.end(); rou_it++) {
                 std::cout << "Auto index: " << rou_it->auto_index << std::endl;
@@ -23,6 +23,10 @@ int main() {
                     std::cout << "allowed methods " << *am_it << ", ";
                 }
                 std::cout << '\n';
+                std::cout << GREEN << "prefix: " << rou_it->prefix << RESET
+                          << std::endl;
+                std::cout << GREEN << "default index: " << rou_it->default_index
+                          << RESET << std::endl;
             }
             std::list<std::string>::iterator snit =
                 (*vsit).server_names.begin();

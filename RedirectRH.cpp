@@ -6,11 +6,16 @@ RedirectRH::RedirectRH(HttpRequest *request, FdManager &table)
 RedirectRH::~RedirectRH() {}
 
 int RedirectRH::respond() {
-    Vserver *vs = request->vserver;
+    Redirection redirect;
+
+    if (request->route->redirected)
+        redirect = request->route->redirect;
+    else
+        redirect = request->vserver->redirect;
     response.http_version = "HTTP/1.1";
-    response.status_code_phrase = long_to_str(vs->redirect.status_code) + ' ' +
-                                  reason_phrases[vs->redirect.status_code];
-    response.header_fields["location"] = vs->redirect.location;
+    response.status_code_phrase = long_to_str(redirect.status_code) + ' ' +
+                                  reason_phrases[redirect.status_code];
+    response.header_fields["location"] = redirect.location;
     assemble_header_str();
     if (send_header() == 1) {
         state = s_done;

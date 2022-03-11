@@ -42,6 +42,11 @@ struct HttpRequest;
 
 // structs
 
+struct Redirection {
+    std::string location;
+    int status_code;
+};
+
 // equivalent to nginx's "location"
 struct Route {
     std::string prefix;  // location
@@ -50,6 +55,9 @@ struct Route {
     std::string root;
     bool auto_index;  // directory listing
     std::string default_index;
+
+    bool redirected;
+    Redirection redirect;
 
     // cgi
     std::string cgi_extension;
@@ -66,11 +74,6 @@ struct Route {
 };
 
 typedef std::pair<std::string, unsigned short> ip_port;
-
-struct Redirection {
-    std::string location;
-    int status_code;
-};
 
 // equivalent to nginx's "server"
 struct Vserver {

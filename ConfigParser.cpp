@@ -1,4 +1,3 @@
-
 #include "ConfigParser.hpp"
 
 #include <string>
@@ -58,8 +57,7 @@ void ConfigParser::_parse_default_index(std::istringstream &iss, Route &r) {
         std::cerr << "Error: config file" << std::endl;
         exit(EXIT_FAILURE);
     }
-    parsed = parsed.substr(0, c);
-    r.default_index = parsed;
+    r.default_index = parsed.substr(0, c);
 }
 
 void ConfigParser::_parse_cgi_interpreter(std::istringstream &iss, Route &r) {
@@ -125,9 +123,26 @@ void ConfigParser::_parse_route_error_page(std::istringstream &iss, Route &r) {
         exit(EXIT_FAILURE);
     }
     r.error_pages[err_code] = parsed.substr(0, c);
-    std::map<int, std::string>::iterator it = r.error_pages.begin();
-    std::cout << GREEN << "error code: " << it->first
-              << " error page path: " << it->second << RESET << std::endl;
+}
+
+void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    if (!str_is_number(parsed)) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    int status_code = std::stoi(parsed);
+    iss >> parsed;
+    size_t c = parsed.find(';');
+    if (c == std::string::npos) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    r.redirect.location = parsed.substr(0, c);
+    r.redirect.status_code = status_code;
+    r.redirected = true;
 }
 
 // TODO: cut this function in pieces
@@ -163,6 +178,8 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
             _parse_allowed_methods(iss, r);
         } else if (temp == "error_page") {
             _parse_route_error_page(iss, r);
+        } else if (temp == "return") {
+            _parse_route_redirection(iss, r);
         }
         /* TODO: advenced syntax error checking */
         if (temp == "}") break;

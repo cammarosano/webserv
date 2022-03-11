@@ -37,15 +37,14 @@ std::string assemble_ressource_path(HttpRequest &request) {
     std::string path;
     std::string route_root = request.route->root;
     std::string route_prefix = request.route->prefix;
+    Route &r = *request.route;
 
-    if (request.target.empty() || request.target == "/") {
-        if (!request.route->default_index.empty()) {
-            path = route_root + '/' + request.route->default_index;
-            std::cout << "default index is: " << path << std::endl;
-            return path;
-        }
+    if (request.target == r.prefix && !r.default_index.empty()) {
+        path = route_root + '/' + request.route->default_index;
+        return path;
     }
     path = route_root + '/' + request.target.substr(route_prefix.length());
+    std::cout << GREEN << "route prefix: " << r.prefix << RESET << std::endl;
     // debug
     std::cout << "ressource path: " << path << std::endl;
     return (path);
@@ -57,7 +56,10 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
     struct stat sb;
 
-    if (request.vserver->redirected) return (new RedirectRH(&request, table));
+    if (request.vserver->redirected || request.route->redirected) {
+        std::cout << GREEN << "redirected: " << RESET << std::endl;
+        return (new RedirectRH(&request, table));
+    }
 
     // assemble ressource path
     if (!request.route) return (new ErrorRH(&request, table, 404));
