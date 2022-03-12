@@ -90,6 +90,21 @@ void FdManager::add_file_fd(int file_fd, Client &client) {
     fd_set.insert(file_fd);
 }
 
+void FdManager::add_cgi_out_fd(int fd, Client &client)
+{
+    while (fd >= capacity) reallocate();
+
+    fd_table[fd].type = fd_cgi_output;
+    fd_table[fd].client = &client;
+    fd_table[fd].is_EOF = false;
+
+    poll_array[fd].fd = fd;
+    poll_array[fd].events = POLLIN;
+    poll_array[fd].revents = 0;
+
+    fd_set.insert(fd);
+}
+
 void FdManager::remove_fd(int fd) {
     fd_table[fd].type = fd_none;
     fd_table[fd].client = NULL;
