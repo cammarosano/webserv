@@ -1,4 +1,5 @@
 #include "CgiRH.hpp"
+#include "CgiGetRH.hpp"
 #include "DirectoryRH.hpp"
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
@@ -90,7 +91,10 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     // TODO: check if CGI response (match extension)
     if (!request.route->cgi_extension.empty() &&
         request.target.find(request.route->cgi_extension) !=
-            std::string::npos) {
+            std::string::npos)
+	{
+		if (request.method == "GET")
+			return new CgiGetRH(&request, table, resource_path, query_str);
         return new CgiRH(&request, table);
     }
     return (new StaticRH(&request, table, resource_path));

@@ -32,8 +32,13 @@ int do_io(FdManager &table) {
                 std::cout << "receiving data from client: " << fd << std::endl;
                 recv_from_client(fd, table);
             } else if (fd_type == fd_file)
+                read_from_file(fd, table); // consider renaming the function to read_from_fd
+            else if (fd_type == fd_cgi_output)
+            {
                 read_from_file(fd, table);
-            // TODO: cgi_out
+                std::cout << "fd from cgi output " << fd << " is ready to read()" << std::endl;
+            }
+            
         }
         if (table.get_poll_array()[fd].revents &
             POLLOUT)  // fd ready for writing

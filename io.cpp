@@ -66,7 +66,7 @@ int read_from_file(int fd_file, FdManager &table) {
     table.set_pollout(client.socket);
 
     // debug
-    std::cout << read_bytes << " bytes were read from file at fd " << fd_file
+    std::cout << read_bytes << " bytes were read from fd " << fd_file
               << " destinated to client at socket " << client.socket
               << std::endl;
 
