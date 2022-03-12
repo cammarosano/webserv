@@ -32,21 +32,31 @@ HttpRequest *new_HttpRequest(Client &client) {
 }
 
 // request.route cannot be NULL
-// TODO: handle query string
-std::string assemble_ressource_path(HttpRequest &request) {
+// separates the URI into relative_part + query string
+// assembles path removing the route prefix from the relative-part
+std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
     std::string path;
     std::string route_root = request.route->root;
     std::string route_prefix = request.route->prefix;
     Route &r = *request.route;
+	std::string relative_part; // name used by the RFCs...it's the target without the query string
 
     if (request.target == r.prefix && !r.default_index.empty()) {
         path = route_root + '/' + request.route->default_index;
         return path;
     }
-    path = route_root + '/' + request.target.substr(route_prefix.length());
+
+	// separate relative-part and query string
+	size_t pos = request.target.find('?');
+	relative_part = request.target.substr(0, pos);
+	if (pos != std::string::npos) // if '?' was found
+		query = request.target.substr(pos + 1); // the '?' itself is discarded
+
+    path = route_root + '/' + relative_part.substr(route_prefix.length());
     std::cout << GREEN << "route prefix: " << r.prefix << RESET << std::endl;
     // debug
     std::cout << "ressource path: " << path << std::endl;
+    std::cout << "query string: " << query << std::endl;
     return (path);
 }
 
@@ -54,6 +64,7 @@ std::string assemble_ressource_path(HttpRequest &request) {
 // instantiate the correct request handler
 ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
+	std::string query_str;
     struct stat sb;
 
     if (request.vserver->redirected || request.route->redirected) {
@@ -63,7 +74,7 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
 
     // assemble ressource path
     if (!request.route) return (new ErrorRH(&request, table, 404));
-    resource_path = assemble_ressource_path(request);
+    resource_path = assemble_ressource_path(request, query_str);
 
     // check if ressource is available
     if (stat(resource_path.c_str(), &sb) == -1)      // not found
