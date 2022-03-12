@@ -115,7 +115,7 @@ void ConfigParser::_parse_route_error_page(std::istringstream &iss, Route &r) {
                   << std::endl;
         exit(EXIT_FAILURE);
     }
-    int err_code = std::stoi(parsed);
+    int err_code = std::strtol(parsed.c_str(), NULL, 10);
     iss >> parsed;
     size_t c = parsed.find(';');
     if (c == std::string::npos) {
@@ -133,7 +133,7 @@ void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r) {
         std::cerr << "Error: Config file" << std::endl;
         exit(EXIT_FAILURE);
     }
-    int status_code = std::stoi(parsed);
+    int status_code = std::strtol(parsed.c_str(), NULL, 10);
     iss >> parsed;
     size_t c = parsed.find(';');
     if (c == std::string::npos) {
@@ -241,7 +241,7 @@ void ConfigParser::_parse_error_page(std::istringstream &iss) {
                   << std::endl;
         exit(EXIT_FAILURE);
     }
-    int err_code = std::stoi(parsed);
+    int err_code = std::strtol(parsed.c_str(), NULL, 10);
     iss >> parsed;
     size_t c = parsed.find(';');
     if (c == std::string::npos) {
@@ -258,7 +258,7 @@ void ConfigParser::_parse_redirection(std::istringstream &iss) {
         std::cerr << "Error: Config file" << std::endl;
         exit(EXIT_FAILURE);
     }
-    int status_code = std::stoi(parsed);
+    int status_code = std::strtol(parsed.c_str(), NULL, 10);
     iss >> parsed;
     size_t c = parsed.find(';');
     if (c == std::string::npos) {
