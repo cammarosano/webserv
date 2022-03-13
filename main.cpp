@@ -2,6 +2,8 @@
 #include "FdManager.hpp"
 #include "includes.hpp"
 
+#define DEBUG 1
+
 // calls poll()
 // does all read() and write() operations
 int do_io(FdManager &table) {
@@ -15,6 +17,11 @@ int do_io(FdManager &table) {
     if (poll_ret == -1) {
         perror("poll");
         return (-1);
+    }
+    if (DEBUG)
+    {
+        std::cout << "poll() returned " << poll_ret << std::endl;
+        table.debug_info();
     }
 
     // iterate over poll_array
@@ -34,11 +41,7 @@ int do_io(FdManager &table) {
             } else if (fd_type == fd_file)
                 read_from_file(fd, table); // consider renaming the function to read_from_fd
             else if (fd_type == fd_cgi_output)
-            {
                 read_from_file(fd, table);
-                std::cout << "fd from cgi output " << fd << " is ready to read()" << std::endl;
-            }
-            
         }
         if (table.get_poll_array()[fd].revents &
             POLLOUT)  // fd ready for writing

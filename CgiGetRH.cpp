@@ -11,7 +11,7 @@ CgiGetRH::~CgiGetRH()
 {
 }
 
-// use cgi+_env from the HttpRequest
+// TODO: use cgi_env from the HttpRequest
 void CgiGetRH::setup_cgi_env(char **envp)
 {
 	envp[0] = strdup(("REQUEST_METHOD=" + request->method).c_str());

@@ -93,6 +93,7 @@ int send_to_client(int socket, FdManager &table) {
     std::cout << bytes_sent << " bytes were sent to client at socket " << socket
               << std::endl;
     client.unsent_data.erase(0, bytes_sent);
-    if (client.unsent_data.empty()) table.unset_pollout(client.socket);
+    if (client.unsent_data.empty())
+        table.unset_pollout(client.socket);
     return (1);
 }
