@@ -132,7 +132,7 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
       - [ ] upload dir
       - [x] redirection
 
-- ### request handler class for CGI GET request
+- [x] request handler class for CGI GET request
 
   - pipe()
   - fork()
