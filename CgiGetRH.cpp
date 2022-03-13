@@ -18,13 +18,23 @@ void CgiGetRH::setup_cgi_argv(char **argv)
 	argv[2] = NULL;
 }
 
-// TODO: use cgi_env from the HttpRequest
+// TODO: protect mallocs (strdup)
 void CgiGetRH::setup_cgi_env(char **envp)
 {
-	envp[0] = strdup(("REQUEST_METHOD=" + request->method).c_str());
-	envp[1] = strdup(("QUERY_STRING=" + query).c_str());
+	std::map<std::string, std::string>::iterator it;
+	int i;
 
-	envp[2] = NULL;
+	it = request->cgi_env.begin();
+	i = 0;
+	while (it != request->cgi_env.end())
+	{
+		envp[i] = strdup((it->first + '=' + it->second).c_str());
+		++it;
+		++i;
+	}
+	envp[i++] = strdup(("REQUEST_METHOD=" + request->method).c_str());
+	envp[i++] = strdup(("QUERY_STRING=" + query).c_str());
+	envp[i] = NULL;
 }
 
 int CgiGetRH::setup()
@@ -49,9 +59,9 @@ int CgiGetRH::setup()
 
 	if (pid_cgi_process == 0) // child process
 	{
-		std::cerr << "about to exec" << std::endl;
-		std::cerr << "cgi interpreter path: " << request->route->cgi_interpreter << std::endl;
-		std::cerr << "script path: " << script_path << std::endl;
+		// debug
+		std::cout << "cgi interpreter path: " << request->route->cgi_interpreter << std::endl;
+		std::cout << "script path: " << script_path << std::endl;
 
 		close(pipefd[0]); // close read-end
 
@@ -69,7 +79,7 @@ int CgiGetRH::setup()
 		setup_cgi_argv(argv);
 		setup_cgi_env(envp);
 
-		// TODO: chdir to cgi root
+		// TODO: chdir to cgi root ("correct directory?")
 		// chdir(request->route->root.c_str());
 
 		// exec()
