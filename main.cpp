@@ -10,7 +10,8 @@ int do_io(FdManager &table) {
     int poll_ret;
 
     // debug
-    std::cout << "Blocking at poll()" << std::endl;
+    if (DEBUG)
+        std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
     poll_ret = poll(table.get_poll_array(), table.len(), -1);
@@ -18,6 +19,8 @@ int do_io(FdManager &table) {
         perror("poll");
         return (-1);
     }
+
+	// display debug info
     if (DEBUG)
     {
         std::cout << "poll() returned " << poll_ret << std::endl;
@@ -26,12 +29,13 @@ int do_io(FdManager &table) {
 
     // iterate over poll_array
     for (int fd = 3; fd < table.len(); fd++) {
+        e_fd_type fd_type = table[fd].type;
+
         if (table.get_poll_array()[fd].revents &
             POLLIN)  // fd ready for reading
         {
             // a the begining it will be the only the listening socket
             // other will be add with accept connection
-            e_fd_type fd_type = table[fd].type;
 
             if (fd_type == fd_listen_socket) {
                 accept_connection(fd, table);
@@ -39,17 +43,20 @@ int do_io(FdManager &table) {
                 std::cout << "receiving data from client: " << fd << std::endl;
                 recv_from_client(fd, table);
             } else if (fd_type == fd_file)
-                read_from_file(fd, table); // consider renaming the function to read_from_fd
-            else if (fd_type == fd_cgi_output)
-                read_from_file(fd, table);
+                read_from_file(fd, table); 
         }
         if (table.get_poll_array()[fd].revents &
             POLLOUT)  // fd ready for writing
         {
-            e_fd_type fd_type = table[fd].type;
             std::cout << "sending data to client" << std::endl;
             if (fd_type == fd_client_socket) send_to_client(fd, table);
             // TODO: cgi_in
+        }
+        // when a a process closes its end of the pipe, POLLHUP is detected
+        if (table.get_poll_array()[fd].revents & (POLLIN | POLLHUP))
+        {
+            if (fd_type == fd_cgi_output)
+                read_from_file(fd, table);
         }
     }
     return (0);

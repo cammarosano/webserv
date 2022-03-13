@@ -13,6 +13,7 @@ private:
 	int	cgi_output_fd;
 
 	int setup();
+	void setup_cgi_argv(char **argv);
 	void setup_cgi_env(char **envp);
 
 public:

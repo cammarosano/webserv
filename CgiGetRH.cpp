@@ -11,6 +11,13 @@ CgiGetRH::~CgiGetRH()
 {
 }
 
+void CgiGetRH::setup_cgi_argv(char **argv)
+{
+	argv[0] = strdup(request->route->cgi_interpreter.c_str());
+	argv[1] = strdup(script_path.c_str());
+	argv[2] = NULL;
+}
+
 // TODO: use cgi_env from the HttpRequest
 void CgiGetRH::setup_cgi_env(char **envp)
 {
@@ -56,14 +63,10 @@ int CgiGetRH::setup()
 		}
 		close(pipefd[1]);
 
-		// setup argv for cgi
+		// setup argv and envp for execve
 		char *argv[3];
-		argv[0] = strdup(request->route->cgi_interpreter.c_str());
-		argv[1] = strdup(script_path.c_str());
-		argv[2] = NULL;
-
-		// setup env for cgi
 		char *envp[20];
+		setup_cgi_argv(argv);
 		setup_cgi_env(envp);
 
 		// TODO: chdir to cgi root
@@ -96,28 +99,39 @@ int CgiGetRH::respond()
 	}
 	if (state == s_sending_cgi_output)
 	{
-		int wstatus;
-
-		// check if child process is terminated 
-		// OBS: this seems to be slow, it takes many cycles to get a positive return
-		// by waitpid. Consider checking for EOF and remove fd from table!
-		int ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
-
-		if (ret == -1)
+		if (table[cgi_output_fd].is_EOF)
 		{
-			perror("waitpid");
-			return (-1);
-		}
-		if (ret > 0) // process exited
-		{
-			std::cout << "CGI process terminated" << std::endl;
-			close(cgi_output_fd); // close pipe's read-end
+			kill(pid_cgi_process, SIGTERM); // consider using SIGKILL to ensure termination
 			table.remove_fd(cgi_output_fd);
+			close(cgi_output_fd); // close pipe's read-end
+			// this line might block the program!
+			waitpid(pid_cgi_process, NULL, 0);
+			std::cout << "CGI process terminated" << std::endl;
 			state = s_done;
 		}
 	}
-    if (state == s_done)
-		return (1);
+	// I think this might block the program at poll... 
+	// as there's no fd change expected to signal this. If poll times out, then ok,
+	// maybe waiting from child processes to terminate should be done outside of RHs.
+	// if (state == s_waiting_child)
+	// {
+	// 	int wstatus;
+
+	// 	// check if child process is terminated 
+	// 	int ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
+
+	// 	if (ret == -1)
+	// 	{
+	// 		perror("waitpid");
+	// 		return (-1);
+	// 	}
+	// 	if (ret > 0) // process exited
+	// 	{
+	// 		state = s_done;
+	// 	}
+	// }
+    if (state == s_done) return (1);
+    if (state == s_abort) return (-1);
 	return (0);
 }
 
