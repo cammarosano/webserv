@@ -13,8 +13,13 @@ CgiGetRH::~CgiGetRH()
 
 void CgiGetRH::setup_cgi_argv(char **argv)
 {
-	argv[0] = strdup(request->route->cgi_interpreter.c_str());
-	argv[1] = strdup(script_path.c_str());
+	Route &route = *request->route;
+
+	argv[0] = strdup(route.cgi_interpreter.c_str());
+	// remove the root-prefix from script path, as the interpreter will
+	// be run at that directory
+	std::string arg1 = script_path.substr(route.root.size() + 1);
+	argv[1] = strdup(arg1.c_str());
 	argv[2] = NULL;
 }
 
@@ -47,7 +52,7 @@ int CgiGetRH::setup()
 		perror("pipe");
 		return -1;
 	}
-	std::cout << "pipe fds: " << pipefd[0] << " and " << pipefd[1] << std::endl;
+	// std::cout << "pipe fds: " << pipefd[0] << " and " << pipefd[1] << std::endl;
 
 	// fork 
 	pid_cgi_process = fork();
@@ -59,11 +64,15 @@ int CgiGetRH::setup()
 
 	if (pid_cgi_process == 0) // child process
 	{
-		// debug
-		std::cout << "cgi interpreter path: " << request->route->cgi_interpreter << std::endl;
-		std::cout << "script path: " << script_path << std::endl;
+		// setup argv and envp for execve
+		char *argv[3];
+		char *envp[20];
+		setup_cgi_argv(argv);
+		setup_cgi_env(envp);
 
-		close(pipefd[0]); // close read-end
+		// debug
+		std::cout << "cgi interpreter path: " << argv[0] << std::endl;
+		std::cout << "script path, relative to route's root: " << argv[1] << std::endl;
 
 		// redirect stdout to the write-end of the pipe
 		if (dup2(pipefd[1],1) == -1)
@@ -71,19 +80,15 @@ int CgiGetRH::setup()
 			perror("dup2");
 			exit(1);
 		}
+		close(pipefd[0]);
 		close(pipefd[1]);
 
-		// setup argv and envp for execve
-		char *argv[3];
-		char *envp[20];
-		setup_cgi_argv(argv);
-		setup_cgi_env(envp);
 
-		// TODO: chdir to cgi root ("correct directory?")
-		// chdir(request->route->root.c_str());
+		// chdir to cgi root ("correct directory" ??)
+		chdir(request->route->root.c_str());
 
 		// exec()
-		execve(request->route->cgi_interpreter.c_str(), argv, envp);
+		execve(argv[0], argv, envp);
 
 		// if exec returns, that's an error
 		perror("exec");
@@ -95,7 +100,6 @@ int CgiGetRH::setup()
 	close(pipefd[1]); // close write-end
 	cgi_output_fd = pipefd[0];
 	return (0);
-
 }
 
 int CgiGetRH::respond()
