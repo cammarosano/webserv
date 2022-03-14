@@ -53,6 +53,7 @@ public:
 	void 	add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
 	void 	add_client_socket(int client_socket, Client &client);
 	void 	add_file_fd(int file_fd, Client &client);
+	void	add_cgi_out_fd(int cgi_out_fd, Client &client);
 	void 	remove_fd(int fd);
 
 	void	set_pollout(int fd);
@@ -61,6 +62,8 @@ public:
 	std::list<Vserver> & get_vserver_lst(int listen_socket);
 
 	fd_info & operator[](int fd);
+
+	void debug_info() const;
 
 };
 

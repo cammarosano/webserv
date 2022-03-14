@@ -9,10 +9,16 @@ SRC =	accept_connection.cpp \
 		HttpRequest.cpp \
 		setup.cpp \
 		StaticRH.cpp \
-		utils.cpp
+		utils.cpp \
+		ConfigParser.cpp \
+		DirectoryRH.cpp \
+		CgiRH.cpp \
+		RedirectRH.cpp \
+		CgiGetRH.cpp
 
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
-		HttpRequest.hpp ErrorRH.hpp
+		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp CgiRH.hpp RedirectRH.hpp \
+		CgiGetRH.hpp
 HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)
@@ -29,11 +35,14 @@ $(NAME):	$(OBJ)
 %.o:		%.cpp $(HEADERS)
 			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+parse: includes/ConfigParser.hpp ConfigParser.cpp parse_config.cpp utils.cpp
+		$(CC) $(CFLAGS) -I ./includes ConfigParser.cpp parse_config.cpp utils.cpp -o $@
+
 clean:
 			rm -f $(OBJ)
 
 fclean:		clean
-			rm -f $(NAME)
+			rm -f $(NAME) parse
 
 re:			clean all
 
