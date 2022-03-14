@@ -1,14 +1,17 @@
 #include "CgiGetRH.hpp"
 
-CgiGetRH::CgiGetRH(HttpRequest *request, FdManager &table,
-                   std::string &script_path, std::string &query)
-    : ARequestHandler(request, table), script_path(script_path), query(query) {
+CgiGetRH::CgiGetRH(HttpRequest *request, FdManager &table, std::string &script_path, std::string &query)
+    : ARequestHandler(request, table), script_path(script_path), query(query)
+{
     state = s_setup;
 }
 
-CgiGetRH::~CgiGetRH() {}
+CgiGetRH::~CgiGetRH()
+{
+}
 
-void CgiGetRH::setup_cgi_argv(char **argv) {
+void CgiGetRH::setup_cgi_argv(char **argv)
+{
     Route &route = *request->route;
 
     argv[0] = strdup(route.cgi_interpreter.c_str());
@@ -20,29 +23,30 @@ void CgiGetRH::setup_cgi_argv(char **argv) {
 }
 
 // TODO: protect mallocs (strdup)
-void CgiGetRH::setup_cgi_env(char **envp) {
+void CgiGetRH::setup_cgi_env(char **envp)
+{
     std::map<std::string, std::string>::iterator it;
     int i;
 
     it = request->cgi_env.begin();
     i = 0;
-    while (it != request->cgi_env.end()) {
-        std::cout << GREEN << it->first << '=' << it->second << RESET
-                  << std::endl;
+    while (it != request->cgi_env.end())
+    {
         envp[i] = strdup((it->first + '=' + it->second).c_str());
         ++it;
         ++i;
     }
-    // envp[i++] = strdup(("REQUEST_METHOD=" + request->method).c_str());
     envp[i++] = strdup(("QUERY_STRING=" + query).c_str());
     envp[i] = NULL;
 }
 
-int CgiGetRH::setup() {
+int CgiGetRH::setup()
+{
     int pipefd[2];
 
     // open pipe for cgi output
-    if (pipe(pipefd) == -1) {
+    if (pipe(pipefd) == -1)
+    {
         perror("pipe");
         return -1;
     }
@@ -51,12 +55,13 @@ int CgiGetRH::setup() {
 
     // fork
     pid_cgi_process = fork();
-    if (pid_cgi_process == -1) {
+    if (pid_cgi_process == -1)
+    {
         perror("fork");
         return -1;
     }
 
-    if (pid_cgi_process == 0)  // child process
+    if (pid_cgi_process == 0) // child process
     {
         // setup argv and envp for execve
         char *argv[3];
@@ -66,11 +71,11 @@ int CgiGetRH::setup() {
 
         // debug
         std::cout << "cgi interpreter path: " << argv[0] << std::endl;
-        std::cout << "script path, relative to route's root: " << argv[1]
-                  << std::endl;
+        std::cout << "script path, relative to route's root: " << argv[1] << std::endl;
 
         // redirect stdout to the write-end of the pipe
-        if (dup2(pipefd[1], 1) == -1) {
+        if (dup2(pipefd[1], 1) == -1)
+        {
             perror("dup2");
             exit(1);
         }
@@ -90,23 +95,29 @@ int CgiGetRH::setup() {
 
     // parent process
     std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
-    close(pipefd[1]);  // close write-end
+    close(pipefd[1]); // close write-end
     cgi_output_fd = pipefd[0];
+    table.add_cgi_out_fd(cgi_output_fd, request->client);
     return (0);
 }
 
-int CgiGetRH::respond() {
-    if (state == s_setup) {
-        if (setup() == -1) return -1;
-        table.add_cgi_out_fd(cgi_output_fd, request->client);
-        state = s_sending_cgi_output;
+int CgiGetRH::respond()
+{
+    if (state == s_setup)
+    {
+        if (setup() == -1)
+            return -1;
+        state = s_recving_cgi_output;
     }
-    if (state == s_sending_cgi_output) {
-        if (table[cgi_output_fd].is_EOF) {
+    if (state == s_recving_cgi_output)
+    {
+        // this could be a clear() function, to be also used by abort.
+        if (table[cgi_output_fd].is_EOF)
+        {
             kill(pid_cgi_process,
-                 SIGTERM);  // consider using SIGKILL to ensure termination
+                 SIGTERM); // consider using SIGKILL to ensure termination
             table.remove_fd(cgi_output_fd);
-            close(cgi_output_fd);  // close pipe's read-end
+            close(cgi_output_fd); // close pipe's read-end
             // this line might block the program!
             waitpid(pid_cgi_process, NULL, 0);
             std::cout << "CGI process terminated" << std::endl;
@@ -133,11 +144,14 @@ int CgiGetRH::respond() {
     // 		state = s_done;
     // 	}
     // }
-    if (state == s_done) return (1);
-    if (state == s_abort) return (-1);
+    if (state == s_done)
+        return (1);
+    if (state == s_abort)
+        return (-1);
     return (0);
 }
 
-void CgiGetRH::abort() {
+void CgiGetRH::abort()
+{
     // TODO
 }

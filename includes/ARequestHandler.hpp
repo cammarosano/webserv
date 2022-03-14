@@ -8,7 +8,8 @@
 enum e_rhstate
 {
 	s_setup, s_sending_header, s_start_send_file, s_sending_file, s_done,
-	s_abort, s_sending_html_str, s_sending_cgi_output, s_waiting_child
+	s_abort, s_sending_html_str, s_recving_cgi_output, s_get_req_body,
+	s_sending_body2cgi 
 };
 
 /* 

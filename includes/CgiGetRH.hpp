@@ -6,15 +6,17 @@
 
 class CgiGetRH: public ARequestHandler
 {
-private:
+protected:
 	std::string script_path;
 	std::string query;
 	pid_t pid_cgi_process;
 	int	cgi_output_fd;
 
-	int setup();
 	void setup_cgi_argv(char **argv);
 	void setup_cgi_env(char **envp);
+
+private:
+	int setup();
 
 public:
 	CgiGetRH(HttpRequest *request, FdManager &table,

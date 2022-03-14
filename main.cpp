@@ -2,7 +2,7 @@
 #include "FdManager.hpp"
 #include "includes.hpp"
 
-#define DEBUG 0
+#define DEBUG 1
 
 // calls poll()
 // does all read() and write() operations

@@ -112,12 +112,12 @@ int write_to_cgi(int fd_cgi_input, FdManager &table)
         return (0);
     bytes_written = write(fd_cgi_input, client.req_body_data.data(),
         client.req_body_data.size());
-    if (bytes_written == - 1)
+    if (bytes_written == -1)
     {
         perror("write");
         return (-1);
     }
-    client.received_data.erase(0, bytes_written);
+    client.req_body_data.erase(0, bytes_written);
     if (client.req_body_data.empty())
         table.unset_pollout(fd_cgi_input);
     
