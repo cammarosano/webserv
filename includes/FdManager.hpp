@@ -54,6 +54,7 @@ public:
 	void 	add_client_socket(int client_socket, Client &client);
 	void 	add_file_fd(int file_fd, Client &client);
 	void	add_cgi_out_fd(int cgi_out_fd, Client &client);
+	void	add_cgi_in_fd(int cgi_in_fd, Client &client);
 	void 	remove_fd(int fd);
 
 	void	set_pollout(int fd);

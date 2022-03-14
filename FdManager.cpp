@@ -105,6 +105,21 @@ void FdManager::add_cgi_out_fd(int fd, Client &client)
     fd_set.insert(fd);
 }
 
+void	FdManager::add_cgi_in_fd(int fd, Client &client)
+{
+    while (fd >= capacity) reallocate();
+
+    fd_table[fd].type = fd_cgi_input;
+    fd_table[fd].client = &client;
+    fd_table[fd].is_EOF = false;
+
+    poll_array[fd].fd = fd;
+    poll_array[fd].events = 0;
+    poll_array[fd].revents = 0;
+
+    fd_set.insert(fd);
+}
+
 void FdManager::remove_fd(int fd) {
     fd_table[fd].type = fd_none;
     fd_table[fd].client = NULL;
@@ -127,8 +142,13 @@ std::list<Vserver> &FdManager::get_vserver_lst(int listen_socket) {
 
 void FdManager::debug_info() const
 {
-    static std::string types[6] = {"none         ", "listen_socket", "client_socket",
-        "file_fd      ", "cgi_out_fd   ", "cgi_in_fd    "};
+    static std::string types[6] = {
+        "none         ",
+        "listen_socket",
+        "client_socket",
+        "file_fd      ",
+        "cgi_out_fd   ",
+        "cgi_in_fd    "};
     
     std::cout << "----------FdManager debug info-----------------\n";
     for (int fd = 0; fd < len(); fd++)
