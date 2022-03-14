@@ -27,13 +27,10 @@ void CgiGetRH::setup_cgi_env(char **envp) {
     it = request->cgi_env.begin();
     i = 0;
     while (it != request->cgi_env.end()) {
-        std::cout << GREEN << it->first << '=' << it->second << RESET
-                  << std::endl;
         envp[i] = strdup((it->first + '=' + it->second).c_str());
         ++it;
         ++i;
     }
-    // envp[i++] = strdup(("REQUEST_METHOD=" + request->method).c_str());
     envp[i++] = strdup(("QUERY_STRING=" + query).c_str());
     envp[i] = NULL;
 }
