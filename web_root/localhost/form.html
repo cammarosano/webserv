@@ -6,20 +6,24 @@
 	<body>
 		<h1> THE form</h1>
 
-		<form action="/form.html" method="POST">
+		<form action="/cgi/test.py" method="POST">
 		  <div>
-		    <label for="say">Quelle salutation voulez-vous dire ?</label>
-		    <input name="say" id="say" value="Salut">
+		    <label for="from">Who are you?</label>
+		    <input name="from" id="from" value="your name here">
 		  </div>
 		  <div>
-		    <label for="to">A qui voulez-vous le dire ?</label>
-		    <input name="to" id="to" value="Maman">
+		    <label for="to">Who are you writing to?</label>
+		    <input name="to" id="to" value="recipient's name">
 		  </div>
 		  <div>
-		    <button>Envoyer mes salutations</button>
+			<label for=bigtext">Tell me what's on your mind:<br></label>
+			<textarea id="bigtext" name="bigtext" rows="20" cols="50">
+Please write something beautiful. Don't disappoint me...</textarea>
+		  </div>
+		  <div>
+		    <button>Send</button>
 		  </div>
 		</form>
-
 
 	</body>
 </html>

@@ -111,7 +111,7 @@ struct Client {
     // buffers
     std::string received_data;
     std::string unsent_data;
-    std::string processed_data;
+    std::string req_body_data;
 
     // ongoing response
     ARequestHandler *ongoing_response;
@@ -137,6 +137,7 @@ int accept_connection(int listen_socket, FdManager &table);
 int recv_from_client(int socket, FdManager &table);
 int read_from_file(int fd_file, FdManager &table);
 int send_to_client(int socket, FdManager &table);
+int write_to_cgi(int fd_cgi_input, FdManager &table);
 
 // process requests
 

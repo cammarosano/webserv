@@ -12,13 +12,14 @@ SRC =	accept_connection.cpp \
 		utils.cpp \
 		ConfigParser.cpp \
 		DirectoryRH.cpp \
-		CgiRH.cpp \
+		ACgiRH.cpp \
 		RedirectRH.cpp \
-		CgiGetRH.cpp
+		CgiGetRH.cpp \
+		CgiPostRH.cpp
 
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
-		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp CgiRH.hpp RedirectRH.hpp \
-		CgiGetRH.hpp
+		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp ACgiRH.hpp RedirectRH.hpp \
+		CgiGetRH.hpp CgiPostRH.hpp
 HEADERS = $(addprefix includes/,$(HDR))
 
 OBJ = $(SRC:.cpp=.o)

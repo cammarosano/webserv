@@ -1,5 +1,5 @@
 #include "CgiGetRH.hpp"
-#include "CgiRH.hpp"
+#include "CgiPostRH.hpp"
 #include "DirectoryRH.hpp"
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
@@ -74,37 +74,43 @@ std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
 
 // resolve type of response: static_file, CGI, directory, error...
 // instantiate the correct request handler
-ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
+ARequestHandler *init_response(HttpRequest &request, FdManager &table)
+{
     std::string resource_path;
     std::string query_str;
     struct stat sb;
 
-    if (request.vserver->redirected || request.route->redirected) {
+    if (request.vserver->redirected || request.route->redirected)
+    {
         return (new RedirectRH(&request, table));
     }
 
     // assemble ressource path
-    if (!request.route) return (new ErrorRH(&request, table, 404));
+    if (!request.route)
+        return (new ErrorRH(&request, table, 404));
     resource_path = assemble_ressource_path(request, query_str);
 
     // check if ressource is available
-    if (stat(resource_path.c_str(), &sb) == -1)      // not found
-        return (new ErrorRH(&request, table, 404));  // todo new ErrorRH(404);
+    if (stat(resource_path.c_str(), &sb) == -1)     // not found
+        return (new ErrorRH(&request, table, 404)); // todo new ErrorRH(404);
 
     // check if it is a directory
-    if (S_ISDIR(sb.st_mode)) {
-        if (request.route->auto_index) {
+    if (S_ISDIR(sb.st_mode))
+    {
+        if (request.route->auto_index)
+        {
             return new DirectoryRH(&request, table, resource_path);
-        } else
+        }
+        else
             return (new ErrorRH(&request, table, 404));
     }
-    // TODO: check if CGI response (match extension)
-    if (!request.route->cgi_extension.empty() &&
-        request.target.find(request.route->cgi_extension) !=
-            std::string::npos) {
+    // check if CGI response (match extension)
+    if (!request.route->cgi_extension.empty() && request.target.find(request.route->cgi_extension) != std::string::npos)
+    {
         if (request.method == "GET")
             return new CgiGetRH(&request, table, resource_path, query_str);
-        return new CgiRH(&request, table);
+        if (request.method == "POST")
+            return new CgiPostRH(&request, table, resource_path, query_str);
     }
     return (new StaticRH(&request, table, resource_path));
 }
