@@ -162,11 +162,7 @@ int CgiPostRH::respond()
 	{
 		if (table[cgi_output_fd].is_EOF)
 		{
-			kill(pid_cgi_process, SIGTERM);
-			table.remove_fd(cgi_output_fd);
-			close(cgi_output_fd); // close pipe out read-end
-			waitpid(pid_cgi_process, NULL, 0);
-            std::cout << "CGI process terminated" << std::endl;
+			clear_resources();
 			state = s_done;
 		}
 	}
@@ -179,5 +175,11 @@ int CgiPostRH::respond()
 
 void CgiPostRH::abort()
 {
-	// TODO
+	if (state != s_recving_cgi_output)
+	{
+		close(cgi_input_fd);
+		table.remove_fd(cgi_input_fd);
+	}
+	clear_resources();
+	state = s_abort;
 }

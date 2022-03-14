@@ -50,8 +50,6 @@ int CgiGetRH::setup()
         perror("pipe");
         return -1;
     }
-    // std::cout << "pipe fds: " << pipefd[0] << " and " << pipefd[1] <<
-    // std::endl;
 
     // fork
     pid_cgi_process = fork();
@@ -111,19 +109,36 @@ int CgiGetRH::respond()
     }
     if (state == s_recving_cgi_output)
     {
-        // this could be a clear() function, to be also used by abort.
         if (table[cgi_output_fd].is_EOF)
         {
-            kill(pid_cgi_process,
-                 SIGTERM); // consider using SIGKILL to ensure termination
-            table.remove_fd(cgi_output_fd);
-            close(cgi_output_fd); // close pipe's read-end
-            // this line might block the program!
-            waitpid(pid_cgi_process, NULL, 0);
-            std::cout << "CGI process terminated" << std::endl;
+            clear_resources();
             state = s_done;
         }
     }
+    if (state == s_done)
+        return (1);
+    if (state == s_abort)
+        return (-1);
+    return (0);
+}
+
+void CgiGetRH::abort()
+{
+    clear_resources();
+    state = s_abort;
+}
+
+void CgiGetRH::clear_resources()
+{
+    // consider using SIGKILL to ensure termination
+    kill(pid_cgi_process, SIGTERM);
+    table.remove_fd(cgi_output_fd);
+    close(cgi_output_fd); // close pipe's read-end
+    // this line might block the program!
+    waitpid(pid_cgi_process, NULL, 0);
+    std::cout << "CGI process terminated" << std::endl;
+}
+
     // I think this might block the program at poll...
     // as there's no fd change expected to signal this. If poll times out, then
     // ok, maybe waiting from child processes to terminate should be done
@@ -144,14 +159,3 @@ int CgiGetRH::respond()
     // 		state = s_done;
     // 	}
     // }
-    if (state == s_done)
-        return (1);
-    if (state == s_abort)
-        return (-1);
-    return (0);
-}
-
-void CgiGetRH::abort()
-{
-    // TODO
-}

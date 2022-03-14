@@ -14,6 +14,7 @@ protected:
 
 	void setup_cgi_argv(char **argv);
 	void setup_cgi_env(char **envp);
+	void clear_resources();
 
 private:
 	int setup();
