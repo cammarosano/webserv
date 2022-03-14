@@ -28,8 +28,11 @@ void DirectoryRH::_generate_autoindex_page() {
             std::string::iterator it = --(param.end());
             if (*it == '/') param.erase(it);
             if (param == "/") param.clear();
-            res << "<a href="
-                << "\"" << param << "/" << dir->d_name << "\" >" << dir->d_name;
+            res << "<a href=";
+            res << "\"" << param << "/" << dir->d_name;
+            if (dir->d_type == DT_DIR) res << "/";
+            res << "\" >";
+            res << dir->d_name;
             if (dir->d_type == DT_DIR) res << "/";
             res << "</a> <br>";
         }

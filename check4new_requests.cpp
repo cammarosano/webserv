@@ -1,5 +1,5 @@
-#include "CgiRH.hpp"
 #include "CgiGetRH.hpp"
+#include "CgiRH.hpp"
 #include "DirectoryRH.hpp"
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
@@ -40,21 +40,32 @@ std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
     std::string route_root = request.route->root;
     std::string route_prefix = request.route->prefix;
     Route &r = *request.route;
-	std::string relative_part; // name used by the RFCs...it's the target without the query string
+    std::string relative_part;  // name used by the RFCs...it's the target
+                                // without the query string
 
-    if (request.target == r.prefix && !r.default_index.empty()) {
-        path = route_root + '/' + request.route->default_index;
-        return path;
+    char c = *(request.target.rbegin());
+    if (c == '/') {
+        if (!r.default_index.empty()) {
+            // path to the default index file
+            std::string temp =
+                request.target.substr(r.prefix.length(), std::string::npos);
+            path = route_root + '/' + temp + request.route->default_index;
+            return (path);
+        } else if (request.route->auto_index) {
+            std::string temp =
+                request.target.substr(r.prefix.length(), std::string::npos);
+            path = route_root + '/' + temp;
+            return (path);
+        }
     }
 
-	// separate relative-part and query string
-	size_t pos = request.target.find('?');
-	relative_part = request.target.substr(0, pos);
-	if (pos != std::string::npos) // if '?' was found
-		query = request.target.substr(pos + 1); // the '?' itself is discarded
+    // separate relative-part and query string
+    size_t pos = request.target.find('?');
+    relative_part = request.target.substr(0, pos);
+    if (pos != std::string::npos)                // if '?' was found
+        query = request.target.substr(pos + 1);  // the '?' itself is discarded
 
     path = route_root + '/' + relative_part.substr(route_prefix.length());
-    std::cout << GREEN << "route prefix: " << r.prefix << RESET << std::endl;
     // debug
     std::cout << "ressource path: " << path << std::endl;
     std::cout << "query string: " << query << std::endl;
@@ -65,11 +76,10 @@ std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
 // instantiate the correct request handler
 ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
-	std::string query_str;
+    std::string query_str;
     struct stat sb;
 
     if (request.vserver->redirected || request.route->redirected) {
-        std::cout << GREEN << "redirected: " << RESET << std::endl;
         return (new RedirectRH(&request, table));
     }
 
@@ -83,18 +93,17 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
 
     // check if it is a directory
     if (S_ISDIR(sb.st_mode)) {
-        if (request.route->auto_index)
+        if (request.route->auto_index) {
             return new DirectoryRH(&request, table, resource_path);
-        else
+        } else
             return (new ErrorRH(&request, table, 404));
     }
     // TODO: check if CGI response (match extension)
     if (!request.route->cgi_extension.empty() &&
         request.target.find(request.route->cgi_extension) !=
-            std::string::npos)
-	{
-		if (request.method == "GET")
-			return new CgiGetRH(&request, table, resource_path, query_str);
+            std::string::npos) {
+        if (request.method == "GET")
+            return new CgiGetRH(&request, table, resource_path, query_str);
         return new CgiRH(&request, table);
     }
     return (new StaticRH(&request, table, resource_path));
