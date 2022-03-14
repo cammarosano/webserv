@@ -10,7 +10,6 @@ CgiGetRH::~CgiGetRH()
 {
 }
 
-
 int CgiGetRH::setup()
 {
     int pipefd[2];
