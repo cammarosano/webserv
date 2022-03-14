@@ -17,7 +17,6 @@ int HttpRequest::parse_header(std::string &header_str) {
     stream >> method;
     stream >> target;
     stream >> http_version;
-
     while (!stream.eof()) {
         std::string line;
         getline(stream, line);

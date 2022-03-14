@@ -2,7 +2,7 @@
 #include "FdManager.hpp"
 #include "includes.hpp"
 
-#define DEBUG 1
+#define DEBUG 0
 
 // calls poll()
 // does all read() and write() operations
@@ -10,8 +10,7 @@ int do_io(FdManager &table) {
     int poll_ret;
 
     // debug
-    if (DEBUG)
-        std::cout << "Blocking at poll()" << std::endl;
+    if (DEBUG) std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
     poll_ret = poll(table.get_poll_array(), table.len(), -1);
@@ -20,9 +19,8 @@ int do_io(FdManager &table) {
         return (-1);
     }
 
-	// display debug info
-    if (DEBUG)
-    {
+    // display debug info
+    if (DEBUG) {
         std::cout << "poll() returned " << poll_ret << std::endl;
         table.debug_info();
     }
@@ -43,7 +41,7 @@ int do_io(FdManager &table) {
                 std::cout << "receiving data from client: " << fd << std::endl;
                 recv_from_client(fd, table);
             } else if (fd_type == fd_file)
-                read_from_file(fd, table); 
+                read_from_file(fd, table);
         }
         if (table.get_poll_array()[fd].revents &
             POLLOUT)  // fd ready for writing
@@ -53,10 +51,8 @@ int do_io(FdManager &table) {
             // TODO: cgi_in
         }
         // when a a process closes its end of the pipe, POLLHUP is detected
-        if (table.get_poll_array()[fd].revents & (POLLIN | POLLHUP))
-        {
-            if (fd_type == fd_cgi_output)
-                read_from_file(fd, table);
+        if (table.get_poll_array()[fd].revents & (POLLIN | POLLHUP)) {
+            if (fd_type == fd_cgi_output) read_from_file(fd, table);
         }
     }
     return (0);
