@@ -1,44 +1,15 @@
 #include "CgiGetRH.hpp"
 
-CgiGetRH::CgiGetRH(HttpRequest *request, FdManager &table, std::string &script_path, std::string &query)
-    : ARequestHandler(request, table), script_path(script_path), query(query)
+CgiGetRH::CgiGetRH(HttpRequest *request, FdManager &table,
+                    std::string &script_path, std::string &query):
+ACgiRH(request, table, script_path, query)
 {
-    state = s_setup;
 }
 
 CgiGetRH::~CgiGetRH()
 {
 }
 
-void CgiGetRH::setup_cgi_argv(char **argv)
-{
-    Route &route = *request->route;
-
-    argv[0] = strdup(route.cgi_interpreter.c_str());
-    // remove the root-prefix from script path, as the interpreter will
-    // be run at that directory
-    std::string arg1 = script_path.substr(route.root.size() + 1);
-    argv[1] = strdup(arg1.c_str());
-    argv[2] = NULL;
-}
-
-// TODO: protect mallocs (strdup)
-void CgiGetRH::setup_cgi_env(char **envp)
-{
-    std::map<std::string, std::string>::iterator it;
-    int i;
-
-    it = request->cgi_env.begin();
-    i = 0;
-    while (it != request->cgi_env.end())
-    {
-        envp[i] = strdup((it->first + '=' + it->second).c_str());
-        ++it;
-        ++i;
-    }
-    envp[i++] = strdup(("QUERY_STRING=" + query).c_str());
-    envp[i] = NULL;
-}
 
 int CgiGetRH::setup()
 {
@@ -101,23 +72,23 @@ int CgiGetRH::setup()
 
 int CgiGetRH::respond()
 {
-    if (state == s_setup)
+    if (state == st_setup)
     {
         if (setup() == -1)
             return -1;
-        state = s_recving_cgi_output;
+        state = st_recving_cgi_output;
     }
-    if (state == s_recving_cgi_output)
+    if (state == st_recving_cgi_output)
     {
         if (table[cgi_output_fd].is_EOF)
         {
             clear_resources();
-            state = s_done;
+            state = st_done;
         }
     }
-    if (state == s_done)
+    if (state == st_done)
         return (1);
-    if (state == s_abort)
+    if (state == st_abort)
         return (-1);
     return (0);
 }
@@ -125,37 +96,9 @@ int CgiGetRH::respond()
 void CgiGetRH::abort()
 {
     clear_resources();
-    state = s_abort;
+    state = st_abort;
 }
 
-void CgiGetRH::clear_resources()
-{
-    // consider using SIGKILL to ensure termination
-    kill(pid_cgi_process, SIGTERM);
-    table.remove_fd(cgi_output_fd);
-    close(cgi_output_fd); // close pipe's read-end
-    // this line might block the program!
-    waitpid(pid_cgi_process, NULL, 0);
-    std::cout << "CGI process terminated" << std::endl;
-}
 
-    // I think this might block the program at poll...
-    // as there's no fd change expected to signal this. If poll times out, then
-    // ok, maybe waiting from child processes to terminate should be done
-    // outside of RHs. if (state == s_waiting_child)
-    // {
-    // 	int wstatus;
 
-    // 	// check if child process is terminated
-    // 	int ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
 
-    // 	if (ret == -1)
-    // 	{
-    // 		perror("waitpid");
-    // 		return (-1);
-    // 	}
-    // 	if (ret > 0) // process exited
-    // 	{
-    // 		state = s_done;
-    // 	}
-    // }

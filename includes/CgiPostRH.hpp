@@ -1,9 +1,10 @@
 #ifndef CGIPOSTRH
 # define CGIPOSTRH
 
-# include "CgiGetRH.hpp"
+# include "ACgiRH.hpp"
+# include "includes.hpp"
 
-class CgiPostRH: public CgiGetRH
+class CgiPostRH: public ACgiRH
 {
 private:
 	int cgi_input_fd;
@@ -21,7 +22,5 @@ public:
 	virtual int respond();
 	virtual void abort();
 };
-
-
 
 #endif

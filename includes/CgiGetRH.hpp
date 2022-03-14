@@ -1,20 +1,11 @@
 #ifndef CGIGETRH
 # define CGIGETRH
 
-# include "ARequestHandler.hpp"
+# include "ACgiRH.hpp"
 # include "includes.hpp"
 
-class CgiGetRH: public ARequestHandler
+class CgiGetRH: public ACgiRH
 {
-protected:
-	std::string script_path;
-	std::string query;
-	pid_t pid_cgi_process;
-	int	cgi_output_fd;
-
-	void setup_cgi_argv(char **argv);
-	void setup_cgi_env(char **envp);
-	void clear_resources();
 
 private:
 	int setup();

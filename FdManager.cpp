@@ -2,12 +2,17 @@
 
 #include "ARequestHandler.hpp"
 
-FdManager::FdManager() : capacity(10) {
+FdManager::FdManager() : capacity(10)
+{
     fd_table = new fd_info[capacity];
     poll_array = new pollfd[capacity];
 
     // initialise poll_array
-    for (int i = 0; i < capacity; i++) poll_array[i].fd = -1;
+    for (int i = 0; i < capacity; i++)
+    {
+        poll_array[i].fd = -1;
+        poll_array[i].events = 0;
+    }
 }
 
 FdManager::~FdManager() {
@@ -15,22 +20,28 @@ FdManager::~FdManager() {
     delete[] fd_table;
 }
 
-void FdManager::reallocate() {
+void FdManager::reallocate()
+{
     size_t new_capacity = 2 * capacity;
 
     // get new poll_array
     pollfd *new_poll_array = new pollfd[new_capacity];
     // copy old stuff
-    for (int i = 0; i < capacity; i++) new_poll_array[i] = poll_array[i];
+    for (int i = 0; i < capacity; i++)
+        new_poll_array[i] = poll_array[i];
     // free the old one
     delete[] poll_array;
     // initialize new stuff
-    for (size_t i = capacity; i < new_capacity; i++) new_poll_array[i].fd = -1;
-
+    for (size_t i = capacity; i < new_capacity; i++)
+    {
+        new_poll_array[i].fd = -1;
+        new_poll_array[i].events = 0;
+    }
     // get new fd_table (initialization already done by default constructor)
     fd_info *new_fd_table = new fd_info[new_capacity];
     // copy old stuff
-    for (int i = 0; i < capacity; i++) new_fd_table[i] = fd_table[i];
+    for (int i = 0; i < capacity; i++)
+        new_fd_table[i] = fd_table[i];
     // free the old one
     delete[] fd_table;
 
@@ -126,6 +137,7 @@ void FdManager::remove_fd(int fd) {
     fd_table[fd].is_EOF = false;
 
     poll_array[fd].fd = -1;
+    poll_array[fd].events = 0;
 
     fd_set.erase(fd);
 }
@@ -153,6 +165,8 @@ void FdManager::debug_info() const
     std::cout << "----------FdManager debug info-----------------\n";
     for (int fd = 0; fd < len(); fd++)
     {
+        if (poll_array[fd].fd == -1)
+            continue;
         if (poll_array[fd].revents)
             std::cout << GREEN;
         std::cout << "fd " << fd << ": "
