@@ -1,19 +1,7 @@
-receive body of a POST request (read RFC: is GET always without body? is Post always with body?)
-	first, just store it as an uploaded file
-	then, send body content to a CGI script
-
-CGI!
+init_response must check if that request method is accepted by the route
 
 Python tests
 
-Parse config file
-
-Expand ErrorRH:
-Error pages informed by the vserver
-
-class DirRH (directory response handler)
-Response when target is directory (seach for a default file or
-	generate a directory listing)
 
 Time out inactive clients
 
