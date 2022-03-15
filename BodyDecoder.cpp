@@ -98,12 +98,25 @@ int BodyDecoder::finish()
 {
 	size_t pos;
 
-	pos = raw_data.find("/r/n/r/n");
+	pos = raw_data.find("\r\n\r\n");
 	if (pos == std::string::npos)
 		return (0);
 	raw_data.erase(0, pos + 4);
 	done = true;
 	return (1);
+}
+
+// format: 1*HEXDIG [';' whatever] CRLF
+bool validade_chunk_size_line(std::string &line, size_t pos_CRLF)
+{
+	if (!isxdigit(line[0]))
+		return (false);
+	size_t i = 1;
+	while (isxdigit(line[i]))
+		++i;
+	if (i == pos_CRLF || isspace(line[i]) || line[i] == ';')
+		return (true);
+	return (false);
 }
 
 int BodyDecoder::decode_chunked()
@@ -119,17 +132,21 @@ int BodyDecoder::decode_chunked()
 			return (0); // come back after another IO round 
 		if (removeCRLF) // remove CLRF end of last chunk
 		{
+			if (raw_data.substr(0,2) != "\r\n") // validation
+				return (-1);
 			raw_data.erase(0, 2);
 			removeCRLF = false;
 		}
 		// parse chunk-size
-		pos = raw_data.find("/r/n");
+		pos = raw_data.find("\r\n");
 		if (pos == std::string::npos) // CRLF not found
-			return (0); 
+			return (0); // come back after another IO round
+		if (!validade_chunk_size_line(raw_data, pos))
+			return (-1);
 		chunk_size = strtol(raw_data.c_str(), NULL, 16);
 		if (chunk_size == 0)
 			return (finish());
-		raw_data.erase(0, pos + 2); // discard line with chunk-size
+		raw_data.erase(0, pos + 2); // discard chunk-size line
 		bytes_left_last_chunk = chunk_size - transfer_n_bytes(chunk_size);
 		removeCRLF = true;
 	}

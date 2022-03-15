@@ -99,6 +99,6 @@ void HttpRequest::setup_cgi_env() {
     cgi_env["SERVER_PROTOCOL"] = http_version;
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi_env["REQUEST_METHOD"] = method;
-    cgi_env["SCRIPT_NAME"] = route->cgi_interpreter; // shouldn't it be the actual SCRIPT's name?
-    cgi_env["DOCUMENT_ROOT"] = route->root;
+    // cgi_env["SCRIPT_NAME"] = route->cgi_interpreter; // shouldn't it be the actual SCRIPT's name?
+    // cgi_env["DOCUMENT_ROOT"] = route->root;
 }
