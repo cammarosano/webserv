@@ -49,5 +49,5 @@ void ACgiRH::clear_resources()
     close(cgi_output_fd); // close pipe's read-end
     // this line might block the program!
     waitpid(pid_cgi_process, NULL, 0);
-    std::cout << "CGI process terminated" << std::endl;
+    if (DEBUG) std::cout << "CGI process terminated" << std::endl;
 }

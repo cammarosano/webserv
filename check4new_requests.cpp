@@ -24,7 +24,8 @@ HttpRequest *new_HttpRequest(Client &client) {
     client.received_data.erase(0, pos + 4);
 
     // debug
-    std::cout << "---------\nThe following request header was received:\n"
+    if (DEBUG)
+        std::cout << "---------\nThe following request header was received:\n"
               << header_str << "\n"
               << std::endl;
 
@@ -39,25 +40,8 @@ std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
     std::string path;
     std::string route_root = request.route->root;
     std::string route_prefix = request.route->prefix;
-    Route &r = *request.route;
     std::string relative_part;  // name used by the RFCs...it's the target
                                 // without the query string
-
-    char c = *(request.target.rbegin());
-    if (c == '/') {
-        if (!r.default_index.empty()) {
-            // path to the default index file
-            std::string temp =
-                request.target.substr(r.prefix.length(), std::string::npos);
-            path = route_root + '/' + temp + request.route->default_index;
-            return (path);
-        } else if (request.route->auto_index) {
-            std::string temp =
-                request.target.substr(r.prefix.length(), std::string::npos);
-            path = route_root + '/' + temp;
-            return (path);
-        }
-    }
 
     // separate relative-part and query string
     size_t pos = request.target.find('?');
@@ -67,9 +51,42 @@ std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
 
     path = route_root + '/' + relative_part.substr(route_prefix.length());
     // debug
-    std::cout << "ressource path: " << path << std::endl;
-    std::cout << "query string: " << query << std::endl;
+    if (DEBUG)
+    {
+        std::cout << "ressource path: " << path << std::endl;
+        std::cout << "query string: " << query << std::endl;
+    }
     return (path);
+}
+
+// initiates a response when the resource path is a directory
+ARequestHandler *directory_response(HttpRequest &request, FdManager &table,
+                                    std::string &resource_path)
+{
+    struct stat sb;
+    Route &r = *request.route;
+
+    // add slash to the end if necessary
+    if (*resource_path.rbegin() != '/')
+        resource_path += '/';
+
+	// first, try default index file
+    if (!r.default_index.empty()) // config file informs a default index
+    {
+        std::string default_index_path = resource_path + r.default_index;
+        // check if file exists and is a regular file (no dir)
+        if (stat(default_index_path.c_str(), &sb) == 0 && S_ISREG(sb.st_mode))
+        {
+            // debug
+            std::cout << "default index found: " << default_index_path <<std::endl;
+            return (new StaticRH(&request, table, default_index_path));
+        }
+    }
+    // if not found, do directory listing, if enabled
+    if (r.auto_index)
+        return (new DirectoryRH(&request, table, resource_path));
+    // fall back to a 403
+    return (new ErrorRH(&request, table, 403));
 }
 
 // resolve type of response: static_file, CGI, directory, error...
@@ -80,44 +97,33 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table)
     std::string query_str;
     struct stat sb;
 
-    if (request.vserver->redirected || request.route->redirected)
-    {
-        return (new RedirectRH(&request, table));
-    }
-
-    // assemble ressource path
     if (!request.route)
         return (new ErrorRH(&request, table, 404));
+    if (request.vserver->redirected || request.route->redirected)
+        return (new RedirectRH(&request, table));
     resource_path = assemble_ressource_path(request, query_str);
-
     // check if ressource is available
-    if (stat(resource_path.c_str(), &sb) == -1)     // not found
-        return (new ErrorRH(&request, table, 404)); // todo new ErrorRH(404);
-
-    // check if it is a directory
-    if (S_ISDIR(sb.st_mode))
-    {
-        if (request.route->auto_index)
-        {
-            return new DirectoryRH(&request, table, resource_path);
-        }
-        else
-            return (new ErrorRH(&request, table, 404));
-    }
-    // check if CGI response (match extension)
-    if (!request.route->cgi_extension.empty() && request.target.find(request.route->cgi_extension) != std::string::npos)
+    if (stat(resource_path.c_str(), &sb) == -1) // resource not found
+        return (new ErrorRH(&request, table, 404));
+    if (S_ISDIR(sb.st_mode)) // check if it's a directory 
+        return (directory_response(request, table, resource_path));
+    // check if regular file and has read rights (obs: access() is a security hole!!)
+    if (!S_ISREG(sb.st_mode) || access(resource_path.c_str(), R_OK))
+        return (new ErrorRH(&request, table, 404));
+    // check if CGI script (match extension)
+    if (!request.route->cgi_extension.empty() &&
+        resource_path.find(request.route->cgi_extension) != std::string::npos)
     {
         if (request.method == "GET")
-            return new CgiGetRH(&request, table, resource_path, query_str);
+            return (new CgiGetRH(&request, table, resource_path, query_str));
         if (request.method == "POST")
-            return new CgiPostRH(&request, table, resource_path, query_str);
+            return (new CgiPostRH(&request, table, resource_path, query_str));
     }
     return (new StaticRH(&request, table, resource_path));
 }
 
 // checks each Client's received_data buffer for a request header,
-// instantiates a new HttpRequest and a request handler
-
+// instantiates a new HttpRequest and a suitable request handler
 int check4new_requests(FdManager &table,
                        std::list<ARequestHandler *> &req_handlers_lst) {
     // iterate over clients in recv_header state

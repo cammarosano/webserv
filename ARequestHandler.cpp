@@ -13,6 +13,7 @@ void ARequestHandler::assemble_header_str() {
     // status-line
     header_str =
         response.http_version + ' ' + response.status_code_phrase + "\r\n";
+
     // header-fiels
     for (iterator it = response.header_fields.begin();
          it != response.header_fields.end(); ++it)
@@ -20,6 +21,10 @@ void ARequestHandler::assemble_header_str() {
 
     // end header
     header_str += "\r\n";
+
+    // log status-line
+    std::cout << "Response: " << response.http_version << " "
+        << response.status_code_phrase << std::endl;
 }
 
 // transfer header_str to Client's unsent_data buffer

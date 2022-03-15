@@ -2,6 +2,7 @@
 #define INCLUDES_HPP
 
 // debug stuff
+#define DEBUG 0
 #define RED "\033[0;31m"
 #define RESET "\033[0m"
 #define GREEN "\033[0;32m"
@@ -135,7 +136,7 @@ int get_listening_socket(std::string host_IP, unsigned short port);
 
 int accept_connection(int listen_socket, FdManager &table);
 int recv_from_client(int socket, FdManager &table);
-int read_from_file(int fd_file, FdManager &table);
+int read_from_fd(int fd_file, FdManager &table);
 int send_to_client(int socket, FdManager &table);
 int write_to_cgi(int fd_cgi_input, FdManager &table);
 

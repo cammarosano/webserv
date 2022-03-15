@@ -33,30 +33,45 @@ int recv_from_client(int socket, FdManager &table)
         delete &client;
         table.remove_fd(socket);
 
-        // debug // TODO: include client's address in the Client struct
-        std::cout << "Connection at socket " << socket << " was closed by the client " << std::endl;
+        // TODO: include client's address in the Client struct
+        if (DEBUG)
+            std::cout << "Connection at socket " << socket <<
+                " was closed by the client " << std::endl;
 
         return (0);
     }
 
     // debug
-    std::cout << "Received " << recvd_bytes << " bytes from client at socket " << socket << std::endl;
+    if (DEBUG)
+        std::cout << "Received " << recvd_bytes << " bytes from client at socket " << socket << std::endl;
     client.received_data.append(buffer, recvd_bytes);
     return (1);
 }
 
-// Request handler's state should be "s_sending_file"
-int read_from_file(int fd_file, FdManager &table)
+void log_cgi_output(char *buffer)
+{
+    std::string str(buffer);
+    size_t beg, end;
+    beg = str.find("HTTP/1.1 ");
+    if (beg != std::string::npos)
+    {
+        end = str.find('\n', beg);
+        std::cout << "Response (CGI): " << str.substr(beg, end)
+            << std::endl;
+    }
+}
+
+int read_from_fd(int fd, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
     int max_read;
     int read_bytes;
-    Client &client = *table[fd_file].client;
+    Client &client = *table[fd].client;
 
     max_read = BUFFER_SIZE - client.unsent_data.size();
     if (max_read <= 0)
         return (1);
-    read_bytes = read(fd_file, buffer, max_read);
+    read_bytes = read(fd, buffer, max_read);
     if (read_bytes == -1)
     {
         perror("read");
@@ -65,15 +80,20 @@ int read_from_file(int fd_file, FdManager &table)
     // EOF
     if (read_bytes == 0)
     {
-        table[fd_file].is_EOF = true;
+        table[fd].is_EOF = true;
         return (0);
     }
     client.unsent_data.append(buffer, read_bytes);
     table.set_pollout(client.socket);
 
     // debug
-    std::cout << read_bytes << " bytes were read from fd " << fd_file << " destinated to client at socket "
-              << client.socket << std::endl;
+    if (DEBUG)
+        std::cout << read_bytes << " bytes were read from fd " << fd <<
+            " destinated to client at socket " << client.socket << std::endl;
+
+	// log CGI output
+    if (table[fd].type == fd_cgi_output)
+        log_cgi_output(buffer);
 
     return (1);
 }
@@ -94,11 +114,14 @@ int send_to_client(int socket, FdManager &table)
         perror("write"); // which is not allowed by the subject!
         return (-1);
     }
-    // debug
-    std::cout << bytes_sent << " bytes were sent to client at socket " << socket << std::endl;
     client.unsent_data.erase(0, bytes_sent);
     if (client.unsent_data.empty())
         table.unset_pollout(client.socket);
+
+    // debug
+    if (DEBUG)
+        std::cout << bytes_sent << " bytes were sent to client at socket "
+                    << socket << std::endl;
     return (1);
 }
 
@@ -122,7 +145,8 @@ int write_to_cgi(int fd_cgi_input, FdManager &table)
         table.unset_pollout(fd_cgi_input);
     
     // debug
-    std::cout << bytes_written << " bytes were sent to CGI's input at fd "
+    if (DEBUG)
+        std::cout << bytes_written << " bytes were sent to CGI's input at fd "
         << fd_cgi_input << std::endl;
     
     return (1);
