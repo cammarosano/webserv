@@ -101,13 +101,13 @@ int CgiPostRH::get_body_len()
 	return (strtol(cont_len, NULL, 10));
 }
 
-// transfer request body content from Client's received_data to req_body_data.
+// transfer request body content from Client's received_data to decoded_body.
 // return 1 if complete, 0 if incomplete.
 int CgiPostRH::send_body2cgi()
 {
 	std::string &received_data = request->client.received_data;
-	std::string &req_body_data = request->client.req_body_data;
-	int max_bytes = BUFFER_SIZE - req_body_data.size();
+	std::string &decoded_body = request->client.decoded_body;
+	int max_bytes = BUFFER_SIZE - decoded_body.size();
 	int bytes_available = received_data.size();
 	int n_bytes;
 
@@ -122,7 +122,7 @@ int CgiPostRH::send_body2cgi()
 		return (0);
 
 	// transfer
-	req_body_data.append(received_data, 0, n_bytes);
+	decoded_body.append(received_data, 0, n_bytes);
 	received_data.erase(0, n_bytes);
 	// set POLLOUT
 	table.set_pollout(cgi_input_fd);
@@ -156,7 +156,7 @@ int CgiPostRH::respond()
 	}
 	if (state == st_sending_body2cgi)
 	{
-		if (request->client.req_body_data.empty())
+		if (request->client.decoded_body.empty())
 		{
 			close(cgi_input_fd); // close write-end of input pipe to send EOF
 			table.remove_fd(cgi_input_fd);
