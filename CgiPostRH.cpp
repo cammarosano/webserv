@@ -2,7 +2,8 @@
 
 CgiPostRH::CgiPostRH(HttpRequest *request, FdManager &table,
 			std::string &script_path, std::string &query):
-ACgiRH(request, table, script_path, query)
+ACgiRH(request, table, script_path, query),
+bd(*request)
 {
 }
 
@@ -94,65 +95,20 @@ int CgiPostRH::setup()
 	return (0);
 }
 
-// assuming "content-length" header-field exists
-int CgiPostRH::get_body_len()
-{
-	const char *cont_len = request->header_fields["content-length"].c_str();
-	return (strtol(cont_len, NULL, 10));
-}
-
-// transfer request body content from Client's received_data to decoded_body.
-// return 1 if complete, 0 if incomplete.
-int CgiPostRH::send_body2cgi()
-{
-	std::string &received_data = request->client.received_data;
-	std::string &decoded_body = request->client.decoded_body;
-	int max_bytes = BUFFER_SIZE - decoded_body.size();
-	int bytes_available = received_data.size();
-	int n_bytes;
-
-	// calculate amount of bytes to be transfered
-	n_bytes = body_len_left;
-	if (bytes_available < n_bytes)
-		n_bytes = bytes_available;
-	if (n_bytes > max_bytes)
-		n_bytes = max_bytes;
-	
-	if (n_bytes <= 0)
-		return (0);
-
-	// transfer
-	decoded_body.append(received_data, 0, n_bytes);
-	received_data.erase(0, n_bytes);
-	// set POLLOUT
-	table.set_pollout(cgi_input_fd);
-	// update body length left
-	body_len_left -= n_bytes;
-
-	if (!body_len_left)
-		return (1);
-	return (0);
-}
-
 int CgiPostRH::respond()
 {
 	if (state == st_setup)
 	{
 		if (setup() == -1)
 			return (-1);
-
-		// TODO: resolve body type: known len or chuncked
-		// for now, know_len only
-		body_len_left = get_body_len();
-		// debug
-		if (DEBUG)
-			std::cout << "parsed body-len: " << body_len_left << std::endl;
-		state = st_get_req_body;
+		state = st_recv_req_body;
 	}
-	if (state == st_get_req_body)
+	if (state == st_recv_req_body)
 	{
-		if (send_body2cgi() == 1)
+		if (bd.decode_body() == 1) // TODO: handle errors (-1)
 			state = st_sending_body2cgi;
+		if (!request->client.decoded_body.empty())
+			table.set_pollout(cgi_input_fd);
 	}
 	if (state == st_sending_body2cgi)
 	{
