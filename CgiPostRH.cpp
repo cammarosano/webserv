@@ -46,8 +46,11 @@ int CgiPostRH::setup()
 		setup_cgi_env(envp);
 
         // debug
-        std::cout << "cgi interpreter path: " << argv[0] << std::endl;
-        std::cout << "script path, relative to route's root: " << argv[1] << std::endl;
+		if (DEBUG)
+		{
+			std::cout << "cgi interpreter path: " << argv[0] << std::endl;
+			std::cout << "script path, relative to route's root: " << argv[1] << std::endl;
+		}
 
 		// redirect stdin to the read-end of pipe_in
 		if (dup2(pipe_in[0], 0) == -1)
@@ -79,7 +82,9 @@ int CgiPostRH::setup()
 	}
 
 	// parent process
-    std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
+
+	if (DEBUG)
+		std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
 	close(pipe_out[1]); // close pipe out write end
 	close(pipe_in[0]); // close pipe in read end
 	cgi_output_fd = pipe_out[0];
@@ -140,7 +145,8 @@ int CgiPostRH::respond()
 		// for now, know_len only
 		body_len_left = get_body_len();
 		// debug
-		std::cout << "parsed body-len: " << body_len_left << std::endl;
+		if (DEBUG)
+			std::cout << "parsed body-len: " << body_len_left << std::endl;
 		state = st_get_req_body;
 	}
 	if (state == st_get_req_body)

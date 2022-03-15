@@ -21,6 +21,7 @@ int accept_connection(int listen_socket, FdManager &table) {
     table.add_client_socket(client_socket, *client);
 
     // log to terminal
+    if (DEBUG)
     std::cout << "Connection accepted. Client socket: " << client_socket
               << std::endl;
 

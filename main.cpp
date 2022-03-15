@@ -2,7 +2,6 @@
 #include "FdManager.hpp"
 #include "includes.hpp"
 
-#define DEBUG 1
 
 // calls poll()
 // does all read() and write() operations
@@ -45,15 +44,15 @@ int do_io(FdManager &table)
             }
             else if (fd_type == fd_client_socket)
             {
-                std::cout << "receiving data from client: " << fd << std::endl;
+                // std::cout << "receiving data from client: " << fd << std::endl;
                 recv_from_client(fd, table);
             }
             else if (fd_type == fd_file)
-                read_from_file(fd, table);
+                read_from_fd(fd, table);
         }
         if (table.get_poll_array()[fd].revents & POLLOUT) // fd ready for writing
         {
-            std::cout << "sending data to client" << std::endl;
+            // std::cout << "sending data to client" << std::endl;
             if (fd_type == fd_client_socket)
                 send_to_client(fd, table);
             else if (fd_type == fd_cgi_input)
@@ -63,7 +62,7 @@ int do_io(FdManager &table)
         if (table.get_poll_array()[fd].revents & (POLLIN | POLLHUP))
         {
             if (fd_type == fd_cgi_output)
-                read_from_file(fd, table);
+                read_from_fd(fd, table);
         }
     }
     return (0);
