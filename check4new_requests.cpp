@@ -85,8 +85,8 @@ ARequestHandler *directory_response(HttpRequest &request, FdManager &table,
     // if not found, do directory listing, if enabled
     if (r.auto_index)
         return (new DirectoryRH(&request, table, resource_path));
-    // fall back to a 404
-    return (new ErrorRH(&request, table, 404));
+    // fall back to a 403
+    return (new ErrorRH(&request, table, 403));
 }
 
 // resolve type of response: static_file, CGI, directory, error...
