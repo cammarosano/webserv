@@ -149,7 +149,7 @@ int handle_requests(std::list<ARequestHandler *> &list);
 // utils
 
 std::string long_to_str(long nb);
-std::string &str_tolower(std::string &s);
+std::string str_tolower(std::string s);
 void print_request(HttpRequest &request);
 std::string &remove_trailing_spaces(std::string &s);
 bool str_is_number(std::string &str);

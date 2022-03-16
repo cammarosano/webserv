@@ -2,20 +2,17 @@ init_response must check if that request method is accepted by the route
 
 Python tests
 
+store the results of numbers parsings (ex strtol) in a long, rather than an integer.
+
 
 Time out inactive clients
 
 Response: handle keep-alive or not.
 
-uri... case sensitive??
-
-make file_fd non-blocking ?
+make file_fd and pipes fd non-blocking 
 
 test nginx and see what happens when no route matches
 
-accept a simple line break too, be more tolerant (instead of CRLF)
-
-do an overload of set_pollout to accept Client & too.
 
 Notes:
 
