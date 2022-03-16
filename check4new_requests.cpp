@@ -141,6 +141,13 @@ int check4new_requests(FdManager &table,
         req_handlers_lst.push_back(req_handler);
         client.state = handling_response;
         client.ongoing_response = req_handler;
+        
+        // hacky temporary lines below:
+        if (request->header_fields["expect"] == "100-continue")
+        {
+            client.unsent_data.append("HTTP/1.1 100 Continue\r\n\r\n");
+            table.set_pollout(fd);
+        }
     }
     return (0);
 }
