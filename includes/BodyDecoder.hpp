@@ -27,11 +27,11 @@ private:
 	enum e_type {chunked, content_length, other} type;
 
 	// Content-Length type
-	int content_len;
-	int bytes_left;
+	long content_len;
+	long bytes_left;
 
 	// Transfer-Encoding chunked type
-	int bytes_left_last_chunk;
+	long bytes_left_last_chunk;
 	bool removeCRLF;
 	bool done;
 
@@ -39,7 +39,7 @@ private:
 	e_type resolve_type(HttpRequest &request);
 	int decode_known_len();
 	int decode_chunked();
-	int transfer_n_bytes(int n);
+	int transfer_n_bytes(long n);
 	int finish();
 
 public:
@@ -47,7 +47,7 @@ public:
 	~BodyDecoder();
 
 	int decode_body();
-	int getLengthDecoded() const;
+	long getLengthDecoded() const;
 };
 
 #endif

@@ -11,12 +11,14 @@ length_decoded(0)
 		bytes_left_last_chunk = 0;
 		removeCRLF = false;
 		done = false;
+		if (DEBUG) std::cout << "Transfer-Encoding: chunked" << std::endl;
 	}
 	else if (type == content_length)
 	{
 		content_len = strtol(request.header_fields["content-length"].c_str(),
 			NULL, 10);
 		bytes_left = content_len;
+		if (DEBUG) std::cout << "Content-Length: " << bytes_left << std::endl;
 	}
 }
 
@@ -56,9 +58,9 @@ int BodyDecoder::decode_body()
 }
 
 // returns the minimum of 3 ints
-int min_of_3(int a, int b, int c)
+long min_of_3(long a, long b, long c)
 {
-	int min = a;
+	long min = a;
 	if (b < min)
 		min = b;
 	if (c < min)
@@ -70,7 +72,7 @@ int min_of_3(int a, int b, int c)
 // Returns the amount of bytes transfered, which depends on
 // destination's free space and sources' available bytes
 // Updates length_decoded
-int BodyDecoder::transfer_n_bytes(int n)
+int BodyDecoder::transfer_n_bytes(long n)
 {
 	int free_space = BUFFER_SIZE - decoded_data.size();
 	int bytes_available = raw_data.size();
@@ -122,7 +124,7 @@ bool validade_chunk_size_line(std::string &line, size_t pos_CRLF)
 int BodyDecoder::decode_chunked()
 {
 	size_t pos;
-	int	chunk_size;
+	long chunk_size;
 
 	if (bytes_left_last_chunk)
 		bytes_left_last_chunk -= transfer_n_bytes(bytes_left_last_chunk);
@@ -144,6 +146,7 @@ int BodyDecoder::decode_chunked()
 		if (!validade_chunk_size_line(raw_data, pos))
 			return (-1);
 		chunk_size = strtol(raw_data.c_str(), NULL, 16);
+		if (DEBUG) std::cout << "Chunk-size: " << chunk_size << std::endl;
 		if (chunk_size == 0)
 			return (finish());
 		raw_data.erase(0, pos + 2); // discard chunk-size line
@@ -153,7 +156,7 @@ int BodyDecoder::decode_chunked()
 	return (0);
 }
 
-int BodyDecoder::getLengthDecoded() const
+long BodyDecoder::getLengthDecoded() const
 {
 	return (length_decoded);
 }
