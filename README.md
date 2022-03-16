@@ -142,13 +142,13 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
   - read from the pipe (CGI output) into Client's unsent_data buffer
   - wait() for CGI process (with a NONBLOCKING flag)
 
-- ### request handler class for CGI POST request
+- [x] request handler class for CGI POST request
 
   - all of the above + :
   - another pipe to send data to CGI's input
   - receive request's body, unchunk if necessary, and send it to CGI's input
 
-- ### extend request handler class for errors (class ErrorRH)
+- [x] extend request handler class for errors (class ErrorRH)
 
   - at this moment it only generates an error page
   - but it should be able to serve default error pages defined in the config file for that vserver

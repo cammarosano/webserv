@@ -79,7 +79,7 @@ int open_listening_sockets(FdManager &table,
 }
 
 int setup(FdManager &table) {
-    std::string file_name = "default.conf";
+    std::string file_name = "conf/default.conf";
     ConfigParser parser(file_name);
     std::map<ip_port, std::list<Vserver> > config = parser.getConfig();
 
