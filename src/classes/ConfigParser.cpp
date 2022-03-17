@@ -145,6 +145,42 @@ void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r) {
     r.redirected = true;
 }
 
+void ConfigParser::_parse_route_upload(std::istringstream &iss, Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(';');
+    if (c == std::string::npos) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    r.upload_accepted = true;
+    r.upload_dir = parsed.substr(0, c);
+}
+
+void ConfigParser::_parse_route_max_body_size(std::istringstream &iss,
+                                              Route &r) {
+    std::string parsed;
+
+    iss >> parsed;
+    size_t c = parsed.find(';');
+    if (c == std::string::npos) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, c);
+    if (*(parsed.rbegin()) != 'M') {
+        std::cerr << "Error: Config file pli" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    parsed = parsed.substr(0, parsed.length() - 1);
+    if (!str_is_number(parsed)) {
+        std::cerr << "Error: Config file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    r.body_size_limit = std::atoi(parsed.c_str());
+}
+
 // TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss) {
     std::string temp;
@@ -180,6 +216,10 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss) {
             _parse_route_error_page(iss, r);
         } else if (temp == "return") {
             _parse_route_redirection(iss, r);
+        } else if (temp == "upload_dir") {
+            _parse_route_upload(iss, r);
+        } else if (temp == "max_body_size") {
+            _parse_route_max_body_size(iss, r);
         }
         /* TODO: advenced syntax error checking */
         if (temp == "}") break;

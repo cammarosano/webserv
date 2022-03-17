@@ -38,6 +38,8 @@ class ConfigParser {
     void _parse_allowed_methods(std::istringstream &iss, Route &r);
     void _parse_route_error_page(std::istringstream &iss, Route &r);
     void _parse_route_redirection(std::istringstream &iss, Route &r);
+    void _parse_route_upload(std::istringstream &iss, Route &r);
+    void _parse_route_max_body_size(std::istringstream &iss, Route &r);
 };
 
 #endif  // __CONFIG_PARSER_H__

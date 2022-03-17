@@ -69,6 +69,7 @@ struct Route {
     // upload
     bool upload_accepted;
     std::string upload_dir;  // where to store
+    size_t body_size_limit;
 
     // route error pages
     std::map<int, std::string> error_pages;
