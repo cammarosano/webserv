@@ -1,28 +1,31 @@
 SRC =	accept_connection.cpp \
-		ARequestHandler.cpp \
 		check4new_requests.cpp \
-		ErrorRH.cpp \
-		FdManager.cpp \
 		io.cpp \
 		listening_socket.cpp \
 		main.cpp \
-		HttpRequest.cpp \
 		setup.cpp \
+		utils.cpp
+
+CLASS = ARequestHandler.cpp \
+		HttpRequest.cpp \
 		StaticRH.cpp \
-		utils.cpp \
+		ErrorRH.cpp \
+		FdManager.cpp \
 		ConfigParser.cpp \
 		DirectoryRH.cpp \
 		ACgiRH.cpp \
 		RedirectRH.cpp \
 		CgiGetRH.cpp \
-		CgiPostRH.cpp
+		CgiPostRH.cpp \
+		BodyDecoder.cpp
 
+SRCS = $(addprefix src/,$(SRC)) $(addprefix src/classes/,$(CLASS))
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
 		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp ACgiRH.hpp RedirectRH.hpp \
-		CgiGetRH.hpp CgiPostRH.hpp
+		CgiGetRH.hpp CgiPostRH.hpp BodyDecoder.hpp
 HEADERS = $(addprefix includes/,$(HDR))
 
-OBJ = $(SRC:.cpp=.o)
+OBJ = $(SRCS:.cpp=.o)
 CC = clang++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 INCLUDES = -I includes

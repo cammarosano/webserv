@@ -131,17 +131,17 @@ int write_to_cgi(int fd_cgi_input, FdManager &table)
     Client &client = *table[fd_cgi_input].client;
     int bytes_written;
 
-    if (client.req_body_data.empty())
+    if (client.decoded_body.empty())
         return (0);
-    bytes_written = write(fd_cgi_input, client.req_body_data.data(),
-        client.req_body_data.size());
+    bytes_written = write(fd_cgi_input, client.decoded_body.data(),
+        client.decoded_body.size());
     if (bytes_written == -1)
     {
         perror("write");
         return (-1);
     }
-    client.req_body_data.erase(0, bytes_written);
-    if (client.req_body_data.empty())
+    client.decoded_body.erase(0, bytes_written);
+    if (client.decoded_body.empty())
         table.unset_pollout(fd_cgi_input);
     
     // debug

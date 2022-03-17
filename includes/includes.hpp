@@ -112,7 +112,7 @@ struct Client {
     // buffers
     std::string received_data;
     std::string unsent_data;
-    std::string req_body_data;
+    std::string decoded_body;
 
     // ongoing response
     ARequestHandler *ongoing_response;
@@ -136,7 +136,7 @@ int get_listening_socket(std::string host_IP, unsigned short port);
 
 int accept_connection(int listen_socket, FdManager &table);
 int recv_from_client(int socket, FdManager &table);
-int read_from_fd(int fd_file, FdManager &table);
+int read_from_fd(int fd, FdManager &table);
 int send_to_client(int socket, FdManager &table);
 int write_to_cgi(int fd_cgi_input, FdManager &table);
 
@@ -149,7 +149,7 @@ int handle_requests(std::list<ARequestHandler *> &list);
 // utils
 
 std::string long_to_str(long nb);
-std::string &str_tolower(std::string &s);
+std::string str_tolower(std::string s);
 void print_request(HttpRequest &request);
 std::string &remove_trailing_spaces(std::string &s);
 bool str_is_number(std::string &str);

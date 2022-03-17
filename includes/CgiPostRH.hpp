@@ -3,16 +3,15 @@
 
 # include "ACgiRH.hpp"
 # include "includes.hpp"
+# include "BodyDecoder.hpp"
 
 class CgiPostRH: public ACgiRH
 {
 private:
 	int cgi_input_fd;
-	int body_len_left;
+	BodyDecoder bd;
 
 	int setup();
-	int get_body_len();
-	int send_body2cgi();
 
 public:
 	CgiPostRH(HttpRequest *request, FdManager &table,

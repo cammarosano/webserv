@@ -1,33 +1,18 @@
-receive body of a POST request (read RFC: is GET always without body? is Post always with body?)
-	first, just store it as an uploaded file
-	then, send body content to a CGI script
-
-CGI!
+init_response must check if that request method is accepted by the route
 
 Python tests
 
-Parse config file
+store the results of numbers parsings (ex strtol) in a long, rather than an integer.
 
-Expand ErrorRH:
-Error pages informed by the vserver
-
-class DirRH (directory response handler)
-Response when target is directory (seach for a default file or
-	generate a directory listing)
 
 Time out inactive clients
 
 Response: handle keep-alive or not.
 
-uri... case sensitive??
-
-make file_fd non-blocking ?
+make file_fd and pipes fd non-blocking 
 
 test nginx and see what happens when no route matches
 
-accept a simple line break too, be more tolerant (instead of CRLF)
-
-do an overload of set_pollout to accept Client & too.
 
 Notes:
 

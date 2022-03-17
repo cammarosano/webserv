@@ -27,8 +27,7 @@ int HttpRequest::parse_header(std::string &header_str) {
         size_t delimiter_pos = line.find(':');
         if (delimiter_pos == std::string::npos)  // invalid line, skipping
             continue;
-        std::string field_name = line.substr(0, delimiter_pos);
-        str_tolower(field_name);
+        std::string field_name = str_tolower(line.substr(0, delimiter_pos));
         std::string field_value = line.substr(delimiter_pos + 1);
         remove_trailing_spaces(field_value);
         header_fields[field_name] = field_value;
@@ -99,6 +98,6 @@ void HttpRequest::setup_cgi_env() {
     cgi_env["SERVER_PROTOCOL"] = http_version;
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     cgi_env["REQUEST_METHOD"] = method;
-    cgi_env["SCRIPT_NAME"] = route->cgi_interpreter; // shouldn't it be the actual SCRIPT's name?
-    cgi_env["DOCUMENT_ROOT"] = route->root;
+    // cgi_env["SCRIPT_NAME"] = route->cgi_interpreter; // shouldn't it be the actual SCRIPT's name?
+    // cgi_env["DOCUMENT_ROOT"] = route->root;
 }

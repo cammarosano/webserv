@@ -12,7 +12,7 @@ protected:
     enum e_state
     {
         st_setup,
-        st_get_req_body, st_sending_body2cgi, st_recving_cgi_output,
+        st_recv_req_body, st_sending_body2cgi, st_recving_cgi_output,
         st_done,
         st_abort
     } state;
