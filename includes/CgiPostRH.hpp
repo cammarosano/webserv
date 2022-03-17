@@ -15,7 +15,7 @@ private:
 
 public:
 	CgiPostRH(HttpRequest *request, FdManager &table,
-			std::string &script_path, std::string &query);
+			std::string &script_path);
 	~CgiPostRH();
 
 	virtual int respond();

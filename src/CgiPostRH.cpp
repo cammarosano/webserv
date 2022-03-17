@@ -1,8 +1,8 @@
 #include "CgiPostRH.hpp"
 
 CgiPostRH::CgiPostRH(HttpRequest *request, FdManager &table,
-			std::string &script_path, std::string &query):
-ACgiRH(request, table, script_path, query),
+			std::string &script_path):
+ACgiRH(request, table, script_path),
 bd(*request)
 {
 }
@@ -42,9 +42,8 @@ int CgiPostRH::setup()
 	{
 		// setup argv and envp for execve
 		char *argv[3];
-		char *envp[20];
+		char **envp = setup_cgi_env(); // TODO check errors
 		setup_cgi_argv(argv);
-		setup_cgi_env(envp);
 
         // debug
 		if (DEBUG)

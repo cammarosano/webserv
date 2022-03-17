@@ -15,7 +15,6 @@ struct HttpRequest {
     Route *route;                              // resolved route
     std::string method, target, http_version;  // request-line
     std::map<std::string, std::string> header_fields;
-    std::map<std::string, std::string> cgi_env;
 
     HttpRequest(Client &client, std::string &header_str);
 
@@ -23,7 +22,6 @@ struct HttpRequest {
     int parse_header(std::string &header_str);
     void resolve_vserver();
     void resolve_route();
-    void setup_cgi_env();
 };
 
 #endif

@@ -7,7 +7,6 @@ HttpRequest::HttpRequest(Client &client, std::string &header_str)
     parse_header(header_str);
     resolve_vserver();
     resolve_route();
-    setup_cgi_env();
 
     // log
     std::cout << "Request: " << method << " " << target << " " << http_version
@@ -85,19 +84,4 @@ void HttpRequest::resolve_route() {
         }
     }
     route = best_match;
-}
-
-void HttpRequest::setup_cgi_env() {
-    size_t c = header_fields["host"].find(":");
-    std::string port = header_fields["host"].substr(c + 1, std::string::npos);
-    std::string server_name = header_fields["host"].substr(0, c);
-
-    cgi_env["SERVER_PORT"] = port;
-    cgi_env["SERVER_NAME"] = server_name;
-    cgi_env["SERVER_SOFTWARE"] = "webserv/1.1";
-    cgi_env["SERVER_PROTOCOL"] = http_version;
-    cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-    cgi_env["REQUEST_METHOD"] = method;
-    // cgi_env["SCRIPT_NAME"] = route->cgi_interpreter; // shouldn't it be the actual SCRIPT's name?
-    // cgi_env["DOCUMENT_ROOT"] = route->root;
 }

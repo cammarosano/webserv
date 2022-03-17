@@ -12,7 +12,7 @@ private:
 
 public:
 	CgiGetRH(HttpRequest *request, FdManager &table,
-			std::string &script_path, std::string &query);
+			std::string &script_path);
 	~CgiGetRH();
 
 	virtual int respond();

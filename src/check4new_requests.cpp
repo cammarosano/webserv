@@ -36,26 +36,15 @@ HttpRequest *new_HttpRequest(Client &client) {
 // request.route cannot be NULL
 // separates the URI into relative_part + query string
 // assembles path removing the route prefix from the relative-part
-std::string assemble_ressource_path(HttpRequest &request, std::string &query) {
-    std::string path;
-    std::string route_root = request.route->root;
-    std::string route_prefix = request.route->prefix;
-    std::string relative_part;  // name used by the RFCs...it's the target
-                                // without the query string
+std::string assemble_ressource_path(HttpRequest &request)
+{
+    Route &r = *request.route;
+    std::string url = request.target;
 
-    // separate relative-part and query string
-    size_t pos = request.target.find('?');
-    relative_part = request.target.substr(0, pos);
-    if (pos != std::string::npos)                // if '?' was found
-        query = request.target.substr(pos + 1);  // the '?' itself is discarded
-
-    path = route_root + '/' + relative_part.substr(route_prefix.length());
-    // debug
+    url = url.substr(0, url.find('?')); // remove query string
+    std::string path = r.root + '/' + url.substr(r.prefix.size());
     if (DEBUG)
-    {
         std::cout << "ressource path: " << path << std::endl;
-        std::cout << "query string: " << query << std::endl;
-    }
     return (path);
 }
 
@@ -94,14 +83,13 @@ ARequestHandler *directory_response(HttpRequest &request, FdManager &table,
 ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 {
     std::string resource_path;
-    std::string query_str;
     struct stat sb;
 
     if (!request.route)
         return (new ErrorRH(&request, table, 404));
     if (request.vserver->redirected || request.route->redirected)
         return (new RedirectRH(&request, table));
-    resource_path = assemble_ressource_path(request, query_str);
+    resource_path = assemble_ressource_path(request);
     // check if ressource is available
     if (stat(resource_path.c_str(), &sb) == -1) // resource not found
         return (new ErrorRH(&request, table, 404));
@@ -115,9 +103,9 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table)
         resource_path.find(request.route->cgi_extension) != std::string::npos)
     {
         if (request.method == "GET")
-            return (new CgiGetRH(&request, table, resource_path, query_str));
+            return (new CgiGetRH(&request, table, resource_path));
         if (request.method == "POST")
-            return (new CgiPostRH(&request, table, resource_path, query_str));
+            return (new CgiPostRH(&request, table, resource_path));
     }
     return (new StaticRH(&request, table, resource_path));
 }
