@@ -4,9 +4,8 @@ SRC =	accept_connection.cpp \
 		listening_socket.cpp \
 		main.cpp \
 		setup.cpp \
-		utils.cpp
-
-CLASS = ARequestHandler.cpp \
+		utils.cpp \
+		ARequestHandler.cpp \
 		HttpRequest.cpp \
 		StaticRH.cpp \
 		ErrorRH.cpp \
@@ -19,13 +18,13 @@ CLASS = ARequestHandler.cpp \
 		CgiPostRH.cpp \
 		BodyDecoder.cpp
 
-SRCS = $(addprefix src/,$(SRC)) $(addprefix src/classes/,$(CLASS))
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
 		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp ACgiRH.hpp RedirectRH.hpp \
 		CgiGetRH.hpp CgiPostRH.hpp BodyDecoder.hpp
+
 HEADERS = $(addprefix includes/,$(HDR))
 
-OBJ = $(SRCS:.cpp=.o)
+OBJ = $(patsubst %.cpp, obj/%.o, $(SRC))
 CC = clang++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 INCLUDES = -I includes
@@ -36,8 +35,11 @@ all:	$(NAME)
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@
 
-%.o:		%.cpp $(HEADERS)
+obj/%.o:	src/%.cpp $(HEADERS) | obj/
 			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+obj/:
+			mkdir -p obj/
 
 clean:
 			rm -f $(OBJ)

@@ -2,7 +2,6 @@ init_response must check if that request method is accepted by the route
 
 Python tests
 
-store the results of numbers parsings (ex strtol) in a long, rather than an integer.
 
 
 Time out inactive clients
