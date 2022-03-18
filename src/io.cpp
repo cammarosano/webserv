@@ -4,10 +4,26 @@
 
 // TODO: small functions: clear_client()
 
-// 1: ok
-// 0: connection closed by the client
-// -1: read() error
-int recv_from_client(int socket, FdManager &table)
+// close socket, delete Client object and remove from table
+// (if ongoing response) send abort signal to Request Handler
+void clear_client(Client &client, FdManager &table)
+{
+    close(client.socket);
+    if (client.state == handling_response)
+        client.ongoing_response->abort();
+    table.remove_fd(client.socket);
+    delete &client;
+}
+
+void disconnect_client(Client &client, FdManager &table)
+{
+    // log
+    std::cout << "Connection closed by webserver: " << client.ipv4_addr
+            << " (" << client.host_name << ")" << std::endl;
+    clear_client(client, table);
+}
+
+void recv_from_client(int socket, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
     Client &client = *table[socket].client;
@@ -16,12 +32,13 @@ int recv_from_client(int socket, FdManager &table)
 
     max_read = BUFFER_SIZE - client.received_data.size();
     if (max_read <= 0)
-        return (1);
+        return; // consider unsetting POLLIN for preventing overcharging server
     recvd_bytes = read(socket, buffer, max_read);
-    if (recvd_bytes == -1)
+    if (recvd_bytes == -1) // error
     {
-        perror("read");
-        return (-1);
+        if (DEBUG) perror("read"); // REMOVE THIS BEFORE PUSH
+        disconnect_client(client, table);
+        return;
     }
     if (recvd_bytes == 0) // connection closed by the client
     {
@@ -29,23 +46,16 @@ int recv_from_client(int socket, FdManager &table)
         // log
         std::cout << "Connection closed by peer: " << client.ipv4_addr
             << " (" << client.host_name << ")" << std::endl;
-
-        // clear Client
-        close(socket);
-        // Obs: request handler must clear clients ressources
-        if (client.state == handling_response)
-            client.ongoing_response->abort();
-        delete &client;
-        table.remove_fd(socket);
-
-        return (0);
+        clear_client(client, table);
+        return;
     }
+    client.received_data.append(buffer, recvd_bytes);
 
     // debug
     if (DEBUG)
-        std::cout << "Received " << recvd_bytes << " bytes from client at socket " << socket << std::endl;
-    client.received_data.append(buffer, recvd_bytes);
-    return (1);
+        std::cout << "Received " << recvd_bytes <<
+            " bytes from client at socket " << socket << std::endl;
+
 }
 
 void log_cgi_output(char *buffer)
