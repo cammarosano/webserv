@@ -139,8 +139,8 @@ int get_listening_socket(std::string host_IP, unsigned short port);
 
 int accept_connection(int listen_socket, FdManager &table);
 void recv_from_client(int socket, FdManager &table);
-int read_from_fd(int fd, FdManager &table);
-int send_to_client(int socket, FdManager &table);
+void read_from_fd(int fd, FdManager &table);
+void send_to_client(int socket, FdManager &table);
 int write_to_cgi(int fd_cgi_input, FdManager &table);
 
 // process requests

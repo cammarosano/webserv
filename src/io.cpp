@@ -2,8 +2,6 @@
 #include "FdManager.hpp"
 #include "includes.hpp"
 
-// TODO: small functions: clear_client()
-
 // close socket, delete Client object and remove from table
 // (if ongoing response) send abort signal to Request Handler
 void clear_client(Client &client, FdManager &table)
@@ -58,6 +56,7 @@ void recv_from_client(int socket, FdManager &table)
 
 }
 
+// this is hacky
 void log_cgi_output(char *buffer)
 {
     std::string str(buffer);
@@ -66,12 +65,15 @@ void log_cgi_output(char *buffer)
     if (beg != std::string::npos)
     {
         end = str.find('\n', beg);
-        std::cout << "Response (CGI): " << str.substr(beg, end)
+        std::cout << "Response (CGI-generated): " << str.substr(beg, end)
             << std::endl;
     }
 }
 
-int read_from_fd(int fd, FdManager &table)
+// reads data from a fd (file or pipe)
+// copies it into Client's unsent data buffer
+// if error, response is terminated and client disconnected
+void read_from_fd(int fd, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
     int max_read;
@@ -80,18 +82,18 @@ int read_from_fd(int fd, FdManager &table)
 
     max_read = BUFFER_SIZE - client.unsent_data.size();
     if (max_read <= 0)
-        return (1);
+        return;
     read_bytes = read(fd, buffer, max_read);
     if (read_bytes == -1)
     {
-        perror("read");
-        return (-1);
+        if (DEBUG) perror("read"); // REMOVE BEFORE PUSH
+        disconnect_client(client, table);
+        return;
     }
-    // EOF
-    if (read_bytes == 0)
+    if (read_bytes == 0) // EOF
     {
         table[fd].is_EOF = true;
-        return (0);
+        return;
     }
     client.unsent_data.append(buffer, read_bytes);
     table.set_pollout(client.socket);
@@ -104,25 +106,25 @@ int read_from_fd(int fd, FdManager &table)
 	// log CGI output
     if (table[fd].type == fd_cgi_output)
         log_cgi_output(buffer);
-
-    return (1);
 }
 
-// -1: write() error
-// 0: no data do send
-// 1: ok
-int send_to_client(int socket, FdManager &table)
+void send_to_client(int socket, FdManager &table)
 {
     Client &client = *table[socket].client;
     int bytes_sent;
 
     if (client.unsent_data.empty()) // POLLOUT should not be set in the first place...
-        return (0);
-    bytes_sent = write(socket, client.unsent_data.data(), client.unsent_data.size());
-    if (bytes_sent == -1)
     {
-        perror("write"); // which is not allowed by the subject!
-        return (-1);
+        table.unset_pollout(client.socket);
+        return;
+    }
+    bytes_sent = write(socket, client.unsent_data.data(),
+                        client.unsent_data.size());
+    if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
+    {
+        if (DEBUG) perror("write"); // remove this before push
+        disconnect_client(client, table);
+        return;
     }
     client.unsent_data.erase(0, bytes_sent);
     if (client.unsent_data.empty())
@@ -132,7 +134,6 @@ int send_to_client(int socket, FdManager &table)
     if (DEBUG)
         std::cout << bytes_sent << " bytes were sent to client at socket "
                     << socket << std::endl;
-    return (1);
 }
 
 // transfer data from client's request body to cgi input
