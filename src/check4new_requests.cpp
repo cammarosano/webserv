@@ -131,7 +131,9 @@ int check4new_requests(FdManager &table,
         client.ongoing_response = req_handler;
         
         // hacky temporary lines below:
-        if (request->header_fields["expect"] == "100-continue")
+        std::map<std::string, std::string>::iterator it
+            = request->header_fields.find("expect");
+        if (it != request->header_fields.end() && it->second == "100-continue")
         {
             client.unsent_data.append("HTTP/1.1 100 Continue\r\n\r\n");
             table.set_pollout(fd);

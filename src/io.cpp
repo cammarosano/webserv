@@ -30,10 +30,12 @@ int recv_from_client(int socket, FdManager &table)
         // Obs: request handler must clear clients ressources
         if (client.state == handling_response)
             client.ongoing_response->abort();
+        // log
+        std::cout << "Connection closed by peer: " << client.ipv4_addr
+            << " (" << client.host_name << ")" << std::endl;
         delete &client;
         table.remove_fd(socket);
 
-        // TODO: include client's address in the Client struct
         if (DEBUG)
             std::cout << "Connection at socket " << socket <<
                 " was closed by the client " << std::endl;

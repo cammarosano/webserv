@@ -23,16 +23,23 @@ std::string ACgiRH::get_query_str()
     return (query_string);
 }
 
-void ACgiRH::setup_cgi_argv(char **argv)
+char **ACgiRH::setup_cgi_argv()
 {
-    Route &route = *request->route;
+    char **argv = new char*[3];
 
-    argv[0] = strdup(route.cgi_interpreter.c_str());
-    // remove the root-prefix from script path, as the interpreter will
-    // be run at that directory
-    std::string arg1 = script_path.substr(route.root.size() + 1);
-    argv[1] = strdup(arg1.c_str());
+    // argv[0] = CGI binary
+    std::string& cgi_interp = request->route->cgi_interpreter;
+    argv[0] = new char[cgi_interp.size() + 1];
+    strcpy(argv[0], cgi_interp.c_str());
+
+    // argv[1] = the script, having the the route's root/ removed
+    std::string cgi_script
+        = script_path.substr(request->route->root.size() + 1);
+    argv[1] = new char[cgi_script.size() + 1];
+    strcpy(argv[1], cgi_script.c_str());
+
     argv[2] = NULL;
+    return (argv);
 }
 
 std::string meta_var_case(std::string s)
@@ -47,37 +54,55 @@ std::string meta_var_case(std::string s)
     return (s);
 }
 
-// TODO: protect mallocs (strdup)
-char **ACgiRH::setup_cgi_env()
+// https://datatracker.ietf.org/doc/html/rfc3875
+std::map<std::string, std::string> ACgiRH::get_env_map()
 {
     std::map<std::string, std::string> cgi_env;
-    int i;
+    std::map<std::string, std::string>::iterator it;
 
-    cgi_env["SERVER_SOFTWARE"] = "webserv/1.1";
+    cgi_env["AUTH-TYPE"] = "";
+    it = request->header_fields.find("content-length");
+    if (it != request->header_fields.end())
+        cgi_env["CONTENT_LENGTH"] = it->second;
+    it = request->header_fields.find("content-type");
+    if (it != request->header_fields.end())
+        cgi_env["CONTENT_TYPE"] = it->second;
+    cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+    //  PATH_INFO: subject expects something different from the RFC3875
+    cgi_env["PATH_INFO"] = script_path; 
+    cgi_env["PATH-TRANSLATED"] = script_path; // no idea how to fill-in this one
+    cgi_env["QUERY_STRING"] = query_str;
+    cgi_env["REMOTE_ADDR"] = request->client.ipv4_addr;
+    cgi_env["REMOTE_HOST"] = request->client.host_name;
+    // OBS: skipping REMOTE_IDENT and REMOTE_USER
+    cgi_env["REQUEST_METHOD"] = request->method;
+    // SCRIPT_NAME = resource target without the query-string
+    cgi_env["SCRIPT_NAME"] = 
+        request->target.substr(0, request->target.find('?'));
     std::string host = request->header_fields["host"];
     cgi_env["SERVER_NAME"] = host.substr(0, host.find(':'));
-    cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
-    cgi_env["SERVER_PROTOCOL"] = request->http_version;
     cgi_env["SERVER_PORT"] = long_to_str(request->vserver->listen.second);
-    cgi_env["REQUEST_METHOD"] = request->method;
-    cgi_env["PATH_INFO"] = script_path;
-    // SCRIPT_NAME = resource target without the query-string
-    cgi_env["SCRIPT_NAME"] = request->target.substr(0, request->target.find('?'));
-    if (!query_str.empty())
-        cgi_env["QUERY_STRING"] = query_str;
-    // cgi_env["DOCUMENT_ROOT"] = route->root;
+    cgi_env["SERVER_PROTOCOL"] = request->http_version;
+    cgi_env["SERVER_SOFTWARE"] = "webserv/1.1";
 
-    // TODO: other variables...
-
-    std::map<std::string, std::string>::iterator it;
+	// add HTTP meta variables
     it = request->header_fields.begin();
     while (it != request->header_fields.end())
     {
-        cgi_env["HTTP_" + meta_var_case(it->first)] = it->second;
+        if (!(it->first == "content-length" || it-> first == "content-type"))
+            cgi_env["HTTP_" + meta_var_case(it->first)] = it->second;
         ++it;
     }
+    return (cgi_env);
+}
 
-	// allocate memory
+char **ACgiRH::setup_cgi_env()
+{
+    std::map<std::string, std::string> cgi_env = get_env_map();
+    std::map<std::string, std::string>::iterator it;
+    int i;
+
+	// allocate memory - might throw exception!
     char **envp = new char *[cgi_env.size() + 1];
 
 	// populate envp with content from cgi_env map
@@ -85,7 +110,9 @@ char **ACgiRH::setup_cgi_env()
     i = 0;
     while (it != cgi_env.end())
     {
-        envp[i] = strdup((it->first + '=' + it->second).c_str());
+        std::string s = it->first + '=' + it->second;
+        envp[i] = new char[s.size() + 1];
+        strcpy(envp[i], s.c_str());
         ++it;
         ++i;
     }

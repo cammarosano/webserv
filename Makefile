@@ -16,7 +16,8 @@ SRC =	accept_connection.cpp \
 		RedirectRH.cpp \
 		CgiGetRH.cpp \
 		CgiPostRH.cpp \
-		BodyDecoder.cpp
+		BodyDecoder.cpp \
+		Client.cpp
 
 HDR = includes.hpp FdManager.hpp ARequestHandler.hpp StaticRH.hpp \
 		HttpRequest.hpp ErrorRH.hpp DirectoryRH.hpp ACgiRH.hpp RedirectRH.hpp \

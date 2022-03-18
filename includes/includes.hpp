@@ -107,6 +107,8 @@ enum e_client_state { recv_header, handling_response };
 struct Client {
     int socket;
     std::list<Vserver> &vservers;
+    std::string ipv4_addr;
+    std::string host_name;
 
     e_client_state state;
 
@@ -118,12 +120,12 @@ struct Client {
     // ongoing response
     ARequestHandler *ongoing_response;
 
-    // initialization
-    Client(int socket, std::list<Vserver> &vservers)
-        : socket(socket),
-          vservers(vservers),
-          state(recv_header),
-          ongoing_response(NULL) {}
+    // constructor
+    Client(int socket, std::list<Vserver> &vservers);
+
+	private:
+    // get ip address and host name
+    void get_peer_info();
 };
 
 // function prototypes

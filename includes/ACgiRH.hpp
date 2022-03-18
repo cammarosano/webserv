@@ -18,9 +18,12 @@ protected:
     } state;
 
     std::string get_query_str();
-	void setup_cgi_argv(char **argv);
+	char **setup_cgi_argv();
 	char **setup_cgi_env();
 	void clear_resources();
+
+private:
+    std::map<std::string, std::string> get_env_map();
 
 public:
     ACgiRH(HttpRequest *request, FdManager &table, std::string &script_path);

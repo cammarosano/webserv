@@ -41,9 +41,8 @@ int CgiPostRH::setup()
 	if (pid_cgi_process == 0) // child process
 	{
 		// setup argv and envp for execve
-		char *argv[3];
-		char **envp = setup_cgi_env(); // TODO check errors
-		setup_cgi_argv(argv);
+		char **argv = setup_cgi_argv();
+		char **envp = setup_cgi_env(); 
 
         // debug
 		if (DEBUG)
