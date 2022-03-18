@@ -25,20 +25,18 @@ int recv_from_client(int socket, FdManager &table)
     }
     if (recvd_bytes == 0) // connection closed by the client
     {
+        if (DEBUG) std::cout << "socket " << socket << ": ";
+        // log
+        std::cout << "Connection closed by peer: " << client.ipv4_addr
+            << " (" << client.host_name << ")" << std::endl;
+
         // clear Client
         close(socket);
         // Obs: request handler must clear clients ressources
         if (client.state == handling_response)
             client.ongoing_response->abort();
-        // log
-        std::cout << "Connection closed by peer: " << client.ipv4_addr
-            << " (" << client.host_name << ")" << std::endl;
         delete &client;
         table.remove_fd(socket);
-
-        if (DEBUG)
-            std::cout << "Connection at socket " << socket <<
-                " was closed by the client " << std::endl;
 
         return (0);
     }
