@@ -1,7 +1,9 @@
 #ifndef HTTPREQUEST_HPP
 #define HTTPREQUEST_HPP
 
-#include "includes.hpp"
+# include "Client.hpp"
+# include "config.hpp"
+# include "utils.h"
 
 /*
 Holds all info from the HEADER of an HTTP request.

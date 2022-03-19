@@ -2,7 +2,6 @@
 # define CGIPOSTRH
 
 # include "ACgiRH.hpp"
-# include "includes.hpp"
 # include "BodyDecoder.hpp"
 
 class CgiPostRH: public ACgiRH

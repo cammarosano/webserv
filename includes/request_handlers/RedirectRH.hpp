@@ -2,6 +2,7 @@
 #define __REDIRECT_RH_HPP__
 
 #include "ARequestHandler.hpp"
+#include "utils.h"
 
 class RedirectRH : public ARequestHandler {
    private:

@@ -4,8 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include "config.hpp"
+#include <stdlib.h> // EXIT_FAILURE
+#include "utils.h"
 
-#include "includes.hpp"
 
 class ConfigParser {
    private:

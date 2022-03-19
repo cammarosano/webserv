@@ -1,5 +1,3 @@
-#include "ARequestHandler.hpp"
-#include "FdManager.hpp"
 #include "includes.hpp"
 
 
@@ -99,7 +97,7 @@ int main(void)
     while (1)
     {
         do_io(table);
-        check4new_requests(table, req_handlers_lst);
+        new_requests(table, req_handlers_lst);
         handle_requests(req_handlers_lst);
     }
 

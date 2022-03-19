@@ -1,6 +1,5 @@
 #include "ConfigParser.hpp"
 
-#include <string>
 
 ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
     _f.open(file_name.c_str());

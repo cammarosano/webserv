@@ -1,11 +1,13 @@
 #ifndef ERRORRH_HPP
 #define ERRORRH_HPP
 
-#include "ARequestHandler.hpp"
-#include "includes.hpp"
+# include "ARequestHandler.hpp"
+# include "utils.h"
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <unistd.h>
+# include <fcntl.h>
 
-#define DEFAULT_403_PAGE "error_pages/403.html"
-#define DEFAULT_404_PAGE "error_pages/404.html"
 
 /*
 Request handler for error responses

@@ -1,7 +1,5 @@
 #include "FdManager.hpp"
 
-#include "ARequestHandler.hpp"
-
 FdManager::FdManager() : capacity(10)
 {
     fd_table = new fd_info[capacity];

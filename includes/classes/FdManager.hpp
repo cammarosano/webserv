@@ -1,7 +1,10 @@
 #ifndef FDMANAGER_HPP
 # define FDMANAGER_HPP
 
-# include "includes.hpp"
+# include <poll.h>
+# include <set>
+# include "Client.hpp"
+# include "macros.h"
 
 enum e_fd_type
 {

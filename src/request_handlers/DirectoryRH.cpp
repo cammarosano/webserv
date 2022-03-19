@@ -1,6 +1,5 @@
 #include "DirectoryRH.hpp"
 
-#include <ostream>
 
 DirectoryRH::DirectoryRH(HttpRequest *request, FdManager &table,
                          const std::string &path)

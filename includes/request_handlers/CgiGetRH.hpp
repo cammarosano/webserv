@@ -2,7 +2,7 @@
 # define CGIGETRH
 
 # include "ACgiRH.hpp"
-# include "includes.hpp"
+# include <stdlib.h> // exit
 
 class CgiGetRH: public ACgiRH
 {

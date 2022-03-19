@@ -4,6 +4,7 @@
 #include <dirent.h>
 
 #include <ostream>
+#include "utils.h"
 
 #include "ARequestHandler.hpp"
 

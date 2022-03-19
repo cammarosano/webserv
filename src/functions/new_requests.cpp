@@ -1,11 +1,3 @@
-#include "CgiGetRH.hpp"
-#include "CgiPostRH.hpp"
-#include "DirectoryRH.hpp"
-#include "ErrorRH.hpp"
-#include "FdManager.hpp"
-#include "HttpRequest.hpp"
-#include "RedirectRH.hpp"
-#include "StaticRH.hpp"
 #include "includes.hpp"
 
 // extracts data from the client's received_data buffer into an HttpRequest
@@ -112,7 +104,7 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 
 // checks each Client's received_data buffer for a request header,
 // instantiates a new HttpRequest and a suitable request handler
-int check4new_requests(FdManager &table,
+int new_requests(FdManager &table,
                        std::list<ARequestHandler *> &req_handlers_lst) {
     // iterate over clients in recv_header state
     for (int fd = 3; fd < table.len(); ++fd) {

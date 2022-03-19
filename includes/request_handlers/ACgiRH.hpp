@@ -1,7 +1,12 @@
 #ifndef __A_CGI_RH__
 #define __A_CGI_RH__
 
-#include "ARequestHandler.hpp"
+# include "ARequestHandler.hpp"
+# include <unistd.h>
+# include <string.h>
+# include "utils.h"
+# include <sys/types.h>
+# include <sys/wait.h>
 
 class ACgiRH : public ARequestHandler {
 protected:

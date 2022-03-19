@@ -2,6 +2,8 @@
 # define BODYDECODER_HPP
 
 # include "HttpRequest.hpp"
+# include <stdlib.h> // strtol
+# include "macros.h"
 
 /*
  How to use it:

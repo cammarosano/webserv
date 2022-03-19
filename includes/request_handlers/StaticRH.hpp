@@ -1,8 +1,12 @@
 #ifndef STATICRH_HPP
 #define STATICRH_HPP
 
-#include "ARequestHandler.hpp"
-#include "includes.hpp"
+# include "ARequestHandler.hpp"
+# include "utils.h"
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <unistd.h>
+# include <fcntl.h>
 
 /*
 Request handler for serving a static file.

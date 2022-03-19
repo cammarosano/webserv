@@ -1,5 +1,4 @@
 #include "includes.hpp"
-#define QUEUE_MAX_SIZE 10
 
 // returns the fd of the listening socket, -1 if error
 int get_listening_socket(std::string host_IP, unsigned short port)
