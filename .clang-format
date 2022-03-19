@@ -1,5 +1,5 @@
 ---
-BasedOnStyle: Google
+BasedOnStyle: Microsoft
 IndentWidth: 4
 ---
 Language: Cpp

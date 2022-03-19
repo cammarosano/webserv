@@ -116,8 +116,15 @@ int new_requests(FdManager &table,
             continue;
         HttpRequest *request = new_HttpRequest(client);
         if (!request) continue;
-        ARequestHandler *req_handler =
-            init_response(*request, table);  // subtype polymorphism
+        ARequestHandler *req_handler;
+        try
+        {
+            req_handler = init_response(*request, table);
+        }
+        catch(const std::exception& e)
+        {
+            req_handler = new ErrorRH(request, table, 500);
+        }
         req_handlers_lst.push_back(req_handler);
         client.state = handling_response;
         client.ongoing_response = req_handler;

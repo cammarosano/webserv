@@ -48,6 +48,23 @@ int ErrorRH::send_html_str() {
 int ErrorRH::setup() {
     struct stat sb;
     std::string err_page;
+    
+    //////////////////////////////////////////////////////////////////
+    // RODOLPHO inserted these lines for testing (avoiding a bug)
+    // if you're seeing this, it means he should have removed it (and hasn't)
+    if (error_code == 500)
+    {
+        res_type = sending_default;
+        generate_error_page();
+        response.http_version = "HTTP/1.1";
+        response.status_code_phrase = 
+            long_to_str(error_code) + ' ' + reason_phrases[error_code];
+        response.header_fields["content-length"] =
+            long_to_str(html_page.size());
+        assemble_header_str();
+        return (0);
+    }
+    ///////////////////////////////////////////////////////////////
 
     try {
         if (request->route->error_pages.empty()) {
@@ -132,6 +149,7 @@ std::map<int, std::string> ErrorRH::init_map() {
 
     map[404] = "Not Found";
     map[403] = "Forbidden";
+    map[500] = "Internal Server Error";
 
     return map;
 }

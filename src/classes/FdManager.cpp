@@ -129,7 +129,10 @@ void	FdManager::add_cgi_in_fd(int fd, Client &client)
     fd_set.insert(fd);
 }
 
+// if fd was not added, it has no effect
 void FdManager::remove_fd(int fd) {
+    if (fd >= capacity) return;
+    
     fd_table[fd].type = fd_none;
     fd_table[fd].client = NULL;
     fd_table[fd].is_EOF = false;

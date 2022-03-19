@@ -15,6 +15,11 @@ class StaticRH : public ARequestHandler {
    private:
     int fd_file;
     std::string resource_path;
+    enum e_state {
+        s_sending_header,
+        s_sending_file,
+        s_abort
+    } state;
 
     int setup();
 
