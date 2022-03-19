@@ -2,7 +2,6 @@ init_response must check if that request method is accepted by the route
 
 Python tests
 
-
 Time out inactive clients
 
 Response: handle keep-alive or not.

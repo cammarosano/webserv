@@ -110,7 +110,10 @@ int CgiPostRH::respond()
 	case s_recv_req_body:
 		ret_bd = bd.decode_body();
 		if (ret_bd == -1) // error
+		{
+			std::cout << "BodyDecoder returned ERROR" << std::endl;
 			return (-1); // TODO: handle this. Send error response? Disconnect client?
+		}
 		if (!request->client.decoded_body.empty()) // there's data to be sent to CGI
 			table.set_pollout(cgi_input_fd);
 		if (ret_bd == 0)
