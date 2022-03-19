@@ -50,7 +50,9 @@ int ErrorRH::setup() {
     std::string err_page;
     
     //////////////////////////////////////////////////////////////////
-    // RODOLPHO inserted these lines for testing (avoiding a bug)
+    // RODOLPHO inserted these lines for testing
+    // (avoiding a bug where content-length: 0 was being sent with auto
+    // generated pages)
     // if you're seeing this, it means he should have removed it (and hasn't)
     if (error_code == 500)
     {

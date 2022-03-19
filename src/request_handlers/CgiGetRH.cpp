@@ -4,10 +4,14 @@ CgiGetRH::CgiGetRH(HttpRequest *request, FdManager &table,
                     std::string &script_path):
 ACgiRH(request, table, script_path)
 {
+    if (setup() == -1)
+        throw (std::exception());
+    state = s_recving_cgi_output;
 }
 
 CgiGetRH::~CgiGetRH()
 {
+    clear_resources();
 }
 
 int CgiGetRH::setup()
@@ -18,7 +22,7 @@ int CgiGetRH::setup()
     if (pipe(pipefd) == -1)
     {
         perror("pipe");
-        return -1;
+        return (-1);
     }
 
     // fork
@@ -26,7 +30,9 @@ int CgiGetRH::setup()
     if (pid_cgi_process == -1)
     {
         perror("fork");
-        return -1;
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return (-1);
     }
 
     if (pid_cgi_process == 0) // child process
@@ -52,7 +58,8 @@ int CgiGetRH::setup()
         close(pipefd[1]);
 
         // chdir to cgi root ("correct directory" ??)
-        chdir(request->route->root.c_str());
+        if (chdir(request->route->root.c_str()) == -1)
+            exit(1);
 
         // exec()
         execve(argv[0], argv, envp);
@@ -73,33 +80,22 @@ int CgiGetRH::setup()
 
 int CgiGetRH::respond()
 {
-    if (state == st_setup)
+    switch (state)
     {
-        if (setup() == -1)
-            return -1;
-        state = st_recving_cgi_output;
-    }
-    if (state == st_recving_cgi_output)
-    {
+    case s_recving_cgi_output:
         if (table[cgi_output_fd].is_EOF)
-        {
-            clear_resources();
-            state = st_done;
-        }
-    }
-    if (state == st_done)
-        return (1);
-    if (state == st_abort)
+            return (1);
+        return (0);
+    
+    case s_abort:
         return (-1);
-    return (0);
+
+    default:
+        return (0);
+    }
 }
 
 void CgiGetRH::abort()
 {
-    clear_resources();
-    state = st_abort;
+    state = s_abort;
 }
-
-
-
-

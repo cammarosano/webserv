@@ -95,50 +95,50 @@ int CgiPostRH::setup()
 
 int CgiPostRH::respond()
 {
-	if (state == st_setup)
+	if (state == s_setup)
 	{
 		if (setup() == -1)
 			return (-1);
-		state = st_recv_req_body;
+		state = s_recv_req_body;
 	}
-	if (state == st_recv_req_body)
+	if (state == s_recv_req_body)
 	{
 		if (bd.decode_body() == 1) // TODO: handle errors (-1)
-			state = st_sending_body2cgi;
+			state = s_sending_body2cgi;
 		if (!request->client.decoded_body.empty())
 			table.set_pollout(cgi_input_fd);
 	}
-	if (state == st_sending_body2cgi)
+	if (state == s_sending_body2cgi)
 	{
 		if (request->client.decoded_body.empty())
 		{
 			close(cgi_input_fd); // close write-end of input pipe to send EOF
 			table.remove_fd(cgi_input_fd);
-			state = st_recving_cgi_output;
+			state = s_recving_cgi_output;
 		}
 	}
-	if (state == st_recving_cgi_output)
+	if (state == s_recving_cgi_output)
 	{
 		if (table[cgi_output_fd].is_EOF)
 		{
 			clear_resources();
-			state = st_done;
+			state = s_done;
 		}
 	}
-	if (state == st_done)
+	if (state == s_done)
 		return (1);
-    if (state == st_abort)
+    if (state == s_abort)
 		return (-1);
 	return (0);
 }
 
 void CgiPostRH::abort()
 {
-	if (state != st_recving_cgi_output)
+	if (state != s_recving_cgi_output)
 	{
 		close(cgi_input_fd);
 		table.remove_fd(cgi_input_fd);
 	}
 	clear_resources();
-	state = st_abort;
+	state = s_abort;
 }

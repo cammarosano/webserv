@@ -1,5 +1,5 @@
-#ifndef __A_CGI_RH__
-#define __A_CGI_RH__
+#ifndef ACGIRH_HPP
+# define ACGIRH_HPP
 
 # include "ARequestHandler.hpp"
 # include <unistd.h>
@@ -16,10 +16,11 @@ protected:
 	int	cgi_output_fd;
     enum e_state
     {
-        st_setup,
-        st_recv_req_body, st_sending_body2cgi, st_recving_cgi_output,
-        st_done,
-        st_abort
+        s_setup,
+        s_recv_req_body, s_sending_body2cgi, // CGI-POST only
+        s_recving_cgi_output,
+        s_done,
+        s_abort
     } state;
 
     std::string get_query_str();
@@ -38,4 +39,4 @@ public:
     virtual void abort() = 0;
 };
 
-#endif  // !__A_CGI_RH__
+#endif
