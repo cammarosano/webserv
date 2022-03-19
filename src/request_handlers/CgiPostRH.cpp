@@ -2,13 +2,16 @@
 
 CgiPostRH::CgiPostRH(HttpRequest *request, FdManager &table,
 			std::string &script_path):
-ACgiRH(request, table, script_path),
-bd(*request)
+ACgiRH(request, table, script_path), bd(*request)
 {
+	if (setup() == -1)
+		throw (std::exception());
+	state = s_recv_req_body;
 }
 
 CgiPostRH::~CgiPostRH()
 {
+	clear_resources();
 }
 
 int CgiPostRH::setup()
@@ -27,6 +30,8 @@ int CgiPostRH::setup()
 	if (pipe(pipe_out) == -1)
 	{
 		perror("pipe");
+		close(pipe_in[0]);
+		close(pipe_in[1]);
 		return (-1);
 	}
 	
@@ -35,6 +40,10 @@ int CgiPostRH::setup()
     if (pid_cgi_process == -1)
     {
         perror("fork");
+		close(pipe_in[0]);
+		close(pipe_in[1]);
+		close(pipe_out[0]);
+		close(pipe_out[1]);
         return (-1);
 	}
 
@@ -81,7 +90,6 @@ int CgiPostRH::setup()
 	}
 
 	// parent process
-
 	if (DEBUG)
 		std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
 	close(pipe_out[1]); // close pipe out write end
@@ -95,41 +103,38 @@ int CgiPostRH::setup()
 
 int CgiPostRH::respond()
 {
-	if (state == s_setup)
+	int ret_bd;
+
+	switch (state)
 	{
-		if (setup() == -1)
-			return (-1);
-		state = s_recv_req_body;
-	}
-	if (state == s_recv_req_body)
-	{
-		if (bd.decode_body() == 1) // TODO: handle errors (-1)
-			state = s_sending_body2cgi;
-		if (!request->client.decoded_body.empty())
+	case s_recv_req_body:
+		ret_bd = bd.decode_body();
+		if (ret_bd == -1) // error
+			return (-1); // TODO: handle this. Send error response? Disconnect client?
+		if (!request->client.decoded_body.empty()) // there's data to be sent to CGI
 			table.set_pollout(cgi_input_fd);
-	}
-	if (state == s_sending_body2cgi)
-	{
-		if (request->client.decoded_body.empty())
-		{
-			close(cgi_input_fd); // close write-end of input pipe to send EOF
-			table.remove_fd(cgi_input_fd);
-			state = s_recving_cgi_output;
-		}
-	}
-	if (state == s_recving_cgi_output)
-	{
+		if (ret_bd == 0)
+			return (0);
+		state = s_sending_body2cgi;
+
+	case s_sending_body2cgi:
+		if (!request->client.decoded_body.empty())
+			return (0);
+		close(cgi_input_fd); // close write-end of input pipe to send EOF
+		table.remove_fd(cgi_input_fd);
+		state = s_recving_cgi_output;
+
+	case s_recving_cgi_output:
 		if (table[cgi_output_fd].is_EOF)
-		{
-			clear_resources();
-			state = s_done;
-		}
-	}
-	if (state == s_done)
-		return (1);
-    if (state == s_abort)
+			return (1);
+		return (0);
+	
+	case s_abort:
 		return (-1);
-	return (0);
+
+	default:
+		return (0);
+	}
 }
 
 void CgiPostRH::abort()
@@ -139,6 +144,5 @@ void CgiPostRH::abort()
 		close(cgi_input_fd);
 		table.remove_fd(cgi_input_fd);
 	}
-	clear_resources();
 	state = s_abort;
 }

@@ -3,7 +3,6 @@ init_response must check if that request method is accepted by the route
 Python tests
 
 
-
 Time out inactive clients
 
 Response: handle keep-alive or not.
@@ -11,6 +10,13 @@ Response: handle keep-alive or not.
 make file_fd and pipes fd non-blocking 
 
 test nginx and see what happens when no route matches
+
+
+NOT YET HANDLED ERRORS:
+- CGI response: when child process exits without execing (Bad Gateway ?)
+- CGI POST: when BodyDecoder.decode() returns an error (Bad Request)
+- CGI (both) setup_cgi_argv and setup_cgi_env: if alloc fails and exception is thrown,
+	gotta catch it and exit process. (do not leave the request hanging!!)
 
 
 Notes:

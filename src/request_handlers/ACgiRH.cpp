@@ -6,7 +6,6 @@ ARequestHandler(request, table),
 script_path(script_path)
 {
     query_str = get_query_str();
-    state = s_setup;
 }
 
 ACgiRH::~ACgiRH() {}

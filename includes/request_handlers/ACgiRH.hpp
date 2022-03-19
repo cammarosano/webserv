@@ -16,10 +16,8 @@ protected:
 	int	cgi_output_fd;
     enum e_state
     {
-        s_setup,
         s_recv_req_body, s_sending_body2cgi, // CGI-POST only
         s_recving_cgi_output,
-        s_done,
         s_abort
     } state;
 
