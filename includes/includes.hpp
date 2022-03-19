@@ -121,11 +121,11 @@ struct Client {
     ARequestHandler *ongoing_response;
 
     // constructor
-    Client(int socket, std::list<Vserver> &vservers);
+    Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
 
 	private:
     // get ip address and host name
-    void get_peer_info();
+    void get_client_info(sockaddr &sa);
 };
 
 // function prototypes
@@ -137,11 +137,11 @@ int get_listening_socket(std::string host_IP, unsigned short port);
 
 // IO
 
-int accept_connection(int listen_socket, FdManager &table);
+void accept_connection(int listen_socket, FdManager &table);
 void recv_from_client(int socket, FdManager &table);
 void read_from_fd(int fd, FdManager &table);
 void send_to_client(int socket, FdManager &table);
-int write_to_cgi(int fd_cgi_input, FdManager &table);
+void write_to_fd(int fd_cgi_input, FdManager &table);
 
 // process requests
 

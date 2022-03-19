@@ -122,7 +122,7 @@ void send_to_client(int socket, FdManager &table)
                         client.unsent_data.size());
     if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
     {
-        if (DEBUG) perror("write"); // remove this before push
+        if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
         disconnect_client(client, table);
         return;
     }
@@ -136,29 +136,32 @@ void send_to_client(int socket, FdManager &table)
                     << socket << std::endl;
 }
 
-// transfer data from client's request body to cgi input
-int write_to_cgi(int fd_cgi_input, FdManager &table)
+// write data from Client's decoded_body to fd (file or pipe)
+// if error, response is terminated and client disconnected
+void write_to_fd(int fd, FdManager &table)
 {
-    Client &client = *table[fd_cgi_input].client;
+    Client &client = *table[fd].client;
     int bytes_written;
 
     if (client.decoded_body.empty())
-        return (0);
-    bytes_written = write(fd_cgi_input, client.decoded_body.data(),
-        client.decoded_body.size());
-    if (bytes_written == -1)
     {
-        perror("write");
-        return (-1);
+        table.unset_pollout(fd);
+        return;
+    }
+    bytes_written = write(fd, client.decoded_body.data(),
+        client.decoded_body.size());
+    if (bytes_written == -1 || bytes_written == 0) // should we consider write 0 error?
+    {
+        if (DEBUG) perror("write"); // REMOVE BEFORE PUSH 
+        disconnect_client(client, table);
+        return;
     }
     client.decoded_body.erase(0, bytes_written);
     if (client.decoded_body.empty())
-        table.unset_pollout(fd_cgi_input);
+        table.unset_pollout(fd);
     
     // debug
     if (DEBUG)
-        std::cout << bytes_written << " bytes were sent to CGI's input at fd "
-        << fd_cgi_input << std::endl;
-    
-    return (1);
+        std::cout << bytes_written << " bytes were sent to fd "
+        << fd << std::endl;
 }

@@ -56,9 +56,9 @@ int do_io(FdManager &table)
             if (fd_type == fd_client_socket)
                 send_to_client(fd, table);
             else if (fd_type == fd_cgi_input)
-                write_to_cgi(fd, table);
+                write_to_fd(fd, table);
         }
-        // when a a process closes its end of the pipe, POLLHUP is detected
+        // when a process closes its end of the pipe, POLLHUP is detected
         if (table.get_poll_array()[fd].revents & (POLLIN | POLLHUP))
         {
             if (fd_type == fd_cgi_output)
