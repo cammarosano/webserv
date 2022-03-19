@@ -5,67 +5,57 @@
 
 // calls poll()
 // does all read() and write() operations
-int do_io(FdManager &table)
+void do_io(FdManager &table)
 {
-    int poll_ret;
+    int n_fds;
 
     // debug
     if (DEBUG)
         std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
-    poll_ret = poll(table.get_poll_array(), table.len(), -1);
-    if (poll_ret == -1)
+    n_fds = poll(table.get_poll_array(), table.len(), -1);
+    if (n_fds == -1)
     {
         perror("poll");
-        return (-1);
+        return;
     }
 
     // display debug info
     if (DEBUG)
     {
-        std::cout << "poll() returned " << poll_ret << std::endl;
+        std::cout << "poll() returned " << n_fds << std::endl;
         table.debug_info();
     }
 
     // iterate over poll_array
-    for (int fd = 3; fd < table.len(); fd++)
+    for (int fd = 3; fd < table.len() && n_fds; fd++)
     {
+        short revents = table.get_poll_array()[fd].revents;
+        if (!revents)
+            continue;
         e_fd_type fd_type = table[fd].type;
-
-        if (table.get_poll_array()[fd].revents & POLLIN) // fd ready for reading
+        if (revents & POLLIN) // fd ready for reading
         {
-            // a the begining it will be the only the listening socket
-            // other will be add with accept connection
-
             if (fd_type == fd_listen_socket)
-            {
                 accept_connection(fd, table);
-            }
             else if (fd_type == fd_client_socket)
-            {
-                // std::cout << "receiving data from client: " << fd << std::endl;
                 recv_from_client(fd, table);
-            }
             else if (fd_type == fd_file)
                 read_from_fd(fd, table);
         }
-        if (table.get_poll_array()[fd].revents & POLLOUT) // fd ready for writing
+        if (revents & POLLOUT) // fd ready for writing
         {
-            // std::cout << "sending data to client" << std::endl;
             if (fd_type == fd_client_socket)
                 send_to_client(fd, table);
             else if (fd_type == fd_cgi_input)
                 write_to_fd(fd, table);
         }
         // when a process closes its end of the pipe, POLLHUP is detected
-        if (table.get_poll_array()[fd].revents & (POLLIN | POLLHUP))
-        {
-            if (fd_type == fd_cgi_output)
-                read_from_fd(fd, table);
-        }
+        if ((revents & (POLLIN | POLLHUP)) && fd_type == fd_cgi_output)
+            read_from_fd(fd, table);
+        --n_fds;
     }
-    return (0);
 }
 
 // calls the respond() method of each request handler in
