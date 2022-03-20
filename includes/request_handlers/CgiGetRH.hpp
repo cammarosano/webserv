@@ -9,6 +9,7 @@ class CgiGetRH: public ACgiRH
 
 private:
 	int setup();
+	void release_resources();
 
 public:
 	CgiGetRH(HttpRequest *request, FdManager &table,

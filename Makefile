@@ -44,7 +44,7 @@ includes.hpp
 HEADERS = $(addprefix includes/,$(INC)) 
 OBJ = $(patsubst %.cpp, obj/%.o, $(SRC))
 CC = clang++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
 INCLUDES = -I includes -I includes/classes -I includes/request_handlers
 NAME = webserv
 

@@ -1,7 +1,10 @@
 #include "ARequestHandler.hpp"
 
 ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table)
-    : request(request), table(table) {}
+    : request(request), table(table)
+{
+    update_last_io_activ();
+}
 
 ARequestHandler::~ARequestHandler() {}
 
@@ -41,4 +44,16 @@ int ARequestHandler::send_header() {
     table.set_pollout(client.socket);
     if (header_str.empty()) return 1;
     return 0;
+}
+
+void ARequestHandler::update_last_io_activ()
+{
+    std::time(&last_io_activity);
+}
+
+bool ARequestHandler::is_time_out()
+{
+    if (std::difftime(time(NULL), last_io_activity) > REQUEST_TIME_OUT)
+        return (true);
+    return (false);
 }

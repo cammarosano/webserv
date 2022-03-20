@@ -7,11 +7,12 @@ ACgiRH(request, table, script_path), bd(*request)
 	if (setup() == -1)
 		throw (std::exception());
 	state = s_start;
+	child_exited = false;
 }
 
 CgiPostRH::~CgiPostRH()
 {
-	clear_resources();
+	release_resources();
 }
 
 int CgiPostRH::setup()
@@ -101,18 +102,37 @@ int CgiPostRH::setup()
 
 int CgiPostRH::respond()
 {
-	int ret_bd;
+	int ret;
+	int wstatus;
+
+	if (state != s_abort && !child_exited)
+	{
+		ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
+		if (ret > 0)
+		{
+			child_exited = true;
+			if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus)) // exited with error
+			{
+				release_resources();
+				send_502_response();
+				state = s_done;
+			}
+		}
+		if (ret == -1)
+			perror("waidpid");
+	}
 
 	switch (state)
 	{
+
 	case s_start:
 		table.add_cgi_out_fd(cgi_output_fd, request->client);
 		table.add_cgi_in_fd(cgi_input_fd, request->client);
 		state = s_recv_req_body;
 
 	case s_recv_req_body:
-		ret_bd = bd.decode_body();
-		if (ret_bd == -1) // error
+		ret = bd.decode_body();
+		if (ret == -1) // error
 		{
 			std::cout << "BodyDecoder returned ERROR" << std::endl;
 			state = s_abort;
@@ -120,7 +140,7 @@ int CgiPostRH::respond()
 		}
 		if (!request->client.decoded_body.empty()) // there's data to be sent to CGI
 			table.set_pollout(cgi_input_fd);
-		if (ret_bd == 0) // not finished
+		if (ret == 0) // not finished
 			return (0);
 		state = s_sending_body2cgi;
 
@@ -135,6 +155,16 @@ int CgiPostRH::respond()
 		if (!table[cgi_output_fd].is_EOF) // not finished
 			return (0);
 		table.remove_fd(cgi_output_fd);
+        close(cgi_output_fd);
+		state = s_wait_child;
+	
+	case s_wait_child:
+		if (!child_exited)
+		{
+			if (waitpid(pid_cgi_process, NULL, WNOHANG) == 0)
+				return (0);
+			child_exited = true;
+		}
 		state = s_done;
 	
 	case s_done:
@@ -147,12 +177,22 @@ int CgiPostRH::respond()
 
 void CgiPostRH::abort()
 {
+	release_resources();
+	state = s_abort;
+}
+
+void CgiPostRH::release_resources()
+{
 	if (state > s_start && state < s_recving_cgi_output)
 	{
 		close(cgi_input_fd);
 		table.remove_fd(cgi_input_fd);
 	}
-	if (state > s_start && state < s_done)
+	if (state > s_start && state < s_wait_child)
 		table.remove_fd(cgi_output_fd);
-	state = s_abort;
+	if (!child_exited)
+	{
+        kill(pid_cgi_process, SIGKILL);
+        waitpid(pid_cgi_process, NULL, 0);
+	}
 }

@@ -11,6 +11,7 @@ private:
 	BodyDecoder bd;
 
 	int setup();
+	void release_resources();
 
 public:
 	CgiPostRH(HttpRequest *request, FdManager &table,

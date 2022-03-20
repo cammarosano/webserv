@@ -29,7 +29,7 @@ response_body += "</body>"
 response_body += "</html>"
 
 # sleep for some time
-sleep(2)
+sleep(10)
 
 # resume output response header
 print("Content-Length: " + str(len(response_body)), end="\r\n\r\n")

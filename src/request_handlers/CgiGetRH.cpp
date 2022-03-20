@@ -11,7 +11,7 @@ ACgiRH(request, table, script_path)
 
 CgiGetRH::~CgiGetRH()
 {
-    clear_resources();
+    release_resources();
 }
 
 int CgiGetRH::setup()
@@ -79,6 +79,8 @@ int CgiGetRH::setup()
 
 int CgiGetRH::respond()
 {
+    int ret;
+
     switch (state)
     {
     case s_start:
@@ -89,6 +91,15 @@ int CgiGetRH::respond()
         if (!table[cgi_output_fd].is_EOF) // not finished
             return (0);
         table.remove_fd(cgi_output_fd);
+        close(cgi_output_fd);
+        state = s_wait_child;
+
+    case s_wait_child:
+        ret = wait_child();
+        if (ret == 0)
+            return (0);
+        if (ret == -1) // error
+            send_502_response();
         state = s_done;
 
     case s_done:
@@ -101,7 +112,17 @@ int CgiGetRH::respond()
 
 void CgiGetRH::abort()
 {
-    if (state > s_start && state < s_done)
-        table.remove_fd(cgi_output_fd);
+    release_resources();
     state = s_abort;
+}
+
+void CgiGetRH::release_resources()
+{
+    if (state > s_start && state < s_wait_child)
+        table.remove_fd(cgi_output_fd);
+    if (state < s_done)
+    {
+        kill(pid_cgi_process, SIGKILL);
+        waitpid(pid_cgi_process, NULL, 0);
+    }
 }

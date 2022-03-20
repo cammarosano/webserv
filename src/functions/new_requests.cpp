@@ -126,8 +126,8 @@ int new_requests(FdManager &table,
             req_handler = new ErrorRH(request, table, 500);
         }
         req_handlers_lst.push_back(req_handler);
-        client.state = handling_response;
         client.ongoing_response = req_handler;
+        client.state = handling_response;
         
         // hacky temporary lines below:
         std::map<std::string, std::string>::iterator it

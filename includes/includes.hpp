@@ -68,4 +68,8 @@ int new_requests(FdManager &table,
                        std::list<ARequestHandler *> &req_handlers_lst);
 int handle_requests(std::list<ARequestHandler *> &list);
 
+// clear
+
+void disconnect_client(Client &client, FdManager &table);
+
 #endif

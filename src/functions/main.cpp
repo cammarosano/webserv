@@ -1,5 +1,18 @@
 #include "includes.hpp"
 
+void update_time_last_activ(int fd, FdManager &table)
+{
+    if (table[fd].type == fd_listen_socket || table[fd].type == fd_none)
+        return ;
+    if (!table[fd].client)
+    {
+        std::cerr << "Yo tryin' to derefence a NULL pointer of what??" << std::endl;
+        // return ;
+    }
+    Client &client = *table[fd].client;
+    if (client.state == handling_response)
+        client.ongoing_response->update_last_io_activ();
+}
 
 // calls poll()
 // does all read() and write() operations
@@ -12,7 +25,7 @@ void do_io(FdManager &table)
         std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
-    n_fds = poll(table.get_poll_array(), table.len(), -1);
+    n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
     if (n_fds == -1)
     {
         perror("poll");
@@ -32,6 +45,7 @@ void do_io(FdManager &table)
         short revents = table.get_poll_array()[fd].revents;
         if (!revents)
             continue;
+        --n_fds;
         e_fd_type fd_type = table[fd].type;
         if (revents & POLLIN) // fd ready for reading
         {
@@ -52,38 +66,47 @@ void do_io(FdManager &table)
         // when a process closes its end of the pipe, POLLHUP is detected
         if ((revents & (POLLIN | POLLHUP)) && fd_type == fd_cgi_output)
             read_from_fd(fd, table);
-        --n_fds;
+
+        // update Request Handler's last time of activity
+        update_time_last_activ(fd, table);
     }
 }
 
 // calls the respond() method of each request handler in
 // the list. deletes request and request handler when
 // the response is complete.
-int handle_requests(std::list<ARequestHandler *> &list)
+int handle_requests(FdManager &table, std::list<ARequestHandler *> &list)
 {
     std::list<ARequestHandler *>::iterator it;
+    ARequestHandler *req_handler;
     int ret;
 
     // iterate over list of request handlers
     it = list.begin();
     while (it != list.end())
     {
-        ARequestHandler *req_handler = *it;
+        req_handler = *it;
         // do response actions
         ret = req_handler->respond(); // subtype polymorphism
         if (ret == 0)                 // response not yet finished
-            ++it;
-        else
         {
-            if (ret == 1) // finished successfully
-                // update Client's state
-                req_handler->getRequest()->client.state = recv_header;
-
-            // free memory (request and req handler) and remove rh from list
-            delete req_handler->getRequest();
-            delete req_handler;
-            it = list.erase(it); // returns iterator to next elem of list
+            if (req_handler->is_time_out())
+            {
+                std::cout << "Response timed-out" << std::endl;
+                disconnect_client(req_handler->getRequest()->client, table);
+                // TODO: try to send a time-out response client.
+            }
+            else
+                {++it; continue;}
         }
+        if (ret == 1) // finished successfully
+            // update Client's state
+            req_handler->getRequest()->client.state = recv_header;
+
+        // free memory (request and req handler) and remove rh from list
+        delete req_handler->getRequest();
+        delete req_handler;
+        it = list.erase(it); // returns iterator to next elem of list
     }
     return (0);
 }
@@ -98,7 +121,7 @@ int main(void)
     {
         do_io(table);
         new_requests(table, req_handlers_lst);
-        handle_requests(req_handlers_lst);
+        handle_requests(table, req_handlers_lst);
     }
 
     return (0);

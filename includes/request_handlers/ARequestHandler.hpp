@@ -4,6 +4,7 @@
 # include "FdManager.hpp"
 # include "HttpRequest.hpp"
 # include "macros.h"
+# include <ctime>
 
 /* 
 Abstract class for request handlers
@@ -16,6 +17,7 @@ protected:
 	HttpRequest	*request;
 	FdManager	&table;
 	std::string header_str;
+	time_t		last_io_activity;
 
 	enum e_rhstate
 	{
@@ -40,6 +42,8 @@ public:
 	virtual void abort() = 0;
 
 	HttpRequest * getRequest();
+	void update_last_io_activ();
+	bool is_time_out();
 };
 
 #endif
