@@ -6,7 +6,7 @@ ACgiRH(request, table, script_path)
 {
     if (setup() == -1)
         throw (std::exception());
-    state = s_recving_cgi_output;
+    state = s_start;
 }
 
 CgiGetRH::~CgiGetRH()
@@ -74,7 +74,6 @@ int CgiGetRH::setup()
         std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
     close(pipefd[1]); // close write-end
     cgi_output_fd = pipefd[0];
-    table.add_cgi_out_fd(cgi_output_fd, request->client);
     return (0);
 }
 
@@ -82,20 +81,27 @@ int CgiGetRH::respond()
 {
     switch (state)
     {
-    case s_recving_cgi_output:
-        if (table[cgi_output_fd].is_EOF)
-            return (1);
-        return (0);
-    
-    case s_abort:
-        return (-1);
+    case s_start:
+        table.add_cgi_out_fd(cgi_output_fd, request->client);
+        state = s_recving_cgi_output;
 
-    default:
-        return (0);
+    case s_recving_cgi_output:
+        if (!table[cgi_output_fd].is_EOF) // not finished
+            return (0);
+        table.remove_fd(cgi_output_fd);
+        state = s_done;
+
+    case s_done:
+        return (1);
+    
+    default: // case s_abort
+        return (-1);
     }
 }
 
 void CgiGetRH::abort()
 {
+    if (state > s_start && state < s_done)
+        table.remove_fd(cgi_output_fd);
     state = s_abort;
 }

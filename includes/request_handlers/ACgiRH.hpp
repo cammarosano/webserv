@@ -14,10 +14,12 @@ protected:
 	std::string query_str;
 	pid_t pid_cgi_process;
 	int	cgi_output_fd;
-    enum e_state
+    enum e_state // order matters!!
     {
+        s_start,
         s_recv_req_body, s_sending_body2cgi, // CGI-POST only
         s_recving_cgi_output,
+        s_done,
         s_abort
     } state;
 

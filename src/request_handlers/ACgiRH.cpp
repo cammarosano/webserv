@@ -119,11 +119,13 @@ char **ACgiRH::setup_cgi_env()
     return (envp);
 }
 
+// sends SIGTERM signal do child process
+// waits for child process
+// closes cgi output fd
 void ACgiRH::clear_resources()
 {
     // consider using SIGKILL to ensure termination
     kill(pid_cgi_process, SIGTERM);
-    table.remove_fd(cgi_output_fd);
     close(cgi_output_fd); // close pipe's read-end
     // this line might block the program!
     waitpid(pid_cgi_process, NULL, 0);

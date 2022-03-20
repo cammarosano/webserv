@@ -44,26 +44,22 @@ int StaticRH::respond()
     switch (state)
     {
     case s_sending_header:
-        if (send_header() == 1)
-        {
-            table.add_file_fd(fd_file, request->client);
-            state = s_sending_file;
-        }
-        return (0);
+        if (send_header() == 0) // incomplete
+            return (0);
+        table.add_file_fd(fd_file, request->client);
+        state = s_sending_file;
 
     case s_sending_file:
-        if (table[fd_file].is_EOF)
-        {
-            table.remove_fd(fd_file);
-            return (1);
-        }
-        return (0);
+        if (!table[fd_file].is_EOF) // incomplete
+            return (0);
+        table.remove_fd(fd_file);
+        state = s_done;
 
-    case s_abort:
-        return (-1);
+    case s_done:
+        return (1);
     
-    default:
-        return (0);
+    default: // case s_abort
+        return (-1);
     }
 }
 

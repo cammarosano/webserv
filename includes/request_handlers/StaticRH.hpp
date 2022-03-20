@@ -18,6 +18,7 @@ class StaticRH : public ARequestHandler {
     enum e_state {
         s_sending_header,
         s_sending_file,
+        s_done,
         s_abort
     } state;
 

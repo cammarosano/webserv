@@ -52,6 +52,7 @@ void FdManager::reallocate()
 // returns maximum fd + 1
 // use this as upper bound for looping through the poll array of fd_table
 int FdManager::len() const {
+    if (!fd_set.size()) return (0);
     int max_fd = *fd_set.rbegin();
     return max_fd + 1;
 }
