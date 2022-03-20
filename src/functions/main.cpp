@@ -20,8 +20,8 @@ void do_io(FdManager &table)
         std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
-    // n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
-    n_fds = poll(table.get_poll_array(), table.len(), -1);
+    n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
+    // n_fds = poll(table.get_poll_array(), table.len(), -1);
     if (n_fds == -1)
     {
         perror("poll");
