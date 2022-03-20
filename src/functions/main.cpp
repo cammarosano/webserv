@@ -4,11 +4,6 @@ void update_time_last_activ(int fd, FdManager &table)
 {
     if (table[fd].type == fd_listen_socket || table[fd].type == fd_none)
         return ;
-    if (!table[fd].client)
-    {
-        std::cerr << "Yo tryin' to derefence a NULL pointer of what??" << std::endl;
-        // return ;
-    }
     Client &client = *table[fd].client;
     if (client.state == handling_response)
         client.ongoing_response->update_last_io_activ();
@@ -25,7 +20,8 @@ void do_io(FdManager &table)
         std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
-    n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
+    // n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
+    n_fds = poll(table.get_poll_array(), table.len(), -1);
     if (n_fds == -1)
     {
         perror("poll");

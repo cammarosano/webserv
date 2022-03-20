@@ -157,6 +157,9 @@ int CgiPostRH::respond()
 		table.remove_fd(cgi_output_fd);
         close(cgi_output_fd);
 		state = s_wait_child;
+
+		// release "lock"
+		request->client.state = recv_header; // EXPERIMENTAL STUFF
 	
 	case s_wait_child:
 		if (!child_exited)
@@ -168,7 +171,7 @@ int CgiPostRH::respond()
 		state = s_done;
 	
 	case s_done:
-		return (1);
+		return (2);
 
 	default: // case s_abort
 		return (-1);
