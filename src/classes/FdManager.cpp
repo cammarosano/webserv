@@ -140,6 +140,7 @@ void FdManager::remove_fd(int fd) {
 
     poll_array[fd].fd = -1;
     poll_array[fd].events = 0;
+    poll_array[fd].revents = 0;
 
     fd_set.erase(fd);
 }

@@ -33,25 +33,24 @@ void do_io(FdManager &table)
         if (!revents)
             continue;
         --n_fds;
-        e_fd_type fd_type = table[fd].type;
         if (revents & POLLIN) // fd ready for reading
         {
-            if (fd_type == fd_listen_socket)
+            if (table[fd].type == fd_listen_socket)
                 accept_connection(fd, table);
-            else if (fd_type == fd_client_socket)
+            else if (table[fd].type == fd_client_socket)
                 recv_from_client(fd, table);
-            else if (fd_type == fd_file)
+            else if (table[fd].type == fd_file)
                 read_from_fd(fd, table);
         }
         if (revents & POLLOUT) // fd ready for writing
         {
-            if (fd_type == fd_client_socket)
+            if (table[fd].type == fd_client_socket)
                 send_to_client(fd, table);
-            else if (fd_type == fd_cgi_input)
+            else if (table[fd].type == fd_cgi_input)
                 write_to_fd(fd, table);
         }
         // when a process closes its end of the pipe, POLLHUP is detected
-        if ((revents & (POLLIN | POLLHUP)) && fd_type == fd_cgi_output)
+        if ((revents & (POLLIN | POLLHUP)) && table[fd].type == fd_cgi_output)
             read_from_fd(fd, table);
     }
 }
