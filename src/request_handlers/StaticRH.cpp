@@ -41,11 +41,19 @@ int StaticRH::setup()
 // -1 if response was aborted
 int StaticRH::respond()
 {
+    if (state == s_abort)
+        return (-1);
+
     switch (state)
     {
     case s_sending_header:
         if (send_header() == 0) // incomplete
             return (0);
+        if (request->method == "HEAD")
+        {
+            state = s_done;
+            return (1);
+        }
         table.add_file_fd(fd_file, request->client);
         state = s_sending_file;
 
@@ -55,11 +63,8 @@ int StaticRH::respond()
         table.remove_fd(fd_file);
         state = s_done;
 
-    case s_done:
+    default: // case s_done
         return (1);
-    
-    default: // case s_abort
-        return (-1);
     }
 }
 
