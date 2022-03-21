@@ -55,10 +55,7 @@ int handle_requests(std::list<ARequestHandler *> &list, FdManager &table)
 			it = list.erase(it); // returns iterator to next elem of list
 		}
 		else if (ret > 1) // replace with error response
-		{
-			replace_request_handler(it, ret, table);
-			++it;
-		}
+			replace_request_handler(it, ret, table); // iterator does not move
 		else if (req_handler->is_time_out())
 		{
 			send_time_out_response(req_handler, table);
@@ -66,8 +63,9 @@ int handle_requests(std::list<ARequestHandler *> &list, FdManager &table)
 			clear_rh(req_handler);
 			it = list.erase(it);
 		}
-		else // not finished
+		else // not finished (ret == 0)
 			++it;
     }
+	table.reap_child_processes();
     return (0);
 }

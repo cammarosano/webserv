@@ -7,7 +7,6 @@ ACgiRH(request, table, script_path), bd(*request)
 	if (setup() == -1)
 		throw (std::exception());
 	state = s_start;
-	child_exited = false;
 }
 
 CgiPostRH::~CgiPostRH()
@@ -37,8 +36,8 @@ int CgiPostRH::setup()
 	}
 	
 	// fork
-	pid_cgi_process = fork();
-    if (pid_cgi_process == -1)
+	cgi_process.pid = fork();
+    if (cgi_process.pid == -1)
     {
         perror("fork");
 		close(pipe_in[0]);
@@ -48,7 +47,7 @@ int CgiPostRH::setup()
         return (-1);
 	}
 
-	if (pid_cgi_process == 0) // child process
+	if (cgi_process.pid == 0) // child process
 	{
 		// setup argv and envp for execve
 		char **argv = setup_cgi_argv();
@@ -92,7 +91,7 @@ int CgiPostRH::setup()
 
 	// parent process
 	if (DEBUG)
-		std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
+		std::cout << "pid cgi process: " << cgi_process.pid << std::endl;
 	close(pipe_out[1]); // close pipe out write end
 	close(pipe_in[0]); // close pipe in read end
 	cgi_output_fd = pipe_out[0];
@@ -102,50 +101,32 @@ int CgiPostRH::setup()
 
 int CgiPostRH::respond()
 {
-	int ret;
-	int wstatus;
+	int ret_bd;
 
-	if (state != s_abort && !child_exited)
-	{
-		ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
-		if (ret > 0)
-		{
-			child_exited = true;
-			if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus)) // exited with error
-			{
-				release_resources();
-				send_502_response();
-				state = s_done;
-			}
-		}
-		if (ret == -1)
-			perror("waidpid");
-	}
+	if (state == s_abort)
+		return (-1);
+	if (!cgi_process.wait_done && cgi_failed())
+		return (502); // release_ressources done by destructor
 
 	switch (state)
 	{
-
 	case s_start:
 		table.add_cgi_out_fd(cgi_output_fd, request->client);
 		table.add_cgi_in_fd(cgi_input_fd, request->client);
 		state = s_recv_req_body;
 
 	case s_recv_req_body:
-		ret = bd.decode_body();
-		if (ret == -1) // error
-		{
-			std::cout << "BodyDecoder returned ERROR" << std::endl;
-			state = s_abort;
-			return (-1); // TODO: handle this. Send error response? Disconnect client?
-		}
-		if (!request->client.decoded_body.empty()) // there's data to be sent to CGI
+		ret_bd = bd.decode_body();
+		if (ret_bd == -1) // error
+			return (400);
+		if (!client.decoded_body.empty()) // there's data to be sent to CGI
 			table.set_pollout(cgi_input_fd);
-		if (ret == 0) // not finished
+		if (ret_bd == 0) // not finished
 			return (0);
 		state = s_sending_body2cgi;
 
 	case s_sending_body2cgi:
-		if (!request->client.decoded_body.empty()) // not finished
+		if (!client.decoded_body.empty()) // not finished
 			return (0);
 		close(cgi_input_fd); // sends EOF
 		table.remove_fd(cgi_input_fd);
@@ -154,27 +135,14 @@ int CgiPostRH::respond()
 	case s_recving_cgi_output:
 		if (!table[cgi_output_fd].is_EOF) // not finished
 			return (0);
+		if (bytes_sent == 0)
+			return (502);
 		table.remove_fd(cgi_output_fd);
         close(cgi_output_fd);
-		state = s_wait_child;
-
-		// release "lock"
-		unlock_client();
-	
-	case s_wait_child:
-		if (!child_exited)
-		{
-			if (waitpid(pid_cgi_process, NULL, WNOHANG) == 0)
-				return (0);
-			child_exited = true;
-		}
 		state = s_done;
-	
-	case s_done:
-		return (1);
 
-	default: // case s_abort
-		return (-1);
+	default: // case s_done
+		return (1);
 	}
 }
 
@@ -186,16 +154,16 @@ void CgiPostRH::abort()
 
 void CgiPostRH::release_resources()
 {
-	if (state > s_start && state < s_recving_cgi_output)
+	if (state < s_recving_cgi_output)
 	{
 		close(cgi_input_fd);
 		table.remove_fd(cgi_input_fd);
 	}
-	if (state > s_start && state < s_wait_child)
-		table.remove_fd(cgi_output_fd);
-	if (!child_exited)
+	if (state < s_done)
 	{
-        kill(pid_cgi_process, SIGKILL);
-        waitpid(pid_cgi_process, NULL, 0);
+		table.remove_fd(cgi_output_fd);
+		close(cgi_output_fd);
 	}
+	if (state < s_abort && !cgi_process.wait_done)
+		table.add_child_to_reap(cgi_process);
 }

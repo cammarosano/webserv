@@ -20,6 +20,7 @@ protected:
 	std::string header_str;
 	time_t		last_io_activity;
 	bool		client_disconnected;
+	size_t		bytes_sent;
 
 	enum e_rhstate
 	{
@@ -49,6 +50,7 @@ public:
 	void lock_client();
 	virtual void unlock_client();
 	void disconnect_client();
+	void add_to_bytes_sent(size_t n);
 };
 
 #endif

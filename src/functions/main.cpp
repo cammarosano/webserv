@@ -1,7 +1,5 @@
 #include "includes.hpp"
 
-
-
 // calls poll()
 // does all read() and write() operations
 void do_io(FdManager &table)
@@ -57,8 +55,6 @@ void do_io(FdManager &table)
             read_from_fd(fd, table);
     }
 }
-
-
 
 int main(void)
 {

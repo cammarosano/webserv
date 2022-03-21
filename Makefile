@@ -49,7 +49,12 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
 INCLUDES = -I includes -I includes/classes -I includes/request_handlers
 NAME = webserv
 
+
 all:	$(NAME)
+
+debug:		CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address \
+			-D DEBUG=1
+debug:		$(NAME)
 
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@

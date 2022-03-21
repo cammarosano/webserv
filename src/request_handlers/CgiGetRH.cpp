@@ -26,8 +26,8 @@ int CgiGetRH::setup()
     }
 
     // fork
-    pid_cgi_process = fork();
-    if (pid_cgi_process == -1)
+    cgi_process.pid = fork();
+    if (cgi_process.pid == -1)
     {
         perror("fork");
         close(pipefd[0]);
@@ -35,7 +35,7 @@ int CgiGetRH::setup()
         return (-1);
     }
 
-    if (pid_cgi_process == 0) // child process
+    if (cgi_process.pid == 0) // child process
     {
         // setup argv and envp for execve
         char **argv = setup_cgi_argv();
@@ -71,7 +71,7 @@ int CgiGetRH::setup()
 
     // parent process
     if (DEBUG)
-        std::cout << "pid cgi process: " << pid_cgi_process << std::endl;
+        std::cout << "pid cgi process: " << cgi_process.pid << std::endl;
     close(pipefd[1]); // close write-end
     cgi_output_fd = pipefd[0];
     return (0);
@@ -79,7 +79,8 @@ int CgiGetRH::setup()
 
 int CgiGetRH::respond()
 {
-    int ret;
+    if (state == s_abort)
+        return (-1);
 
     switch (state)
     {
@@ -90,26 +91,14 @@ int CgiGetRH::respond()
     case s_recving_cgi_output:
         if (!table[cgi_output_fd].is_EOF) // not finished
             return (0);
+        if (cgi_failed() || bytes_sent == 0)
+            return (502);
         table.remove_fd(cgi_output_fd);
         close(cgi_output_fd);
-        state = s_wait_child;
-
-    case s_wait_child:
-        ret = wait_child();
-        if (ret == 0)
-        {
-            unlock_client(); // lock is released earlier
-            return (0);
-        }
-        if (ret == -1) // error
-            send_502_response();
         state = s_done;
 
-    case s_done:
+    default: // case s_done:
         return (1);
-    
-    default: // case s_abort
-        return (-1);
     }
 }
 
@@ -121,11 +110,11 @@ void CgiGetRH::abort()
 
 void CgiGetRH::release_resources()
 {
-    if (state > s_start && state < s_wait_child)
-        table.remove_fd(cgi_output_fd);
     if (state < s_done)
     {
-        kill(pid_cgi_process, SIGKILL);
-        waitpid(pid_cgi_process, NULL, 0);
+        table.remove_fd(cgi_output_fd);
+        close(cgi_output_fd);
     }
+    if (state < s_abort && !cgi_process.wait_done)
+        table.add_child_to_reap(cgi_process);
 }

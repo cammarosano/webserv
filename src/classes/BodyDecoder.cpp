@@ -54,6 +54,9 @@ int BodyDecoder::decode_body()
 			return (1);
 		return (decode_chunked());
 	}
+
+	if (DEBUG) std::cout << "ERROR: BodyDecoder" << std::endl;
+
 	return (-1);
 }
 

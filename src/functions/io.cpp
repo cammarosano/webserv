@@ -39,7 +39,7 @@ void recv_from_client(int socket, FdManager &table)
     if (recvd_bytes == -1) // error
     {
         if (DEBUG) perror("read"); // REMOVE THIS BEFORE PUSH
-        disconnect_client(client, table, "webserv");
+        disconnect_client(client, table, "webserv(read error)");
         return;
     }
     if (recvd_bytes == 0) // connection closed by the client
@@ -132,12 +132,14 @@ void send_to_client(int socket, FdManager &table)
     {
         if (client.disconnect_after_send)
         {
-            disconnect_client(client, table, "webserv");
+            disconnect_client(client, table, "webserv(time-out)");
             return;
         }
         table.unset_pollout(client.socket);
     }
     update_time_last_activ(client);
+    if (client.ongoing_response)
+        client.ongoing_response->add_to_bytes_sent(bytes_sent);
 
     // debug
     if (DEBUG)

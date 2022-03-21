@@ -198,3 +198,38 @@ void FdManager::debug_info() const
     }
     std::cout << "-----------------------------------------------\n";
 }
+
+
+// waits for children processes without blocking
+// asks gently (SIGTERM) the first time, SIGKILLs the second time
+void FdManager::reap_child_processes()
+{
+    std::list<child_process>::iterator it = child_proc_list.begin();
+
+    while (it != child_proc_list.end())
+    {
+        if (it->wait_done)
+        {
+            it = child_proc_list.erase(it);
+            continue;
+        }
+        if (waitpid(it->pid, NULL, WNOHANG))
+            it = child_proc_list.erase(it);
+        else
+        {
+            if (it->sigterm_sent)
+                kill(it->pid, SIGKILL);
+            else
+            {
+                kill(it->pid, SIGTERM);
+                it->sigterm_sent = true;
+            }
+            ++it;
+        }
+    }
+}
+
+void FdManager::add_child_to_reap(child_process &child)
+{
+    child_proc_list.push_back(child);
+}

@@ -12,15 +12,13 @@ class ACgiRH : public ARequestHandler {
 protected:
 	std::string script_path;
 	std::string query_str;
-	pid_t pid_cgi_process;
 	int	cgi_output_fd;
-    bool child_exited;
+    child_process cgi_process;
     enum e_state // order matters!!
     {
         s_start,
         s_recv_req_body, s_sending_body2cgi, // CGI-POST only
         s_recving_cgi_output,
-        s_wait_child,
         s_done,
         s_abort
     } state;
@@ -28,8 +26,8 @@ protected:
     std::string get_query_str();
 	char **setup_cgi_argv();
 	char **setup_cgi_env();
-    bool is_cgi_error();
-    int wait_child();
+    bool cgi_failed();
+
     void send_502_response();
 
 private:

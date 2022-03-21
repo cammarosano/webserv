@@ -54,7 +54,6 @@ int ErrorRH::setup() {
     // (avoiding a bug where content-length: 0 was being sent with auto
     // generated pages)
     // if you're seeing this, it means he should have removed it (and hasn't)
-    if (error_code == 500)
     {
         res_type = sending_default;
         generate_error_page();
@@ -149,9 +148,12 @@ void ErrorRH::abort() {
 std::map<int, std::string> ErrorRH::init_map() {
     std::map<int, std::string> map;
 
-    map[404] = "Not Found";
+    map[400] = "Bad Request";
     map[403] = "Forbidden";
+    map[404] = "Not Found";
+
     map[500] = "Internal Server Error";
+    map[502] = "Bad Gateway";
 
     return map;
 }

@@ -5,6 +5,8 @@
 # include <set>
 # include "Client.hpp"
 # include "macros.h"
+# include <sys/types.h>
+# include <sys/wait.h>
 
 enum e_fd_type
 {
@@ -25,6 +27,15 @@ struct fd_info
 	fd_info(): type(fd_none), client(NULL), is_EOF(false) {}
 };
 
+struct child_process
+{
+	pid_t	pid;
+	bool	wait_done;
+	bool	sigterm_sent;
+
+	child_process(): wait_done(false), sigterm_sent(false) {}
+};
+
 /*
 Keeps track of all opened file descriptors, their role (ex: client socket,
 listening socket, file in disk etc) and the Client to which it is
@@ -42,8 +53,8 @@ private:
 	fd_info *		fd_table;
 	int				capacity;
 	std::set<int>	fd_set;
-	
 	std::map<int, std::list<Vserver> >	vservers_map;
+	std::list<child_process> child_proc_list;
 
 	void	reallocate();
 
@@ -69,6 +80,8 @@ public:
 
 	void debug_info() const;
 
+	void add_child_to_reap(child_process &child);
+	void reap_child_processes();
 };
 
 

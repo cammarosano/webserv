@@ -2,7 +2,7 @@
 
 ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table)
     : request(request), client(request->client), table(table),
-    client_disconnected(false)
+    client_disconnected(false), bytes_sent(0)
 {
     update_last_io_activ();
 }
@@ -84,4 +84,9 @@ void ARequestHandler::lock_client()
 void ARequestHandler::disconnect_client()
 {
     client_disconnected = true;
+}
+
+void ARequestHandler::add_to_bytes_sent(size_t n)
+{
+    bytes_sent += n;
 }

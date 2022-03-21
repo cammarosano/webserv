@@ -119,56 +119,25 @@ char **ACgiRH::setup_cgi_env()
     return (envp);
 }
 
-// check if child process exited with something othen than 0
-bool ACgiRH::is_cgi_error()
+// returns true if cgi process exited with code other than 0
+// updates child_process.wait_done
+bool ACgiRH::cgi_failed()
 {
     int wstatus;
     int ret;
 
-    ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
+    ret = waitpid(cgi_process.pid, &wstatus, WNOHANG);
     if (ret == -1)
-        perror("waitpid (is_cgi_error)");
-    if (ret)
+        perror("waitpid");
+    if (ret > 0)
     {
-        if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus))
+        cgi_process.wait_done = true;
+        if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0)
+        {
+            if (DEBUG) std::cout << "ERROR: CGI failed" << std::endl;
+
             return (true);
+        }
     }
     return (false);
-}
-
-// returns 1 if child process is finished and cleared
-// returns -1 if child process is finished with error
-// returns 0 otherwise, an sends SIGTERM to child
-// does not block
-int ACgiRH::wait_child()
-{
-    int wstatus;
-    int ret;
-
-    ret = waitpid(pid_cgi_process, &wstatus, WNOHANG);
-    if (ret == 0) // has not exited
-    {
-        kill(pid_cgi_process, SIGTERM);
-        return (0);
-    }
-
-    if (DEBUG) std::cout << "CGI process terminated" << std::endl;
-
-    if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus))
-        return (-1);
-    return (1);
-}
-
-void ACgiRH::send_502_response()
-{
-    std::string response(
-            "HTTP/1.1 502 Bad Gateway\r\n"
-            "Content-Length: 50\r\n"
-            "\r\n"
-            "<html><body><h1>502 Bad Gateway</h1></body></html>"
-            "\r\n");
-    request->client.unsent_data.append(response);
-    table.set_pollout(request->client.socket);
-    // log
-    std::cout << "Response: 502 Bad Gateway" << std::endl;
 }
