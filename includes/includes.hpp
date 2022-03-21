@@ -1,7 +1,6 @@
 #ifndef INCLUDES_HPP
 #define INCLUDES_HPP
 
-
 // C++ stuff
 #include <iostream>
 #include <list>
@@ -66,7 +65,7 @@ void write_to_fd(int fd_cgi_input, FdManager &table);
 
 int new_requests(FdManager &table,
                        std::list<ARequestHandler *> &req_handlers_lst);
-int handle_requests(std::list<ARequestHandler *> &list);
+int handle_requests(std::list<ARequestHandler *> &list, FdManager &table);
 
 // clear
 

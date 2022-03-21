@@ -93,12 +93,14 @@ int CgiGetRH::respond()
         table.remove_fd(cgi_output_fd);
         close(cgi_output_fd);
         state = s_wait_child;
-        unlock_client(); // lock is released earlier
 
     case s_wait_child:
         ret = wait_child();
         if (ret == 0)
+        {
+            unlock_client(); // lock is released earlier
             return (0);
+        }
         if (ret == -1) // error
             send_502_response();
         state = s_done;

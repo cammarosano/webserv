@@ -19,6 +19,7 @@ struct Client {
     std::string host_name;
 
     bool rh_locked; // former "state". true means locked by Request Handler
+    bool disconnect_after_send;
 
     // buffers
     std::string received_data;

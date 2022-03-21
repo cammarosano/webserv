@@ -7,6 +7,7 @@ functions/accept_connection.cpp \
 functions/io.cpp \
 functions/listening_socket.cpp \
 functions/setup.cpp \
+functions/handle_requests.cpp \
 request_handlers/CgiGetRH.cpp \
 request_handlers/ErrorRH.cpp \
 request_handlers/StaticRH.cpp \

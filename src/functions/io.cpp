@@ -19,6 +19,12 @@ void disconnect_client(Client &client, FdManager &table,
     delete &client;
 }
 
+void update_time_last_activ(Client &client)
+{
+    if (client.ongoing_response)
+        client.ongoing_response->update_last_io_activ();
+}
+
 void recv_from_client(int socket, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
@@ -123,7 +129,15 @@ void send_to_client(int socket, FdManager &table)
     }
     client.unsent_data.erase(0, bytes_sent);
     if (client.unsent_data.empty())
+    {
+        if (client.disconnect_after_send)
+        {
+            disconnect_client(client, table, "webserv");
+            return;
+        }
         table.unset_pollout(client.socket);
+    }
+    update_time_last_activ(client);
 
     // debug
     if (DEBUG)

@@ -19,6 +19,7 @@ Client::Client(int socket, sockaddr sa, std::list<Vserver> &vservers):
 socket(socket),
 vservers(vservers),
 rh_locked(false),
+disconnect_after_send(false),
 ongoing_response(NULL)
 {
 	get_client_info(sa);

@@ -5,7 +5,7 @@
 # define QUEUE_MAX_SIZE 10
 # define REQUEST_TIME_OUT 5 // seconds
 # define POLL_TIME_OUT 2000 // miliseconds
-# define DEBUG 1
+# define DEBUG 0
 
 // debug stuff
 # define RED "\033[0;31m"

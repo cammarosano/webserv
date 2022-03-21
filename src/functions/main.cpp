@@ -1,13 +1,6 @@
 #include "includes.hpp"
 
-void update_time_last_activ(int fd, FdManager &table)
-{
-    if (table[fd].type == fd_listen_socket || table[fd].type == fd_none)
-        return ;
-    Client &client = *table[fd].client;
-    if (client.rh_locked)
-        client.ongoing_response->update_last_io_activ();
-}
+
 
 // calls poll()
 // does all read() and write() operations
@@ -62,47 +55,10 @@ void do_io(FdManager &table)
         // when a process closes its end of the pipe, POLLHUP is detected
         if ((revents & (POLLIN | POLLHUP)) && fd_type == fd_cgi_output)
             read_from_fd(fd, table);
-
-        // update Request Handler's last time of activity
-        update_time_last_activ(fd, table);
     }
 }
 
-// calls the respond() method of each request handler in
-// the list. deletes request and request handler when
-// the response is complete.
-int handle_requests(FdManager &table, std::list<ARequestHandler *> &list)
-{
-    std::list<ARequestHandler *>::iterator it;
-    ARequestHandler *req_handler;
-    int ret;
 
-    // iterate over list of request handlers
-    it = list.begin();
-    while (it != list.end())
-    {
-        req_handler = *it;
-        // do response actions
-        ret = req_handler->respond(); // subtype polymorphism
-        if (ret == 0)                 // response not yet finished
-        {
-            if (req_handler->is_time_out())
-            {
-                disconnect_client(req_handler->getRequest()->client, table,
-                    "webserv (time-out)");
-                // TODO: try to send a time-out response client.
-            }
-            else
-                {++it; continue;}
-        }
-        // clear
-        req_handler->unlock_client();
-        delete req_handler->getRequest();
-        delete req_handler;
-        it = list.erase(it); // returns iterator to next elem of list
-    }
-    return (0);
-}
 
 int main(void)
 {
@@ -114,7 +70,7 @@ int main(void)
     {
         do_io(table);
         new_requests(table, req_handlers_lst);
-        handle_requests(table, req_handlers_lst);
+        handle_requests(req_handlers_lst, table);
     }
 
     return (0);
