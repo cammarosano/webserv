@@ -1,5 +1,7 @@
 init_response must check if that request method is accepted by the route
 
+catch SIGTERM signal and clean up memory
+
 Python tests
 
 Time out inactive clients

@@ -91,7 +91,8 @@ int CgiGetRH::respond()
     case s_recving_cgi_output:
         if (!table[cgi_output_fd].is_EOF) // not finished
             return (0);
-        if (cgi_failed() || bytes_sent == 0)
+        // if (cgi_failed() || bytes_sent == 0)
+        if (bytes_sent == 0)
             return (502);
         table.remove_fd(cgi_output_fd);
         close(cgi_output_fd);

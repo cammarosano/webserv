@@ -34,7 +34,8 @@ struct Route {
     // route error pages
     std::map<int, std::string> error_pages;
 
-    Route(std::string prefix) : prefix(prefix) {}
+    Route(std::string prefix) : prefix(prefix), 
+        auto_index(false), redirected(false) {}
 };
 
 typedef std::pair<std::string, unsigned short> ip_port;
@@ -53,6 +54,8 @@ struct Vserver {
     // etc...
     size_t body_size_limit;
     std::list<Route> routes;
+
+    Vserver(): redirected(false) {}
 };
 
 #endif

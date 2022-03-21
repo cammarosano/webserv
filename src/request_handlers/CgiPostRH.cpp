@@ -105,8 +105,8 @@ int CgiPostRH::respond()
 
 	if (state == s_abort)
 		return (-1);
-	if (!cgi_process.wait_done && cgi_failed())
-		return (502); // release_ressources done by destructor
+	// if (!cgi_process.wait_done && cgi_failed())
+	// 	return (502); // release_ressources done by destructor
 
 	switch (state)
 	{

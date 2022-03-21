@@ -58,9 +58,9 @@ void recv_from_client(int socket, FdManager &table)
 }
 
 // this is hacky
-void log_cgi_output(char *buffer)
+void log_cgi_output(char *buffer, int n_bytes)
 {
-    std::string str(buffer);
+    std::string str(buffer, n_bytes);
     size_t beg, end;
     beg = str.find("HTTP/1.1 ");
     if (beg != std::string::npos)
@@ -106,7 +106,7 @@ void read_from_fd(int fd, FdManager &table)
 
 	// log CGI output
     if (table[fd].type == fd_cgi_output)
-        log_cgi_output(buffer);
+        log_cgi_output(buffer, read_bytes);
 }
 
 void send_to_client(int socket, FdManager &table)
