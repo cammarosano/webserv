@@ -1,7 +1,8 @@
 #include "ARequestHandler.hpp"
 
 ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table)
-    : request(request), table(table)
+    : request(request), client(request->client), table(table),
+    client_disconnected(false)
 {
     update_last_io_activ();
 }
@@ -56,4 +57,31 @@ bool ARequestHandler::is_time_out()
     if (std::difftime(time(NULL), last_io_activity) > REQUEST_TIME_OUT)
         return (true);
     return (false);
+}
+
+// trying to unlock a disconnectedd client
+// or one locked by a different RH instance has no effect
+void ARequestHandler::unlock_client()
+{
+    if (client_disconnected)
+        return;
+    if (client.rh_locked && client.ongoing_response == this)
+    {
+        client.rh_locked = false;
+        client.ongoing_response = NULL;
+    }
+}
+
+// trying to lock a already locked client raises an exception
+void ARequestHandler::lock_client()
+{
+    if (client.rh_locked)
+        throw (std::exception());
+    client.rh_locked = true;
+    client.ongoing_response = this;
+}
+
+void ARequestHandler::disconnect_client()
+{
+    client_disconnected = true;
 }

@@ -2,21 +2,21 @@
 
 // close socket, delete Client object and remove from table
 // (if ongoing response) send abort signal to Request Handler
-void clear_client(Client &client, FdManager &table)
-{
-    close(client.socket);
-    if (client.state == handling_response)
-        client.ongoing_response->abort();
-    table.remove_fd(client.socket);
-    delete &client;
-}
-
-void disconnect_client(Client &client, FdManager &table)
+void disconnect_client(Client &client, FdManager &table,
+                        const char *who)
 {
     // log
-    std::cout << "Connection closed by webserver: " << client.ipv4_addr
+    std::cout << "Connection closed by " << who << ": " << client.ipv4_addr
             << " (" << client.host_name << ")" << std::endl;
-    clear_client(client, table);
+
+    close(client.socket);
+    if (client.ongoing_response)
+    {
+        client.ongoing_response->disconnect_client();
+        client.ongoing_response->abort();
+    }
+    table.remove_fd(client.socket);
+    delete &client;
 }
 
 void recv_from_client(int socket, FdManager &table)
@@ -33,16 +33,13 @@ void recv_from_client(int socket, FdManager &table)
     if (recvd_bytes == -1) // error
     {
         if (DEBUG) perror("read"); // REMOVE THIS BEFORE PUSH
-        disconnect_client(client, table);
+        disconnect_client(client, table, "webserv");
         return;
     }
     if (recvd_bytes == 0) // connection closed by the client
     {
         if (DEBUG) std::cout << "socket " << socket << ": ";
-        // log
-        std::cout << "Connection closed by peer: " << client.ipv4_addr
-            << " (" << client.host_name << ")" << std::endl;
-        clear_client(client, table);
+        disconnect_client(client, table, "peer");
         return;
     }
     client.received_data.append(buffer, recvd_bytes);
@@ -85,7 +82,7 @@ void read_from_fd(int fd, FdManager &table)
     if (read_bytes == -1)
     {
         if (DEBUG) perror("read"); // REMOVE BEFORE PUSH
-        disconnect_client(client, table);
+        disconnect_client(client, table, "webserv (read error)");
         return;
     }
     if (read_bytes == 0) // EOF
@@ -121,7 +118,7 @@ void send_to_client(int socket, FdManager &table)
     if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
     {
         if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
-        disconnect_client(client, table);
+        disconnect_client(client, table, "webserv (write error)");
         return;
     }
     client.unsent_data.erase(0, bytes_sent);
@@ -151,7 +148,7 @@ void write_to_fd(int fd, FdManager &table)
     if (bytes_written == -1 || bytes_written == 0) // should we consider write 0 error?
     {
         if (DEBUG) perror("write"); // REMOVE BEFORE PUSH 
-        disconnect_client(client, table);
+        disconnect_client(client, table, "webserv (write error)");
         return;
     }
     client.decoded_body.erase(0, bytes_written);

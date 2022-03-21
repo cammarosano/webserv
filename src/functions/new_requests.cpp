@@ -106,13 +106,13 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table)
 // instantiates a new HttpRequest and a suitable request handler
 int new_requests(FdManager &table,
                        std::list<ARequestHandler *> &req_handlers_lst) {
-    // iterate over clients in recv_header state
+    // iterate over clients 
     for (int fd = 3; fd < table.len(); ++fd) {
         if (table[fd].type != fd_client_socket) continue;
 
         Client &client = *table[fd].client;
 
-        if (client.state != recv_header || client.received_data.empty())
+        if (client.rh_locked || client.received_data.empty())
             continue;
         HttpRequest *request = new_HttpRequest(client);
         if (!request) continue;
@@ -125,9 +125,8 @@ int new_requests(FdManager &table,
         {
             req_handler = new ErrorRH(request, table, 500);
         }
+        req_handler->lock_client();
         req_handlers_lst.push_back(req_handler);
-        client.ongoing_response = req_handler;
-        client.state = handling_response;
         
         // hacky temporary lines below:
         std::map<std::string, std::string>::iterator it

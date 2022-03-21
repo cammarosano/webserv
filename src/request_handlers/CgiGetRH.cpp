@@ -93,7 +93,7 @@ int CgiGetRH::respond()
         table.remove_fd(cgi_output_fd);
         close(cgi_output_fd);
         state = s_wait_child;
-        request->client.state = recv_header; // release "lock"
+        unlock_client(); // lock is released earlier
 
     case s_wait_child:
         ret = wait_child();
@@ -104,7 +104,7 @@ int CgiGetRH::respond()
         state = s_done;
 
     case s_done:
-        return (2); // see "release lock" comment above
+        return (1);
     
     default: // case s_abort
         return (-1);

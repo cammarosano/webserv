@@ -70,6 +70,6 @@ int handle_requests(std::list<ARequestHandler *> &list);
 
 // clear
 
-void disconnect_client(Client &client, FdManager &table);
+void disconnect_client(Client &client, FdManager &table, const char *who);
 
 #endif

@@ -5,7 +5,7 @@ void update_time_last_activ(int fd, FdManager &table)
     if (table[fd].type == fd_listen_socket || table[fd].type == fd_none)
         return ;
     Client &client = *table[fd].client;
-    if (client.state == handling_response)
+    if (client.rh_locked)
         client.ongoing_response->update_last_io_activ();
 }
 
@@ -88,18 +88,15 @@ int handle_requests(FdManager &table, std::list<ARequestHandler *> &list)
         {
             if (req_handler->is_time_out())
             {
-                std::cout << "Response timed-out" << std::endl;
-                disconnect_client(req_handler->getRequest()->client, table);
+                disconnect_client(req_handler->getRequest()->client, table,
+                    "webserv (time-out)");
                 // TODO: try to send a time-out response client.
             }
             else
                 {++it; continue;}
         }
-        if (ret == 1) // finished successfully
-            // update Client's state
-            req_handler->getRequest()->client.state = recv_header;
-
-        // free memory (request and req handler) and remove rh from list
+        // clear
+        req_handler->unlock_client();
         delete req_handler->getRequest();
         delete req_handler;
         it = list.erase(it); // returns iterator to next elem of list

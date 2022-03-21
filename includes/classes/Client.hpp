@@ -12,15 +12,13 @@
 // forward declaration
 class ARequestHandler;
 
-enum e_client_state { recv_header, handling_response };
-
 struct Client {
     int socket;
     std::list<Vserver> &vservers;
     std::string ipv4_addr;
     std::string host_name;
 
-    e_client_state state;
+    bool rh_locked; // former "state". true means locked by Request Handler
 
     // buffers
     std::string received_data;

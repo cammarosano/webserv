@@ -15,9 +15,11 @@ class ARequestHandler
 {
 protected:
 	HttpRequest	*request;
+	Client		&client;
 	FdManager	&table;
 	std::string header_str;
 	time_t		last_io_activity;
+	bool		client_disconnected;
 
 	enum e_rhstate
 	{
@@ -44,6 +46,9 @@ public:
 	HttpRequest * getRequest();
 	void update_last_io_activ();
 	bool is_time_out();
+	void lock_client();
+	virtual void unlock_client();
+	void disconnect_client();
 };
 
 #endif
