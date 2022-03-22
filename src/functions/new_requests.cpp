@@ -83,7 +83,16 @@ bool body_size_exceeds(HttpRequest &request)
 
 bool is_method_allowed(HttpRequest &request)
 {
-    
+    std::list<std::string>::iterator it; // obs: a set would be faster
+
+    it = request.route->accepted_methods.begin();
+    while (it != request.route->accepted_methods.end())
+    {
+        if (*it == request.method)
+            return (true);
+        ++it;
+    }
+    return (false);
 }
 
 // resolve type of response: static_file, CGI, directory, error...
@@ -94,6 +103,8 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
 
     if (!request.route)
         return (new ErrorRH(&request, table, 404));
+    if (!is_method_allowed(request))
+        return (new ErrorRH(&request, table, 405));
     if (body_size_exceeds(request))
         return (new ErrorRH(&request, table, 413));
     if (request.vserver->redirected || request.route->redirected)
