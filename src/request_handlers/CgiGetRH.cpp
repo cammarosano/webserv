@@ -85,7 +85,7 @@ int CgiGetRH::respond()
     switch (state)
     {
     case s_start:
-        table.add_cgi_out_fd(cgi_output_fd, request->client);
+        table.add_fd_read(cgi_output_fd, request->client);
         state = s_recving_cgi_output;
 
     case s_recving_cgi_output:

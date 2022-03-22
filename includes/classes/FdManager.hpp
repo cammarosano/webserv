@@ -13,9 +13,8 @@ enum e_fd_type
 	fd_none,
 	fd_listen_socket,
 	fd_client_socket,
-	fd_file,
-	fd_cgi_output,
-	fd_cgi_input
+	fd_read,
+	fd_write
 };
 
 struct fd_info
@@ -66,9 +65,8 @@ public:
 	pollfd	*get_poll_array();
 	void 	add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
 	void 	add_client_socket(int client_socket, Client &client);
-	void 	add_file_fd(int file_fd, Client &client);
-	void	add_cgi_out_fd(int cgi_out_fd, Client &client);
-	void	add_cgi_in_fd(int cgi_in_fd, Client &client);
+	void 	add_fd_read(int file_fd, Client &client);
+	void	add_fd_write(int cgi_in_fd, Client &client);
 	void 	remove_fd(int fd);
 
 	void	set_pollout(int fd);

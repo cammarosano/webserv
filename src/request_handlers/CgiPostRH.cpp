@@ -132,8 +132,8 @@ int CgiPostRH::respond()
 		state = s_start;
 		
 	case s_start:
-		table.add_cgi_out_fd(cgi_output_fd, request->client);
-		table.add_cgi_in_fd(cgi_input_fd, request->client);
+		table.add_fd_read(cgi_output_fd, request->client);
+		table.add_fd_write(cgi_input_fd, request->client);
 		state = s_recv_req_body;
 
 	case s_recv_req_body:

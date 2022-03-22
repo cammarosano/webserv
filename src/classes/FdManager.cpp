@@ -86,10 +86,10 @@ void FdManager::add_client_socket(int client_socket, Client &client) {
     fd_set.insert(client_socket);
 }
 
-void FdManager::add_file_fd(int file_fd, Client &client) {
+void FdManager::add_fd_read(int file_fd, Client &client) {
     while (file_fd >= capacity) reallocate();
 
-    fd_table[file_fd].type = fd_file;
+    fd_table[file_fd].type = fd_read;
     fd_table[file_fd].client = &client;
     fd_table[file_fd].is_EOF = false;
 
@@ -100,26 +100,11 @@ void FdManager::add_file_fd(int file_fd, Client &client) {
     fd_set.insert(file_fd);
 }
 
-void FdManager::add_cgi_out_fd(int fd, Client &client)
+void	FdManager::add_fd_write(int fd, Client &client)
 {
     while (fd >= capacity) reallocate();
 
-    fd_table[fd].type = fd_cgi_output;
-    fd_table[fd].client = &client;
-    fd_table[fd].is_EOF = false;
-
-    poll_array[fd].fd = fd;
-    poll_array[fd].events = POLLIN;
-    poll_array[fd].revents = 0;
-
-    fd_set.insert(fd);
-}
-
-void	FdManager::add_cgi_in_fd(int fd, Client &client)
-{
-    while (fd >= capacity) reallocate();
-
-    fd_table[fd].type = fd_cgi_input;
+    fd_table[fd].type = fd_write;
     fd_table[fd].client = &client;
     fd_table[fd].is_EOF = false;
 
