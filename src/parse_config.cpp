@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "ConfigParser.hpp"
+#include "macros.h"
 
 int main() {
     std::string file_name = "default.conf";
