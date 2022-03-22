@@ -13,7 +13,7 @@ ACgiRH(request, table, script_path), bd(*request)
 	else
 	{
 		limit_body = true;
-		max_body_size = request->route->body_size_limit; // TODO: adjust to Mega bytes
+		max_body_size = request->route->body_size_limit * 1024 * 1024;
 	}
 
 	// check if 100-continue is expected
