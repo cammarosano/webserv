@@ -39,7 +39,7 @@ int PostRH::respond() {
     if (state == s_start) {
         fd = open(upload_path.c_str(), O_CREAT | O_WRONLY, 0644);
         if (fd < 0) return 500;
-        table.add_cgi_in_fd(fd, request->client);
+        table.add_fd_write(fd, request->client);
         state = s_receiving_body;
     }
     if (state == s_receiving_body) {
@@ -61,6 +61,7 @@ int PostRH::respond() {
         if (send_html_str(body) == 1) state = s_done;
     }
     if (state == s_done) return 1;
+    if (state == s_abort) return -1; // DAVID, I ADDED THIS LINE
     return 0;
 }
 

@@ -57,19 +57,6 @@ void recv_from_client(int socket, FdManager &table)
 
 }
 
-// this is hacky
-void log_cgi_output(char *buffer, int n_bytes)
-{
-    std::string str(buffer, n_bytes);
-    size_t beg, end;
-    beg = str.find("HTTP/1.1 ");
-    if (beg != std::string::npos)
-    {
-        end = str.find('\n', beg);
-        std::cout << "Response (CGI-generated): " << str.substr(beg, end)
-            << std::endl;
-    }
-}
 
 // reads data from a fd (file or pipe)
 // copies it into Client's unsent data buffer
@@ -103,10 +90,6 @@ void read_from_fd(int fd, FdManager &table)
     if (DEBUG)
         std::cout << read_bytes << " bytes were read from fd " << fd <<
             " destinated to client at socket " << client.socket << std::endl;
-
-	// log CGI output
-    if (table[fd].type == fd_cgi_output)
-        log_cgi_output(buffer, read_bytes);
 }
 
 void send_to_client(int socket, FdManager &table)

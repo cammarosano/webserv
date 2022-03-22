@@ -65,19 +65,35 @@ ARequestHandler *directory_response(HttpRequest &request, FdManager &table,
     return (new ErrorRH(&request, table, 403));
 }
 
+bool body_size_exceeds(HttpRequest &request)
+{
+    std::map<std::string, std::string>::iterator it;
+    size_t content_size;
+
+    if (!request.route->body_size_limit) // 0 being considered no-limit
+        return (false);
+    it = request.header_fields.find("content-length");
+    if (it == request.header_fields.end()) // not found, size unknown
+        return (false);
+    content_size = strtol(it->second.c_str(), NULL, 10);
+    if (content_size > request.route->body_size_limit * 1024 * 1024) // Megabytes
+        return (true);
+    return (false);
+}
+
 // resolve type of response: static_file, CGI, directory, error...
 // instantiate the correct request handler
 ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
     struct stat sb;
 
-    if (!request.route) return (new ErrorRH(&request, table, 404));
+    if (!request.route)
+        return (new ErrorRH(&request, table, 404));
+    if (body_size_exceeds(request))
+        return (new ErrorRH(&request, table, 413));
     if (request.vserver->redirected || request.route->redirected)
         return (new RedirectRH(&request, table));
     resource_path = assemble_ressource_path(request);
-    if (request.method == "POST") {
-        return new PostRH(&request, table);
-    }
     // check if ressource is available
     if (stat(resource_path.c_str(), &sb) == -1)  // resource not found
         return (new ErrorRH(&request, table, 404));
@@ -95,6 +111,8 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
         if (request.method == "POST")
             return (new CgiPostRH(&request, table, resource_path));
     }
+    if (request.method == "POST")
+        return new PostRH(&request, table);
     return (new StaticRH(&request, table, resource_path));
 }
 

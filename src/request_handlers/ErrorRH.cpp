@@ -120,7 +120,7 @@ int ErrorRH::respond() {
     if (state == s_sending_html_str) {
         if (send_html_str() == 1) state = s_done;
     } else if (state == s_start_send_file) {
-        table.add_file_fd(fd, request->client);
+        table.add_fd_read(fd, request->client);
         state = s_sending_file;
         return 0;
     }

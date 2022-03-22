@@ -13,7 +13,7 @@ ACgiRH(request, table, script_path), bd(*request)
 	else
 	{
 		limit_body = true;
-		max_body_size = request->route->body_size_limit; // TODO: adjust to Mega bytes
+		max_body_size = request->route->body_size_limit * 1024 * 1024;
 	}
 
 	// check if 100-continue is expected
@@ -132,8 +132,8 @@ int CgiPostRH::respond()
 		state = s_start;
 		
 	case s_start:
-		table.add_cgi_out_fd(cgi_output_fd, request->client);
-		table.add_cgi_in_fd(cgi_input_fd, request->client);
+		table.add_fd_read(cgi_output_fd, request->client);
+		table.add_fd_write(cgi_input_fd, request->client);
 		state = s_recv_req_body;
 
 	case s_recv_req_body:

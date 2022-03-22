@@ -8,7 +8,12 @@ script_path(script_path)
     query_str = get_query_str();
 }
 
-ACgiRH::~ACgiRH() {}
+ACgiRH::~ACgiRH()
+{
+    // log
+    if (state == s_done) // no errors
+        std::cout << "Response: (CGI-generated)" << std::endl;
+}
 
 std::string ACgiRH::get_query_str()
 {
