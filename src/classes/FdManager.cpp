@@ -1,13 +1,11 @@
 #include "FdManager.hpp"
 
-FdManager::FdManager() : capacity(10)
-{
+FdManager::FdManager() : capacity(10) {
     fd_table = new fd_info[capacity];
     poll_array = new pollfd[capacity];
 
     // initialise poll_array
-    for (int i = 0; i < capacity; i++)
-    {
+    for (int i = 0; i < capacity; i++) {
         poll_array[i].fd = -1;
         poll_array[i].events = 0;
     }
@@ -18,28 +16,24 @@ FdManager::~FdManager() {
     delete[] fd_table;
 }
 
-void FdManager::reallocate()
-{
+void FdManager::reallocate() {
     size_t new_capacity = 2 * capacity;
 
     // get new poll_array
     pollfd *new_poll_array = new pollfd[new_capacity];
     // copy old stuff
-    for (int i = 0; i < capacity; i++)
-        new_poll_array[i] = poll_array[i];
+    for (int i = 0; i < capacity; i++) new_poll_array[i] = poll_array[i];
     // free the old one
     delete[] poll_array;
     // initialize new stuff
-    for (size_t i = capacity; i < new_capacity; i++)
-    {
+    for (size_t i = capacity; i < new_capacity; i++) {
         new_poll_array[i].fd = -1;
         new_poll_array[i].events = 0;
     }
     // get new fd_table (initialization already done by default constructor)
     fd_info *new_fd_table = new fd_info[new_capacity];
     // copy old stuff
-    for (int i = 0; i < capacity; i++)
-        new_fd_table[i] = fd_table[i];
+    for (int i = 0; i < capacity; i++) new_fd_table[i] = fd_table[i];
     // free the old one
     delete[] fd_table;
 
@@ -100,8 +94,7 @@ void FdManager::add_file_fd(int file_fd, Client &client) {
     fd_set.insert(file_fd);
 }
 
-void FdManager::add_cgi_out_fd(int fd, Client &client)
-{
+void FdManager::add_cgi_out_fd(int fd, Client &client) {
     while (fd >= capacity) reallocate();
 
     fd_table[fd].type = fd_cgi_output;
@@ -115,8 +108,7 @@ void FdManager::add_cgi_out_fd(int fd, Client &client)
     fd_set.insert(fd);
 }
 
-void	FdManager::add_cgi_in_fd(int fd, Client &client)
-{
+void FdManager::add_cgi_in_fd(int fd, Client &client) {
     while (fd >= capacity) reallocate();
 
     fd_table[fd].type = fd_cgi_input;
@@ -133,7 +125,7 @@ void	FdManager::add_cgi_in_fd(int fd, Client &client)
 // if fd was not added, it has no effect
 void FdManager::remove_fd(int fd) {
     if (fd >= capacity) return;
-    
+
     fd_table[fd].type = fd_none;
     fd_table[fd].client = NULL;
     fd_table[fd].is_EOF = false;
@@ -155,25 +147,17 @@ std::list<Vserver> &FdManager::get_vserver_lst(int listen_socket) {
     return vservers_map[listen_socket];
 }
 
-void FdManager::debug_info() const
-{
-    static std::string types[6] = {
-        "none         ",
-        "listen_socket",
-        "client_socket",
-        "file_fd      ",
-        "cgi_out_fd   ",
-        "cgi_in_fd    "};
-    
+void FdManager::debug_info() const {
+    static std::string types[6] = {"none         ", "listen_socket",
+                                   "client_socket", "file_fd      ",
+                                   "cgi_out_fd   ", "cgi_in_fd    "};
+
     std::cout << "----------FdManager debug info-----------------\n";
-    for (int fd = 0; fd < len(); fd++)
-    {
-        if (poll_array[fd].fd == -1)
-            continue;
-        if (poll_array[fd].revents)
-            std::cout << GREEN;
+    for (int fd = 0; fd < len(); fd++) {
+        if (poll_array[fd].fd == -1) continue;
+        if (poll_array[fd].revents) std::cout << GREEN;
         std::cout << "fd " << fd << ": "
-            << "type " << types[fd_table[fd].type] << " | ";
+                  << "type " << types[fd_table[fd].type] << " | ";
 
         // monitored events
         if (poll_array[fd].events & POLLIN)
@@ -181,47 +165,38 @@ void FdManager::debug_info() const
         if (poll_array[fd].events & POLLOUT)
             std::cout << "monitoring for POLLOUT | ";
 
-		// returned events
+        // returned events
         if (poll_array[fd].revents & POLLIN)
             std::cout << "returned ready for POLLIN (read) | ";
         if (poll_array[fd].revents & POLLOUT)
             std::cout << "returned ready for POLLOUT (write) | ";
-        
+
         // errors
-        if (poll_array[fd].revents & POLLERR)
-            std::cout << "POLLERR | ";
-        if (poll_array[fd].revents & POLLHUP)
-            std::cout << "POLLHUP | ";
-        if (poll_array[fd].revents & POLLNVAL)
-            std::cout << "POLLNVAL | ";
+        if (poll_array[fd].revents & POLLERR) std::cout << "POLLERR | ";
+        if (poll_array[fd].revents & POLLHUP) std::cout << "POLLHUP | ";
+        if (poll_array[fd].revents & POLLNVAL) std::cout << "POLLNVAL | ";
 
         std::cout << RESET << std::endl;
     }
     std::cout << "-----------------------------------------------\n";
 }
 
-
 // waits for children processes without blocking
 // asks gently (SIGTERM) the first time, SIGKILLs the second time
-void FdManager::reap_child_processes()
-{
+void FdManager::reap_child_processes() {
     std::list<child_process>::iterator it = child_proc_list.begin();
 
-    while (it != child_proc_list.end())
-    {
-        if (it->wait_done)
-        {
+    while (it != child_proc_list.end()) {
+        if (it->wait_done) {
             it = child_proc_list.erase(it);
             continue;
         }
         if (waitpid(it->pid, NULL, WNOHANG))
             it = child_proc_list.erase(it);
-        else
-        {
+        else {
             if (it->sigterm_sent)
                 kill(it->pid, SIGKILL);
-            else
-            {
+            else {
                 kill(it->pid, SIGTERM);
                 it->sigterm_sent = true;
             }
@@ -230,7 +205,6 @@ void FdManager::reap_child_processes()
     }
 }
 
-void FdManager::add_child_to_reap(child_process &child)
-{
+void FdManager::add_child_to_reap(child_process &child) {
     child_proc_list.push_back(child);
 }
