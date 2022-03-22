@@ -17,34 +17,35 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdlib.h>  // atoi
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <unistd.h>
 
 #include <cctype>
 #include <cstdio>
 #include <cstring>
 
-# include "macros.h"
-# include "config.hpp"
-# include "utils.h"
+#include "config.hpp"
+#include "macros.h"
+#include "utils.h"
 
 // classes
-# include "Client.hpp"
-# include "FdManager.hpp"
-# include "ARequestHandler.hpp"
-# include "HttpRequest.hpp"
-# include "CgiGetRH.hpp"
-# include "CgiPostRH.hpp"
-# include "DirectoryRH.hpp"
-# include "ErrorRH.hpp"
-# include "RedirectRH.hpp"
-# include "StaticRH.hpp"
-# include "ConfigParser.hpp"
+#include "ARequestHandler.hpp"
+#include "CgiGetRH.hpp"
+#include "CgiPostRH.hpp"
+#include "Client.hpp"
+#include "ConfigParser.hpp"
+#include "DirectoryRH.hpp"
+#include "ErrorRH.hpp"
+#include "FdManager.hpp"
+#include "HttpRequest.hpp"
+#include "PostRH.hpp"
+#include "RedirectRH.hpp"
+#include "StaticRH.hpp"
 
 // function prototypes
 
@@ -64,7 +65,7 @@ void write_to_fd(int fd_cgi_input, FdManager &table);
 // process requests
 
 int new_requests(FdManager &table,
-                       std::list<ARequestHandler *> &req_handlers_lst);
+                 std::list<ARequestHandler *> &req_handlers_lst);
 int handle_requests(std::list<ARequestHandler *> &list, FdManager &table);
 
 // clear
