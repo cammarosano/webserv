@@ -11,6 +11,8 @@ void replace_request_handler(std::list<ARequestHandler*>::iterator it,
 	new_rh->lock_client();
 	delete old_rh;
 	*it = new_rh;
+	new_rh->getRequest()->client.disconnect_after_send = true;
+	// make this standat behaviour for all error responses?
 }
 
 void clear_rh(ARequestHandler *req_handler)

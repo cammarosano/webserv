@@ -9,6 +9,8 @@ class CgiPostRH: public ACgiRH
 private:
 	int cgi_input_fd;
 	BodyDecoder bd;
+	bool	limit_body;
+	size_t	max_body_size;
 
 	int setup();
 	void release_resources();

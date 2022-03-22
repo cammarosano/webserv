@@ -16,6 +16,7 @@ protected:
     child_process cgi_process;
     enum e_state // order matters!!
     {
+        s_send_100_response,
         s_start,
         s_recv_req_body, s_sending_body2cgi, // CGI-POST only
         s_recving_cgi_output,

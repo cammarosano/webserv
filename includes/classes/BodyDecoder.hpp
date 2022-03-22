@@ -25,7 +25,7 @@ class BodyDecoder
 private:
 	std::string &raw_data;
 	std::string &decoded_data;
-	int length_decoded;
+	size_t length_decoded;
 	enum e_type {chunked, content_length, other} type;
 
 	// Content-Length type
@@ -49,7 +49,7 @@ public:
 	~BodyDecoder();
 
 	int decode_body();
-	long getLengthDecoded() const;
+	size_t getLengthDecoded() const;
 };
 
 #endif

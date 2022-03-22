@@ -47,6 +47,17 @@ int ARequestHandler::send_header() {
     return 0;
 }
 
+bool ARequestHandler::response100_expected()
+{
+	std::map<std::string, std::string>::iterator it
+		= request->header_fields.find("expect");
+        
+	if (it != request->header_fields.end()
+		&& str_tolower(it->second) == "100-continue")
+		return (true);
+	return (false);
+}
+
 void ARequestHandler::update_last_io_activ()
 {
     std::time(&last_io_activity);

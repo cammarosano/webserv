@@ -151,6 +151,7 @@ std::map<int, std::string> ErrorRH::init_map() {
     map[400] = "Bad Request";
     map[403] = "Forbidden";
     map[404] = "Not Found";
+    map[413] = "Payload Too Large";
 
     map[500] = "Internal Server Error";
     map[502] = "Bad Gateway";

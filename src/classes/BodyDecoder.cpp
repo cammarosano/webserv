@@ -159,7 +159,7 @@ int BodyDecoder::decode_chunked()
 	return (0);
 }
 
-long BodyDecoder::getLengthDecoded() const
+size_t BodyDecoder::getLengthDecoded() const
 {
 	return (length_decoded);
 }

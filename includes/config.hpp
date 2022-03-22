@@ -35,7 +35,7 @@ struct Route {
     std::map<int, std::string> error_pages;
 
     Route(std::string prefix) : prefix(prefix), 
-        auto_index(false), redirected(false) {}
+        auto_index(false), redirected(false), body_size_limit(0) {}
 };
 
 typedef std::pair<std::string, unsigned short> ip_port;

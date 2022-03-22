@@ -5,6 +5,7 @@
 # include "HttpRequest.hpp"
 # include "macros.h"
 # include <ctime>
+# include "utils.h"
 
 /* 
 Abstract class for request handlers
@@ -36,6 +37,7 @@ protected:
 
 	void assemble_header_str();
 	int send_header();
+	bool response100_expected();
 
 public:
 	ARequestHandler(HttpRequest *request, FdManager &table);

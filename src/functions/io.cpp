@@ -132,7 +132,7 @@ void send_to_client(int socket, FdManager &table)
     {
         if (client.disconnect_after_send)
         {
-            disconnect_client(client, table, "webserv(time-out)");
+            disconnect_client(client, table, "webserv");
             return;
         }
         table.unset_pollout(client.socket);

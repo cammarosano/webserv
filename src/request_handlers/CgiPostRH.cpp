@@ -6,7 +6,23 @@ ACgiRH(request, table, script_path), bd(*request)
 {
 	if (setup() == -1)
 		throw (std::exception());
+
+	// resolve body size limit
+	if (!request->route->body_size_limit) // for now, 0 means no limit.
+		limit_body = false;
+	else
+	{
+		limit_body = true;
+		max_body_size = request->route->body_size_limit; // TODO: adjust to Mega bytes
+	}
+
+	// check if 100-continue is expected
 	state = s_start;
+	if (response100_expected())
+	{
+		header_str = "HTTP/1.1 100 Continue\r\n\r\n";
+		state = s_send_100_response;
+	}
 }
 
 CgiPostRH::~CgiPostRH()
@@ -110,6 +126,11 @@ int CgiPostRH::respond()
 
 	switch (state)
 	{
+	case s_send_100_response:
+		if (send_header() == 0) // incomplete
+			return (0);
+		state = s_start;
+		
 	case s_start:
 		table.add_cgi_out_fd(cgi_output_fd, request->client);
 		table.add_cgi_in_fd(cgi_input_fd, request->client);
@@ -119,6 +140,8 @@ int CgiPostRH::respond()
 		ret_bd = bd.decode_body();
 		if (ret_bd == -1) // error
 			return (400);
+		if (bd.getLengthDecoded() > max_body_size)
+			return (413);
 		if (!client.decoded_body.empty()) // there's data to be sent to CGI
 			table.set_pollout(cgi_input_fd);
 		if (ret_bd == 0) // not finished
