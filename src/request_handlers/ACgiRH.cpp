@@ -124,6 +124,7 @@ char **ACgiRH::setup_cgi_env()
     return (envp);
 }
 
+// CONSIDER REMOVING THIS
 // returns true if cgi process exited with code other than 0
 // updates child_process.wait_done
 bool ACgiRH::cgi_failed()
@@ -145,4 +146,11 @@ bool ACgiRH::cgi_failed()
         }
     }
     return (false);
+}
+
+// todo: improve this based on the state (is it a client or a server problem?)
+int ACgiRH::time_out_abort()
+{
+    abort();
+    return(504);
 }

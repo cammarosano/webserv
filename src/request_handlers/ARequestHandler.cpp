@@ -101,3 +101,9 @@ int ARequestHandler::send_html_str(std::string &html_page) {
     if (html_page.empty()) return 1;
     return 0;
 }
+
+int ARequestHandler::time_out_abort()
+{
+    abort();
+    return (408); // in doubt, blame it on the client
+}

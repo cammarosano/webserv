@@ -12,7 +12,7 @@ void replace_request_handler(std::list<ARequestHandler*>::iterator it,
 	delete old_rh;
 	*it = new_rh;
 	new_rh->getRequest()->client.disconnect_after_send = true;
-	// make this standat behaviour for all error responses?
+	// make this standard behaviour for all error responses?
 }
 
 void clear_rh(ARequestHandler *req_handler)
@@ -22,20 +22,24 @@ void clear_rh(ARequestHandler *req_handler)
 	delete req_handler;
 }
 
-void send_time_out_response(ARequestHandler *req_handler, FdManager &table)
+// replaces RH or disconnects client
+void handle_time_out(std::list<ARequestHandler *>::iterator &it,
+	std::list<ARequestHandler*> list, FdManager &table)
 {
-	Client &client = req_handler->getRequest()->client;
-	std::string response(
-            "HTTP/1.1 408 Request Timeout\r\n"
-            "Content-Length: 54\r\n"
-            "\r\n"
-            "<html><body><h1>408 Request Timeout</h1></body></html>"
-	);
-	client.unsent_data.append(response);
-	table.set_pollout(client.socket);
-	client.disconnect_after_send = true;
-}
+    ARequestHandler *req_handler = *it;
+	int time_out_code;
 
+	time_out_code = req_handler->time_out_abort();
+	if (!time_out_code) // terminate response and disconnect client
+	{
+		Client &client = req_handler->getRequest()->client;
+		clear_rh(req_handler);
+		disconnect_client(client, table, "webserver(time-out)");
+		it = list.erase(it);
+		return ;
+	}
+	replace_request_handler(it, time_out_code, table);
+}
 // calls the respond() method of each request handler in
 // the list. deletes request and request handler when
 // the response is complete.
@@ -59,12 +63,7 @@ int handle_requests(std::list<ARequestHandler *> &list, FdManager &table)
 		else if (ret > 1) // replace with error response
 			replace_request_handler(it, ret, table); // iterator does not move
 		else if (req_handler->is_time_out())
-		{
-			send_time_out_response(req_handler, table);
-			req_handler->abort();
-			clear_rh(req_handler);
-			it = list.erase(it);
-		}
+			handle_time_out(it, list, table); // iterator might move
 		else // not finished (ret == 0)
 			++it;
     }

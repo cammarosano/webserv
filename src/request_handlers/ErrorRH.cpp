@@ -144,6 +144,13 @@ void ErrorRH::abort() {
     }
 }
 
+int ErrorRH::time_out_abort()
+{
+    abort();
+    return (0); // means: no error response to inform this time, as this already
+                // is an error response
+}
+
 // static function
 std::map<int, std::string> ErrorRH::init_map() {
     std::map<int, std::string> map;
@@ -152,11 +159,13 @@ std::map<int, std::string> ErrorRH::init_map() {
     map[403] = "Forbidden";
     map[404] = "Not Found";
     map[405] = "Method Not Allowed";
+    map[408] = "Request Timeout";
     map[413] = "Payload Too Large";
 
     map[500] = "Internal Server Error";
     map[501] = "Not Implemented";
     map[502] = "Bad Gateway";
+    map[504] = "Gateway Timeout";
 
     return map;
 }

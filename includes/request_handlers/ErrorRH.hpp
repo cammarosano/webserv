@@ -32,6 +32,8 @@ class ErrorRH : public ARequestHandler {
     virtual int respond();
     virtual void abort();
 
+    virtual int time_out_abort();
+
     static std::map<int, std::string> init_map();
 };
 

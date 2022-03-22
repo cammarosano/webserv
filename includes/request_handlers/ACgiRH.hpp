@@ -40,6 +40,7 @@ public:
 
     virtual int respond() = 0;
     virtual void abort() = 0;
+    virtual int time_out_abort();
 };
 
 #endif

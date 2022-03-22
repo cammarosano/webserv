@@ -50,12 +50,13 @@ class ARequestHandler {
 
     virtual int respond() = 0;
     virtual void abort() = 0;
+    virtual int time_out_abort();
 
+    bool is_time_out();
     HttpRequest *getRequest();
     void update_last_io_activ();
-    bool is_time_out();
     void lock_client();
-    virtual void unlock_client();
+    void unlock_client();
     void disconnect_client();
     void add_to_bytes_sent(size_t n);
 };
