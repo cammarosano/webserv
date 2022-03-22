@@ -155,6 +155,7 @@ std::map<int, std::string> ErrorRH::init_map() {
     map[413] = "Payload Too Large";
 
     map[500] = "Internal Server Error";
+    map[501] = "Not Implemented";
     map[502] = "Bad Gateway";
 
     return map;

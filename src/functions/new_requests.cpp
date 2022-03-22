@@ -129,7 +129,9 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
     }
     if (request.method == "POST")
         return new PostRH(&request, table);
-    return (new StaticRH(&request, table, resource_path));
+    if (request.method == "GET" || request.method == "HEAD")
+        return (new StaticRH(&request, table, resource_path));
+    return (new ErrorRH(&request, table, 501)); // not implemented
 }
 
 // checks each Client's received_data buffer for a request header,
