@@ -81,6 +81,11 @@ bool body_size_exceeds(HttpRequest &request)
     return (false);
 }
 
+bool is_method_allowed(HttpRequest &request)
+{
+    
+}
+
 // resolve type of response: static_file, CGI, directory, error...
 // instantiate the correct request handler
 ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
