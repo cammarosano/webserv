@@ -3,7 +3,6 @@
 
 #include "ARequestHandler.hpp"
 #include "BodyDecoder.hpp"
-
 class PostRH : public ARequestHandler {
    private:
     BodyDecoder bd;
@@ -11,7 +10,14 @@ class PostRH : public ARequestHandler {
     size_t rcv_data_size;
     int fd;
 
-    enum { s_start, s_receiving_body, s_done, s_abort } state;
+    enum {
+        s_start,
+        s_receiving_body,
+        s_done,
+        s_abort,
+        s_sending_header,
+        s_sending_html_str
+    } state;
 
     int _save_file();
     int _setup();

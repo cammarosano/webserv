@@ -1,9 +1,11 @@
 #include "ARequestHandler.hpp"
 
 ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table)
-    : request(request), client(request->client), table(table),
-    client_disconnected(false), bytes_sent(0)
-{
+    : request(request),
+      client(request->client),
+      table(table),
+      client_disconnected(false),
+      bytes_sent(0) {
     update_last_io_activ();
 }
 
@@ -28,7 +30,7 @@ void ARequestHandler::assemble_header_str() {
 
     // log status-line
     std::cout << "Response: " << response.http_version << " "
-        << response.status_code_phrase << std::endl;
+              << response.status_code_phrase << std::endl;
 }
 
 // transfer header_str to Client's unsent_data buffer
@@ -47,24 +49,19 @@ int ARequestHandler::send_header() {
     return 0;
 }
 
-bool ARequestHandler::response100_expected()
-{
-	std::map<std::string, std::string>::iterator it
-		= request->header_fields.find("expect");
-        
-	if (it != request->header_fields.end()
-		&& str_tolower(it->second) == "100-continue")
-		return (true);
-	return (false);
+bool ARequestHandler::response100_expected() {
+    std::map<std::string, std::string>::iterator it =
+        request->header_fields.find("expect");
+
+    if (it != request->header_fields.end() &&
+        str_tolower(it->second) == "100-continue")
+        return (true);
+    return (false);
 }
 
-void ARequestHandler::update_last_io_activ()
-{
-    std::time(&last_io_activity);
-}
+void ARequestHandler::update_last_io_activ() { std::time(&last_io_activity); }
 
-bool ARequestHandler::is_time_out()
-{
+bool ARequestHandler::is_time_out() {
     if (std::difftime(time(NULL), last_io_activity) > REQUEST_TIME_OUT)
         return (true);
     return (false);
@@ -72,32 +69,35 @@ bool ARequestHandler::is_time_out()
 
 // trying to unlock a disconnectedd client
 // or one locked by a different RH instance has no effect
-void ARequestHandler::unlock_client()
-{
-    if (client_disconnected)
-        return;
-    if (client.rh_locked && client.ongoing_response == this)
-    {
+void ARequestHandler::unlock_client() {
+    if (client_disconnected) return;
+    if (client.rh_locked && client.ongoing_response == this) {
         client.rh_locked = false;
         client.ongoing_response = NULL;
     }
 }
 
 // trying to lock a already locked client raises an exception
-void ARequestHandler::lock_client()
-{
-    if (client.rh_locked)
-        throw (std::exception());
+void ARequestHandler::lock_client() {
+    if (client.rh_locked) throw(std::exception());
     client.rh_locked = true;
     client.ongoing_response = this;
 }
 
-void ARequestHandler::disconnect_client()
-{
-    client_disconnected = true;
-}
+void ARequestHandler::disconnect_client() { client_disconnected = true; }
 
-void ARequestHandler::add_to_bytes_sent(size_t n)
-{
-    bytes_sent += n;
+void ARequestHandler::add_to_bytes_sent(size_t n) { bytes_sent += n; }
+
+int ARequestHandler::send_html_str(std::string &html_page) {
+    Client &client = request->client;
+    int max_bytes;
+
+    max_bytes = BUFFER_SIZE - client.unsent_data.size();
+    if (max_bytes <= 0) return 0;
+
+    client.unsent_data += html_page.substr(0, max_bytes);
+    html_page.erase(0, max_bytes);
+    table.set_pollout(client.socket);
+    if (html_page.empty()) return 1;
+    return 0;
 }
