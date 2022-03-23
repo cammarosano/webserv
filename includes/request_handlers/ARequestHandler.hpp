@@ -44,6 +44,7 @@ class AReqHandler {
     int send_html_str(std::string &html_page);
     bool response100_expected();
 
+
    public:
     AReqHandler(HttpRequest *request, FdManager &table);
     virtual ~AReqHandler();
@@ -59,6 +60,9 @@ class AReqHandler {
     void unlock_client();
     void disconnect_client();
     void add_to_bytes_sent(size_t n);
+
+	// maps extensions to content-type
+    static std::map<std::string, std::string> content_type;
 };
 
 #endif

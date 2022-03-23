@@ -1,7 +1,15 @@
+Content-type:
+function to extract the extension of a path 
+	and lookup in the dictionaty
+Make lookup faster (if/else) for html files
+when setting up the header fields of a response, call this function 
+
 
 Python tests
 
 Time out inactive clients
+
+unify send_header and send_html_page (send... string?)
 
 Response: handle keep-alive or not.
 

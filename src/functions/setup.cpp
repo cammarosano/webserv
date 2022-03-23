@@ -54,6 +54,51 @@ void get_test_config(std::map<ip_port, std::list<Vserver> > &config) {
     }
 }
 
+int parse_types_file(std::map<std::string, std::string> &map)
+{
+	std::fstream fs("conf/mime.types");
+	std::string pre_block;
+	std::string block;
+	std::string line;
+	std::string media_type;
+	std::string extension;
+
+    if (!fs.is_open())
+    {
+        std::cout << "Error: mime types file not found" << std::endl;
+        return (-1);
+    }
+	// pre-block: expect "types"
+	std::getline(fs, pre_block, '{'); 
+	std::istringstream pre_block_stream(pre_block);
+	pre_block_stream >> line;
+	if (line != "types" )
+    {
+        std::cout << "Error: mime types file bad format" << std::endl;
+		return (-1);
+    }
+	
+	// block 
+	std::getline(fs, block, '}');
+	std::istringstream block_stream(block);
+
+	while (!block_stream.eof())
+	{
+		// line
+		std::getline(block_stream, line, ';');
+		std::istringstream ls(line);
+		// media-type
+		ls >> media_type;
+		while (!ls.eof())
+		{
+			ls >> extension;
+			map[extension] = media_type;
+		}
+		
+	}
+	return (0);
+}
+
 int parse_config_file(std::map<ip_port, std::list<Vserver> > &config) {
     // for now, get hardcoded config for testing
     get_test_config(config);
@@ -81,7 +126,12 @@ int setup(FdManager &table) {
     ConfigParser parser(file_name);
     std::map<ip_port, std::list<Vserver> > config = parser.getConfig();
 
-    // parse_config_file(config);
+    // content-types file
+    if (parse_types_file(AReqHandler::content_type) == -1)
+        return (-1);
+    std::cout << "Types files parsing OK. "
+        << AReqHandler::content_type.size() << " extensions mapped."
+        << std::endl;
 
     open_listening_sockets(table, config);
 

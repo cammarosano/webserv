@@ -107,3 +107,6 @@ int AReqHandler::time_out_abort()
     abort();
     return (408); // in doubt, blame it on the client
 }
+
+// static variable
+std::map<std::string, std::string> AReqHandler::content_type;
