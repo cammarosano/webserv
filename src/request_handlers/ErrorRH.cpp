@@ -3,7 +3,6 @@
 ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
     : AReqHandler(request, table), error_code(error_code) {
     state = s_setup;
-    res_type = sending_default;
 }
 
 ErrorRH::~ErrorRH() {}
@@ -23,62 +22,65 @@ int ErrorRH::send_html_str() {
     return 0;
 }
 
-// TODO: look if vserver/route define a default error page and use it
-// instead of generating the standard one
+// true if found, and puts it in file_name
+bool ErrorRH::look_up_err_page(std::map<int, std::string> &error_pages,
+                                std::string &file_name)
+{
+    std::map<int, std::string>::iterator it = error_pages.find(error_code);
+
+    if (it == error_pages.end()) // not found
+        return (false);
+    file_name = it->second;
+    return (true);
+}
+
+// returns true if there's a custom page and fills in err_page
+// false otherwise
+bool ErrorRH::custom_error_page(std::string &err_page)
+{
+    // check if route has custom page
+    if (request->route
+        && look_up_err_page(request->route->error_pages, err_page))
+        return (true);
+    // check if vserver has custom page
+    else if (look_up_err_page(request->vserver->err_pages, err_page))
+        return (true);
+    return (false);
+}
+
+// resolves response type (default or custom page)
+// opens fd || generates default page
+// assembles header_str
 int ErrorRH::setup() {
-    // struct stat sb;
-    // std::string err_page;
+    struct stat sb;
+    std::string err_page;
     
-    //////////////////////////////////////////////////////////////////
-    // RODOLPHO inserted these lines for testing
-    // (avoiding a bug where content-length: 0 was being sent with auto
-    // generated pages)
-    // if you're seeing this, it means he should have removed it (and hasn't)
+    // resolve res_type
+    res_type = sending_default;
+    if (custom_error_page(err_page))
     {
-        res_type = sending_default;
+        fd = open(err_page.c_str(), O_RDONLY);
+        if (fd != -1 && fstat(fd, &sb) == 0) // if no error
+            res_type = sending_file;
+    }
+
+    // generate default-page
+    if (res_type == sending_default)
         html_page = generate_error_page(error_code);
-        response.http_version = "HTTP/1.1";
-        response.status_code_phrase = 
-            long_to_str(error_code) + ' ' + reason_phrases[error_code];
+
+    // fill-in header
+    response.http_version = "HTTP/1.1";
+    response.status_code_phrase =
+        long_to_str(error_code) + ' ' + reason_phrases[error_code];
+    if (res_type == sending_default) 
         response.header_fields["content-length"] =
             long_to_str(html_page.size());
-        assemble_header_str();
-        return (0);
-    }
-    ///////////////////////////////////////////////////////////////
-
-    // try {
-    //     if (request->route->error_pages.empty()) {
-    //         err_page = request->vserver->err_pages.at(error_code);
-    //     } else {
-    //         err_page = request->route->error_pages.at(error_code);
-    //     }
-    //     fd = open(err_page.c_str(), O_RDONLY);
-    //     if (fd < 0) {
-    //         res_type = sending_default;
-    //         generate_error_page();
-    //     } else {
-    //         res_type = sending_file;
-    //     }
-    // } catch (const std::exception &e) {
-    //     res_type = sending_default;
-    //     generate_error_page();
-    // }
-    // // fill-in header
-    // response.http_version = "HTTP/1.1";
-    // response.status_code_phrase =
-    //     long_to_str(error_code) + ' ' + reason_phrases[error_code];
-
-    // if (fstat(fd, &sb) == -1) {
-    //     response.header_fields["content-length"] =
-    //         long_to_str(html_page.length());
-    // } else {
-    //     response.header_fields["content-length"] = long_to_str(sb.st_size);
-    // }
-    // // TODO: and many other header_fields here.....
-
-    // assemble_header_str();
-    // return (0);
+     else 
+        response.header_fields["content-length"] = long_to_str(sb.st_size);
+    
+    // TODO: and many other header_fields here.....
+    assemble_header_str();   
+    return (0);
 }
 
 // returns 1 if response if complete

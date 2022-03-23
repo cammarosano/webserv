@@ -22,6 +22,10 @@ class ErrorRH : public AReqHandler {
     int setup();
     int send_html_str();
 
+    bool custom_error_page(std::string &err_page);
+    bool look_up_err_page(std::map<int, std::string> &error_pages,
+        std::string &file_name);
+
     static std::map<int, std::string> reason_phrases;
 
    public:
