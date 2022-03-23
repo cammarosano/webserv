@@ -3,7 +3,8 @@
 
 # define BUFFER_SIZE 4096
 # define QUEUE_MAX_SIZE 10
-# define REQUEST_TIME_OUT 5 // seconds
+# define RESPONSE_TIME_OUT 5 // seconds
+# define REQUEST_TIME_OUT 10 // seconds
 # define POLL_TIME_OUT 2000 // miliseconds
 # ifndef DEBUG
 	# define DEBUG 0

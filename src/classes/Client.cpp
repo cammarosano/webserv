@@ -20,7 +20,8 @@ socket(socket),
 vservers(vservers),
 rh_locked(false),
 disconnect_after_send(false),
-ongoing_response(NULL)
+ongoing_response(NULL),
+incoming_request(false)
 {
 	get_client_info(sa);
 	// log

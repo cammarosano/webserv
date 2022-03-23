@@ -73,4 +73,8 @@ void disconnect_client(Client &client, FdManager &table, const char *who);
 void clear_rh(AReqHandler *req_handler);
 void clear_resources(FdManager &table, std::list<AReqHandler*> &list);
 
+// time-out
+bool is_request_timeout(Client &client);
+void send_time_out_response(Client &client, FdManager &table);
+
 #endif

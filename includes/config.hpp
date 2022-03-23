@@ -42,7 +42,7 @@ typedef std::pair<std::string, unsigned short> ip_port;
 
 // equivalent to nginx's "server"
 struct Vserver {
-    ip_port listen;
+    ip_port listen; 
     bool redirected;
     std::list<std::string> server_names;
     std::string default_404;  // default error page

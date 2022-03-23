@@ -20,7 +20,6 @@ class ErrorRH : public AReqHandler {
     enum { sending_default, sending_file } res_type;
 
     int setup();
-    void generate_error_page();
     int send_html_str();
 
     static std::map<int, std::string> reason_phrases;
@@ -35,6 +34,8 @@ class ErrorRH : public AReqHandler {
     virtual int time_out_abort();
 
     static std::map<int, std::string> init_map();
+    
+    static std::string generate_error_page(int error_code);
 };
 
 #endif

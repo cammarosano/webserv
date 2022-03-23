@@ -8,6 +8,7 @@
 # include <netdb.h>
 # include <iostream>
 # include <stdio.h> // perror
+# include <ctime>
 
 // forward declaration
 class AReqHandler;
@@ -28,6 +29,10 @@ struct Client {
 
     // ongoing response
     AReqHandler *ongoing_response;
+
+	// time-out
+    bool incoming_request;
+    time_t time_begin_request;
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);

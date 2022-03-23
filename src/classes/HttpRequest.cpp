@@ -6,9 +6,18 @@ HttpRequest::HttpRequest(Client &client, std::string &header_str)
     resolve_vserver();
     resolve_route();
 
+    std::string host;
+    std::map<std::string, std::string>::iterator it
+        = header_fields.find("host");
+    if (it != header_fields.end())
+        host = it->second;
+    else
+        host = vserver->listen.first + ':'
+            + long_to_str(vserver->listen.second);
+
     // log
     std::cout << "Request: " << method << " " << target << " " << http_version
-        << " @ " << header_fields["host"] << std::endl;
+        << " @ " << host << std::endl;
 }
 
 // TODO: this parser must be improved: check errors...
@@ -35,12 +44,19 @@ int HttpRequest::parse_header(std::string &header_str) {
 void HttpRequest::resolve_vserver() {
     typedef std::list<Vserver>::iterator iter_vserver_list;
     typedef std::list<std::string>::iterator iter_string_list;
-
+    typedef std::map<std::string, std::string>::iterator iter_map;
     std::list<Vserver> &vservers_list = client.vservers;
 
     // this might create an empty string as "host" (no problem)
     // actually, maybe this is demanded by HTTP/1.1 ... TODO: check it!
-    std::string req_host_name = header_fields["host"];
+    iter_map it_host = header_fields.find("host");
+    if (it_host == header_fields.end()) // no "host" header-field
+    {
+        vserver = &vservers_list.front();
+        return ;    
+    }
+    std::string req_host_name = it_host->second;
+
     // remove eventual ":port_number" after the server name
     req_host_name = req_host_name.substr(0, req_host_name.find(':'));
 

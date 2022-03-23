@@ -69,6 +69,7 @@ public:
 
 	void	set_pollout(int fd);
 	void	unset_pollout(int fd);
+	void	unset_pollin(int fd);
 
 	std::list<Vserver> & get_vserver_lst(int listen_socket);
 

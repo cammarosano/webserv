@@ -9,11 +9,19 @@ HttpRequest *new_HttpRequest(Client &client) {
     size_t pos = client.received_data.find("\r\n\r\n");
 
     if (pos == std::string::npos)  // not found: header is incomplete
+    {
+        if (client.incoming_request == false)
+        {
+            client.time_begin_request = time(NULL);
+            client.incoming_request = true;
+        }
         return (NULL);
+    }
 
     // header is complete: consume data
     std::string header_str = client.received_data.substr(0, pos);
     client.received_data.erase(0, pos + 4);
+    client.incoming_request = false;
 
     // debug
     if (DEBUG)
@@ -131,7 +139,7 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
         return new PostRH(&request, table);
     if (request.method == "GET" || request.method == "HEAD")
         return (new StaticRH(&request, table, resource_path));
-    return (new ErrorRH(&request, table, 501)); // not implemented
+    return (new ErrorRH(&request, table, 501));
 }
 
 // checks each Client's received_data buffer for a request header,
@@ -146,7 +154,12 @@ int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table)
 
         if (client.rh_locked || client.received_data.empty()) continue;
         HttpRequest *request = new_HttpRequest(client);
-        if (!request) continue;
+        if (!request)
+        {
+            if (is_request_timeout(client))
+                send_time_out_response(client, table);
+            continue;
+        }
         AReqHandler *req_handler;
         try {
             req_handler = init_response(*request, table);

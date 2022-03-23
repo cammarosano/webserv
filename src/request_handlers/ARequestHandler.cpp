@@ -62,7 +62,7 @@ bool AReqHandler::response100_expected() {
 void AReqHandler::update_last_io_activ() { std::time(&last_io_activity); }
 
 bool AReqHandler::is_time_out() {
-    if (std::difftime(time(NULL), last_io_activity) > REQUEST_TIME_OUT)
+    if (std::difftime(time(NULL), last_io_activity) > RESPONSE_TIME_OUT)
         return (true);
     return (false);
 }
