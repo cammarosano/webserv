@@ -40,6 +40,11 @@
 
 - ### make request Header parser more robust
 
+- ### website for correction:
+  - static pages, css and javascript, images, 
+  - forms that render a page through CGI, 
+  - forms to upload files
+
 - ## TESTING
 
   - siege
