@@ -17,6 +17,7 @@ request_handlers/ACgiRH.cpp \
 request_handlers/CgiPostRH.cpp \
 request_handlers/RedirectRH.cpp \
 request_handlers/PostRH.cpp \
+request_handlers/DeleteRH.cpp \
 classes/FdManager.cpp \
 classes/BodyDecoder.cpp \
 classes/Client.cpp \
@@ -33,6 +34,7 @@ request_handlers/CgiPostRH.hpp \
 request_handlers/DirectoryRH.hpp \
 request_handlers/ErrorRH.hpp \
 request_handlers/ARequestHandler.hpp \
+request_handlers/DeleteRH.hpp \
 request_handlers/PostRH.hpp \
 classes/Client.hpp \
 classes/HttpRequest.hpp \

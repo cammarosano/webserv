@@ -15,6 +15,7 @@ class PostRH : public ARequestHandler {
         s_receiving_body,
         s_done,
         s_abort,
+        s_send_100_continue,
         s_sending_header,
         s_sending_html_str
     } state;
