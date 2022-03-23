@@ -1,7 +1,7 @@
 #include "ErrorRH.hpp"
 
 ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
-    : ARequestHandler(request, table), error_code(error_code) {
+    : AReqHandler(request, table), error_code(error_code) {
     state = s_setup;
     res_type = sending_default;
 }

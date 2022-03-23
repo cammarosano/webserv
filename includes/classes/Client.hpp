@@ -10,7 +10,7 @@
 # include <stdio.h> // perror
 
 // forward declaration
-class ARequestHandler;
+class AReqHandler;
 
 struct Client {
     int socket;
@@ -27,7 +27,7 @@ struct Client {
     std::string decoded_body;
 
     // ongoing response
-    ARequestHandler *ongoing_response;
+    AReqHandler *ongoing_response;
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);

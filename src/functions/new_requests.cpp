@@ -39,7 +39,7 @@ std::string assemble_ressource_path(HttpRequest &request) {
 }
 
 // initiates a response when the resource path is a directory
-ARequestHandler *directory_response(HttpRequest &request, FdManager &table,
+AReqHandler *directory_response(HttpRequest &request, FdManager &table,
                                     std::string &resource_path) {
     struct stat sb;
     Route &r = *request.route;
@@ -97,7 +97,7 @@ bool is_method_allowed(HttpRequest &request)
 
 // resolve type of response: static_file, CGI, directory, error...
 // instantiate the correct request handler
-ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
+AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
     struct stat sb;
 
@@ -136,8 +136,8 @@ ARequestHandler *init_response(HttpRequest &request, FdManager &table) {
 
 // checks each Client's received_data buffer for a request header,
 // instantiates a new HttpRequest and a suitable request handler
-int new_requests(FdManager &table,
-                 std::list<ARequestHandler *> &req_handlers_lst) {
+int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table)
+{
     // iterate over clients
     for (int fd = 3; fd < table.len(); ++fd) {
         if (table[fd].type != fd_client_socket) continue;
@@ -147,7 +147,7 @@ int new_requests(FdManager &table,
         if (client.rh_locked || client.received_data.empty()) continue;
         HttpRequest *request = new_HttpRequest(client);
         if (!request) continue;
-        ARequestHandler *req_handler;
+        AReqHandler *req_handler;
         try {
             req_handler = init_response(*request, table);
         } catch (const std::exception &e) {

@@ -54,5 +54,4 @@ int get_listening_socket(std::string host_IP, unsigned short port)
 	std::cout << "Listening on " << host_IP << ":" << port << "..." << std::endl;
 
     return (listen_socket);
-
 }

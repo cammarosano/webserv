@@ -1,7 +1,7 @@
 #include "RedirectRH.hpp"
 
 RedirectRH::RedirectRH(HttpRequest *request, FdManager &table)
-    : ARequestHandler(request, table) {}
+    : AReqHandler(request, table) {}
 
 RedirectRH::~RedirectRH() {}
 

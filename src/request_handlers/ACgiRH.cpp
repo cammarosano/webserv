@@ -2,7 +2,7 @@
 
 ACgiRH::ACgiRH(HttpRequest *request, FdManager &table,
                 std::string &script_path):
-ARequestHandler(request, table),
+AReqHandler(request, table),
 script_path(script_path)
 {
     query_str = get_query_str();

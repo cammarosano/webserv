@@ -8,7 +8,7 @@
 
 #include "ARequestHandler.hpp"
 
-class DirectoryRH : public ARequestHandler {
+class DirectoryRH : public AReqHandler {
    private:
     std::string ressource_path;
     std::string html_page;

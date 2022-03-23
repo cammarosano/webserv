@@ -11,7 +11,7 @@
 /*
 Request handler for serving a static file.
 */
-class StaticRH : public ARequestHandler {
+class StaticRH : public AReqHandler {
    private:
     int fd_file;
     std::string resource_path;

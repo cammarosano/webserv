@@ -8,7 +8,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
-class ACgiRH : public ARequestHandler {
+class ACgiRH : public AReqHandler {
 protected:
 	std::string script_path;
 	std::string query_str;

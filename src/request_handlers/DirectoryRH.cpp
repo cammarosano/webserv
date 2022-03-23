@@ -3,7 +3,7 @@
 
 DirectoryRH::DirectoryRH(HttpRequest *request, FdManager &table,
                          const std::string &path)
-    : ARequestHandler(request, table), ressource_path(path) {
+    : AReqHandler(request, table), ressource_path(path) {
     state = s_setup;
 }
 

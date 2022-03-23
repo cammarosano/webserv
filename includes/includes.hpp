@@ -64,12 +64,13 @@ void write_to_fd(int fd_cgi_input, FdManager &table);
 
 // process requests
 
-int new_requests(FdManager &table,
-                 std::list<ARequestHandler *> &req_handlers_lst);
-int handle_requests(std::list<ARequestHandler *> &list, FdManager &table);
+int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table);
+int handle_requests(std::list<AReqHandler *> &list, FdManager &table);
 
 // clear
 
 void disconnect_client(Client &client, FdManager &table, const char *who);
+void clear_rh(AReqHandler *req_handler);
+void clear_resources(FdManager &table, std::list<AReqHandler*> &list);
 
 #endif

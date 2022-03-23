@@ -1,9 +1,9 @@
 #include "includes.hpp"
 
-void replace_request_handler(std::list<ARequestHandler*>::iterator it,
+void replace_request_handler(std::list<AReqHandler*>::iterator it,
 							int error_code, FdManager &table)
 {
-	ARequestHandler *old_rh, *new_rh;
+	AReqHandler *old_rh, *new_rh;
 
 	old_rh = *it;
 	old_rh->unlock_client();
@@ -15,18 +15,11 @@ void replace_request_handler(std::list<ARequestHandler*>::iterator it,
 	// make this standard behaviour for all error responses?
 }
 
-void clear_rh(ARequestHandler *req_handler)
-{
-	req_handler->unlock_client();
-	delete req_handler->getRequest();
-	delete req_handler;
-}
-
 // replaces RH or disconnects client
-void handle_time_out(std::list<ARequestHandler *>::iterator &it,
-	std::list<ARequestHandler*> list, FdManager &table)
+void handle_time_out(std::list<AReqHandler *>::iterator &it,
+	std::list<AReqHandler*> list, FdManager &table)
 {
-    ARequestHandler *req_handler = *it;
+    AReqHandler *req_handler = *it;
 	int time_out_code;
 
 	time_out_code = req_handler->time_out_abort();
@@ -43,10 +36,10 @@ void handle_time_out(std::list<ARequestHandler *>::iterator &it,
 // calls the respond() method of each request handler in
 // the list. deletes request and request handler when
 // the response is complete.
-int handle_requests(std::list<ARequestHandler *> &list, FdManager &table)
+int handle_requests(std::list<AReqHandler *> &list, FdManager &table)
 {
-    std::list<ARequestHandler *>::iterator it;
-    ARequestHandler *req_handler;
+    std::list<AReqHandler *>::iterator it;
+    AReqHandler *req_handler;
     int ret;
 
     // iterate over list of request handlers

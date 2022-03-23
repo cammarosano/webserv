@@ -12,7 +12,7 @@
 /*
 Request handler for error responses
 */
-class ErrorRH : public ARequestHandler {
+class ErrorRH : public AReqHandler {
    private:
     int error_code;
     int fd;

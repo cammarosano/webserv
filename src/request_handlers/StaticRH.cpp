@@ -1,7 +1,7 @@
 #include "StaticRH.hpp"
 
 StaticRH::StaticRH(HttpRequest *request, FdManager &table, std::string &resource_path)
-    : ARequestHandler(request, table), resource_path(resource_path)
+    : AReqHandler(request, table), resource_path(resource_path)
 {
     if (setup() == -1)
         throw std::exception();

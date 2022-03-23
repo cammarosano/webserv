@@ -1,24 +1,5 @@
 #include "includes.hpp"
 
-// close socket, delete Client object and remove from table
-// (if ongoing response) send abort signal to Request Handler
-void disconnect_client(Client &client, FdManager &table,
-                        const char *who)
-{
-    // log
-    std::cout << "Connection closed by " << who << ": " << client.ipv4_addr
-            << " (" << client.host_name << ")" << std::endl;
-
-    close(client.socket);
-    if (client.ongoing_response)
-    {
-        client.ongoing_response->disconnect_client();
-        client.ongoing_response->abort();
-    }
-    table.remove_fd(client.socket);
-    delete &client;
-}
-
 void update_time_last_activ(Client &client)
 {
     if (client.ongoing_response)
@@ -54,9 +35,7 @@ void recv_from_client(int socket, FdManager &table)
     if (DEBUG)
         std::cout << "Received " << recvd_bytes <<
             " bytes from client at socket " << socket << std::endl;
-
 }
-
 
 // reads data from a fd (file or pipe)
 // copies it into Client's unsent data buffer

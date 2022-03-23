@@ -97,6 +97,8 @@ int CgiPostRH::setup()
         // chdir to cgi root ("correct directory" ??)
         chdir(request->route->root.c_str());
 
+        close(2); // hide errors
+
 		// exec()
 		execve(argv[0], argv, envp);
 		

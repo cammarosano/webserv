@@ -77,7 +77,7 @@ public:
 	void debug_info() const;
 
 	void add_child_to_reap(child_process &child);
-	void reap_child_processes();
+	int reap_child_processes();
 };
 
 #endif

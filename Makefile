@@ -8,6 +8,7 @@ functions/io.cpp \
 functions/listening_socket.cpp \
 functions/setup.cpp \
 functions/handle_requests.cpp \
+functions/clear_resources.cpp \
 request_handlers/CgiGetRH.cpp \
 request_handlers/ErrorRH.cpp \
 request_handlers/StaticRH.cpp \
@@ -57,6 +58,9 @@ all:	$(NAME)
 debug:		CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address \
 			-D DEBUG=1
 debug:		$(NAME)
+
+valgrind:	CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
+valgrind:	$(NAME)
 
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@

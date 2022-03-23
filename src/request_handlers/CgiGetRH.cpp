@@ -60,6 +60,8 @@ int CgiGetRH::setup()
         // chdir to cgi root ("correct directory" ??)
         if (chdir(request->route->root.c_str()) == -1)
             exit(1);
+        
+        close(2); // hide errors
 
         // exec()
         execve(argv[0], argv, envp);

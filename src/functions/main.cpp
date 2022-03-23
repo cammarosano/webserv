@@ -15,7 +15,7 @@ void do_io(FdManager &table)
     // n_fds = poll(table.get_poll_array(), table.len(), -1);
     if (n_fds == -1)
     {
-        perror("poll");
+        // perror("poll");
         return;
     }
 
@@ -52,18 +52,22 @@ void do_io(FdManager &table)
     }
 }
 
+bool stop = false; // evil global var
+void signal_handler(int) {stop = true;}
+
 int main(void)
 {
     FdManager table;
-    std::list<ARequestHandler *> req_handlers_lst;
+    std::list<AReqHandler *> req_handlers;
 
+    signal(SIGINT, signal_handler);
     setup(table);
-    while (1)
+    while (!stop)
     {
         do_io(table);
-        new_requests(table, req_handlers_lst);
-        handle_requests(req_handlers_lst, table);
+        new_requests(req_handlers, table);
+        handle_requests(req_handlers, table);
     }
-
+    clear_resources(table, req_handlers);
     return (0);
 }

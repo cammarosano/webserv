@@ -13,7 +13,7 @@ Abstract class for request handlers
 Request handlers for a specific kind of response (ex: serve a static file)
 inherit from this class and define the respond() and abort() methods
 */
-class ARequestHandler {
+class AReqHandler {
    protected:
     HttpRequest *request;
     Client &client;
@@ -45,8 +45,8 @@ class ARequestHandler {
     bool response100_expected();
 
    public:
-    ARequestHandler(HttpRequest *request, FdManager &table);
-    virtual ~ARequestHandler();
+    AReqHandler(HttpRequest *request, FdManager &table);
+    virtual ~AReqHandler();
 
     virtual int respond() = 0;
     virtual void abort() = 0;

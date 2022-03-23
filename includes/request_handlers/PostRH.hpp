@@ -3,7 +3,7 @@
 
 #include "ARequestHandler.hpp"
 #include "BodyDecoder.hpp"
-class PostRH : public ARequestHandler {
+class PostRH : public AReqHandler {
    private:
     BodyDecoder bd;
     std::string buffer;

@@ -4,7 +4,7 @@
 #include "ARequestHandler.hpp"
 #include "utils.h"
 
-class RedirectRH : public ARequestHandler {
+class RedirectRH : public AReqHandler {
    private:
     static std::map<int, std::string> reason_phrases;
 

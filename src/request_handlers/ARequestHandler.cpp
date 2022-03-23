@@ -1,6 +1,6 @@
 #include "ARequestHandler.hpp"
 
-ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table)
+AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
     : request(request),
       client(request->client),
       table(table),
@@ -9,11 +9,11 @@ ARequestHandler::ARequestHandler(HttpRequest *request, FdManager &table)
     update_last_io_activ();
 }
 
-ARequestHandler::~ARequestHandler() {}
+AReqHandler::~AReqHandler() {}
 
-HttpRequest *ARequestHandler::getRequest() { return request; }
+HttpRequest *AReqHandler::getRequest() { return request; }
 
-void ARequestHandler::assemble_header_str() {
+void AReqHandler::assemble_header_str() {
     typedef std::map<std::string, std::string>::iterator iterator;
 
     // status-line
@@ -35,7 +35,7 @@ void ARequestHandler::assemble_header_str() {
 
 // transfer header_str to Client's unsent_data buffer
 // return 1 if complete, 0 if incomplete
-int ARequestHandler::send_header() {
+int AReqHandler::send_header() {
     Client &client = request->client;
     int max_bytes;
 
@@ -49,7 +49,7 @@ int ARequestHandler::send_header() {
     return 0;
 }
 
-bool ARequestHandler::response100_expected() {
+bool AReqHandler::response100_expected() {
     std::map<std::string, std::string>::iterator it =
         request->header_fields.find("expect");
 
@@ -59,9 +59,9 @@ bool ARequestHandler::response100_expected() {
     return (false);
 }
 
-void ARequestHandler::update_last_io_activ() { std::time(&last_io_activity); }
+void AReqHandler::update_last_io_activ() { std::time(&last_io_activity); }
 
-bool ARequestHandler::is_time_out() {
+bool AReqHandler::is_time_out() {
     if (std::difftime(time(NULL), last_io_activity) > REQUEST_TIME_OUT)
         return (true);
     return (false);
@@ -69,7 +69,7 @@ bool ARequestHandler::is_time_out() {
 
 // trying to unlock a disconnectedd client
 // or one locked by a different RH instance has no effect
-void ARequestHandler::unlock_client() {
+void AReqHandler::unlock_client() {
     if (client_disconnected) return;
     if (client.rh_locked && client.ongoing_response == this) {
         client.rh_locked = false;
@@ -78,17 +78,17 @@ void ARequestHandler::unlock_client() {
 }
 
 // trying to lock a already locked client raises an exception
-void ARequestHandler::lock_client() {
+void AReqHandler::lock_client() {
     if (client.rh_locked) throw(std::exception());
     client.rh_locked = true;
     client.ongoing_response = this;
 }
 
-void ARequestHandler::disconnect_client() { client_disconnected = true; }
+void AReqHandler::disconnect_client() { client_disconnected = true; }
 
-void ARequestHandler::add_to_bytes_sent(size_t n) { bytes_sent += n; }
+void AReqHandler::add_to_bytes_sent(size_t n) { bytes_sent += n; }
 
-int ARequestHandler::send_html_str(std::string &html_page) {
+int AReqHandler::send_html_str(std::string &html_page) {
     Client &client = request->client;
     int max_bytes;
 
@@ -102,7 +102,7 @@ int ARequestHandler::send_html_str(std::string &html_page) {
     return 0;
 }
 
-int ARequestHandler::time_out_abort()
+int AReqHandler::time_out_abort()
 {
     abort();
     return (408); // in doubt, blame it on the client

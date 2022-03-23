@@ -5,7 +5,7 @@
 #include <fstream>
 
 PostRH::PostRH(HttpRequest *request, FdManager &table)
-    : ARequestHandler(request, table), bd(*request), rcv_data_size(0) {
+    : AReqHandler(request, table), bd(*request), rcv_data_size(0) {
     if (request->header_fields.find("expect") != request->header_fields.end()) {
         response.http_version = "HTTP/1.1";
         response.status_code_phrase = "100 continue";

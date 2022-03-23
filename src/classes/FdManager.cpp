@@ -188,7 +188,8 @@ void FdManager::debug_info() const
 
 // waits for children processes without blocking
 // asks gently (SIGTERM) the first time, SIGKILLs the second time
-void FdManager::reap_child_processes()
+// returns 1 if list is empty, 0 otherwise
+int FdManager::reap_child_processes()
 {
     std::list<child_process>::iterator it = child_proc_list.begin();
 
@@ -213,6 +214,9 @@ void FdManager::reap_child_processes()
             ++it;
         }
     }
+    if (child_proc_list.empty())
+        return (1);
+    return (0);
 }
 
 void FdManager::add_child_to_reap(child_process &child)
