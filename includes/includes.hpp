@@ -76,6 +76,9 @@ void clear_resources(FdManager &table, std::list<AReqHandler*> &list);
 
 // time-out
 bool is_request_timeout(Client &client);
-void send_time_out_response(Client &client, FdManager &table);
+
+// error-response without request
+void send_error_resp_no_request(Client &client, FdManager &table,
+								int error_code);
 
 #endif

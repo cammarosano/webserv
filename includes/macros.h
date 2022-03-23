@@ -1,7 +1,7 @@
 #ifndef MACROS_H
 # define MACROS_H
 
-# define BUFFER_SIZE 4096
+# define BUFFER_SIZE 8192
 # define QUEUE_MAX_SIZE 10
 # define RESPONSE_TIME_OUT 5 // seconds
 # define REQUEST_TIME_OUT 10 // seconds

@@ -160,7 +160,9 @@ int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table)
         if (!request)
         {
             if (is_request_timeout(client))
-                send_time_out_response(client, table);
+                send_error_resp_no_request(client, table, 408);
+            else if (client.received_data.size() == BUFFER_SIZE) // buffer is full
+                send_error_resp_no_request(client, table, 431);
             continue;
         }
         AReqHandler *req_handler;

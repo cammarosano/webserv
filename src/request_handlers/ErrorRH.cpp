@@ -143,6 +143,7 @@ std::map<int, std::string> ErrorRH::init_map() {
     map[405] = "Method Not Allowed";
     map[408] = "Request Timeout";
     map[413] = "Payload Too Large";
+    map[431] = "Request Header Fields Too Large";
 
     map[500] = "Internal Server Error";
     map[501] = "Not Implemented";

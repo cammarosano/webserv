@@ -7,13 +7,15 @@ bool is_request_timeout(Client &client)
 	return (false);
 }
 
-void send_time_out_response(Client &client, FdManager &table)
+void send_error_resp_no_request(Client &client, FdManager &table, int error_code)
 {
-	std::string body = ErrorRH::generate_error_page(408);
-	std::string response = "HTTP/1.1 408 Request Timeout\r\n"
-						"Content-Length: "
-						+ long_to_str(body.size())
-						+ "\r\n\r\n" + body;
+	std::string body = ErrorRH::generate_error_page(error_code);
+	std::string response = "HTTP/1.1 "
+		+ long_to_str(error_code) + ' '
+		+ ErrorRH::reason_phrases[error_code] + "\r\n"
+		+ "Content-Length: "
+		+ long_to_str(body.size())
+		+ "\r\n\r\n" + body;
 	client.unsent_data.append(response);
 	table.set_pollout(client.socket);
 	client.received_data.clear();

@@ -26,7 +26,6 @@ class ErrorRH : public AReqHandler {
     bool look_up_err_page(std::map<int, std::string> &error_pages,
         std::string &file_name);
 
-    static std::map<int, std::string> reason_phrases;
 
    public:
     ErrorRH(HttpRequest *request, FdManager &table, int error_code);
@@ -39,6 +38,7 @@ class ErrorRH : public AReqHandler {
 
     static std::map<int, std::string> init_map();
     
+    static std::map<int, std::string> reason_phrases;
     static std::string generate_error_page(int error_code);
 };
 
