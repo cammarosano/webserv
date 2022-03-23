@@ -1,22 +1,53 @@
 # webserv
 
-What it does at this point:
+## TODO
 
-- serve static files (GET requests)
-- supports multiple ports, (virtual) servers and routes. (configuration is hard coded for testing, no parsing of a config file yet)
+-  ### configuration file parser
 
-Not much error checking/handling. Http response headers very incomplete.
-<br>
-<br>
-<br>
+    - ### parse server block
+      - [x] listening port
+      - [x] server names
+      - [x] error pages
+      - [ ] body size limit (accept other than M ?)
+    - ### parse location block
+      - [x] root
+      - [x] auto_index
+      - [x] default index file
+      - [x] cgi extension
+      - [x] cgi interpreter
+      - [x] accepted method
+      - [ ] upload accepted
+      - [ ] upload dir
+      - [x] redirection
 
-### What is does
 
-![img](web_root/imgs/get_static.png)
+- ### request handler class for Redirections
+  - [x] redirect server
+  - [ ] redirect location
 
-### What it shall do
+- ### request handler class for Directory listing
 
-![img](web_root/imgs/all.png)
+  - [x] generates an HTML page with the directory listing (auto-index)
+  - [ ] display folder first then files (optional)
+
+- ### "Try to always use the most "C++" code possible (for example use <cstring> over <string.h>)."
+
+- ### Memory clean up when exiting program
+
+- ### Header fields in the Http response:
+  - content-type
+  - date
+
+- ## TESTING
+
+  - siege
+  - subject's tester (not mandatory to pass this test)
+  - curl, postman, etc
+  - Conditions:
+    - hanging requests (sends only part of the header)
+    - hanging requests (sends header but only part of the body)
+
+- ### check also "Issues" in the repo
 
 -------------------
 
@@ -61,12 +92,7 @@ A **Client** struct represents an accepted connection. It contains a socket and 
 
 - received_data: stores data read() from the client socket
 - unsent_data: stores data that must be sent to client socket when that socket is ready for a write() operation
-- processed_data: not yet in use. Shall be used to store the body of a request after removing chunking meta-data, to be sent to a CGI process.
-
-A Client can be in two different states:
-
-- recv_header: any incoming data will be considered a new Http request
-- handling_response: checking for a new request in the received_data buffer will be skipped (data might be part of the body of a request)
+- decoded_body: stores the body of a request after removing chunking meta-data, to be sent to a CGI process or a file in disk (when uploading).
 
 ### Vserver and Route
 
@@ -90,10 +116,10 @@ do_io(): does IO operations (no shit!!). Calls poll(), loops over the poll array
 - accepts a new connection (creating a new Client object)
 - receives data from a client socket
 - sends data to a client socket
-- reads data from a file in disk
-- etc... (cgi input and output to be included....)
+- reads data from a file in disk or pipe connected to CGI process
+- send data to a file in disk (upload) or a pipe connected to a CGI process
 
-check4new_requests():
+-new_requests():
 
 - when a Client's received_data buffer contains the header of a new HTTP request, this data is parsed and an instance of a **HttpRequest** object is created.
 - After resolving which Vserver and Route applies to this request, the resource path is determined (ex: /web_root/some_file.html), and the apropriate **RequestHandler** is instantiated and added to a list. There are different types of RequestHandlers: one for serving a static file, one for generating an error page, one for generating the directory listing, one for handling a CGI response, etc. Each type is a specific class, but they all inherit from a base class **ARequestHandler** and define their own respond() method.
@@ -110,60 +136,3 @@ This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=9
 [This](https://miro.com/welcomeonboard/MUJub3YwcDIwUkZMd3Eyb1FhdWUxN3NGeENrd0tGQUh4Q3Z6SHdJcnI4ek5zMThNUDJzejJEaHd3QVZ1a2dVc3wzNDU4NzY0NTE4MjMwNTU0NTUz?invite_link_id=398884532576) is a link if you wish to collaborate
 
 ------------
-
-## Big TODO's
-
-- # configuration file parser
-
-  - ## parse a config file into into a ``` map<ip_port, list<Vserver> > ```
-    - ### parse server block
-      - [x] listening port
-      - [x] server names
-      - [x] error pages
-      - [ ] body size limit
-    - ### parse location block
-      - [x] root
-      - [x] auto_index
-      - [x] default index file
-      - [x] cgi extension
-      - [x] cgi interpreter
-      - [x] accepted method
-      - [ ] upload accepted
-      - [ ] upload dir
-      - [x] redirection
-
-- [x] request handler class for CGI GET request
-
-  - pipe()
-  - fork()
-  - dup2() to redirect CGI script's stdout to the pipe
-  - setup an env with the variables described in the CGI standard (a null-terminated array of char *, envp)
-  - exec() the cgi interpreter (ex: python) with the script (ex: script.py as argument) and the envp
-  - read from the pipe (CGI output) into Client's unsent_data buffer
-  - wait() for CGI process (with a NONBLOCKING flag)
-
-- [x] request handler class for CGI POST request
-
-  - all of the above + :
-  - another pipe to send data to CGI's input
-  - receive request's body, unchunk if necessary, and send it to CGI's input
-
-- [x] extend request handler class for errors (class ErrorRH)
-
-  - at this moment it only generates an error page
-  - but it should be able to serve default error pages defined in the config file for that vserver
-
-- ### request handler class for Redirections
-  - [x] redirect server
-  - [ ] redirect location
-
-- ### request handler class for Directory listing
-
-  - [x] generates an HTML page with the directory listing (auto-index)
-  - [ ] display folder first then files (optional)
-
-- ### write a testing program
-
-  - in python ?
-  - automate tests
-  - stress-test the webserver (multiple clients, multiple requests)

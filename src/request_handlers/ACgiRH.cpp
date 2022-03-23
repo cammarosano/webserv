@@ -152,5 +152,7 @@ bool ACgiRH::cgi_failed()
 int ACgiRH::time_out_abort()
 {
     abort();
+    if (state <= s_recv_req_body)
+        return (408);
     return(504);
 }
