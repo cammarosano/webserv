@@ -39,6 +39,7 @@
 #include "CgiPostRH.hpp"
 #include "Client.hpp"
 #include "ConfigParser.hpp"
+#include "DeleteRH.hpp"
 #include "DirectoryRH.hpp"
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"

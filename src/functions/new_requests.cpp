@@ -128,6 +128,9 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     if (!S_ISREG(sb.st_mode) || access(resource_path.c_str(), R_OK))
         return (new ErrorRH(&request, table, 404));
     // check if CGI script (match extension)
+    if (request.method == "DELETE") {
+        return new DeleteRH(&request, table, resource_path);
+    }
     if (!request.route->cgi_extension.empty() &&
         resource_path.find(request.route->cgi_extension) != std::string::npos) {
         if (request.method == "GET")

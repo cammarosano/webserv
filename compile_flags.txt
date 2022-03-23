@@ -1,3 +1,5 @@
 -xc++
 -I
 ./includes
+./includes/classes
+./includes/request_handlers
