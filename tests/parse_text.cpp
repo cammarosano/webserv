@@ -6,7 +6,7 @@
 
 int parse_types_file(std::map<std::string, std::string> &map)
 {
-	std::fstream fs("conf/mime.types");
+	std::fstream fs("../conf/mime.types");
 	std::string pre_block;
 	std::string block;
 	std::string line;
