@@ -10,8 +10,7 @@ HttpRequest *new_HttpRequest(Client &client) {
 
     if (pos == std::string::npos)  // not found: header is incomplete
     {
-        if (client.incoming_request == false)
-        {
+        if (client.incoming_request == false) {
             client.time_begin_request = time(NULL);
             client.incoming_request = true;
         }
@@ -48,7 +47,7 @@ std::string assemble_ressource_path(HttpRequest &request) {
 
 // initiates a response when the resource path is a directory
 AReqHandler *directory_response(HttpRequest &request, FdManager &table,
-                                    std::string &resource_path) {
+                                std::string &resource_path) {
     struct stat sb;
     Route &r = *request.route;
 
@@ -73,31 +72,31 @@ AReqHandler *directory_response(HttpRequest &request, FdManager &table,
     return (new ErrorRH(&request, table, 403));
 }
 
-bool body_size_exceeds(HttpRequest &request)
-{
+bool body_size_exceeds(HttpRequest &request) {
     std::map<std::string, std::string>::iterator it;
     size_t content_size;
 
-    if (!request.route->body_size_limit) // 0 being considered no-limit
+    if (!request.route->body_size_limit)  // 0 being considered no-limit
         return (false);
     it = request.header_fields.find("content-length");
-    if (it == request.header_fields.end()) // not found, size unknown
+    if (it == request.header_fields.end())  // not found, size unknown
         return (false);
     content_size = strtol(it->second.c_str(), NULL, 10);
-    if (content_size > request.route->body_size_limit * 1024 * 1024) // Megabytes
+    if (content_size >
+        request.route->body_size_limit * 1024 * 1024)  // Megabytes
         return (true);
     return (false);
 }
 
-bool is_method_allowed(HttpRequest &request)
-{
-    std::list<std::string>::iterator it; // obs: a set would be faster
+bool is_method_allowed(HttpRequest &request) {
+    std::list<std::string>::iterator it;  // obs: a set would be faster
 
     it = request.route->accepted_methods.begin();
-    while (it != request.route->accepted_methods.end())
-    {
-        if (*it == request.method)
-            return (true);
+    if (request.route->accepted_methods.empty() &&
+        (request.method == "GET" || request.method == "HEAD"))
+        return true;
+    while (it != request.route->accepted_methods.end()) {
+        if (*it == request.method) return (true);
         ++it;
     }
     return (false);
@@ -109,12 +108,9 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
     struct stat sb;
 
-    if (!request.route)
-        return (new ErrorRH(&request, table, 404));
-    if (!is_method_allowed(request))
-        return (new ErrorRH(&request, table, 405));
-    if (body_size_exceeds(request))
-        return (new ErrorRH(&request, table, 413));
+    if (!request.route) return (new ErrorRH(&request, table, 404));
+    if (!is_method_allowed(request)) return (new ErrorRH(&request, table, 405));
+    if (body_size_exceeds(request)) return (new ErrorRH(&request, table, 413));
     if (request.vserver->redirected || request.route->redirected)
         return (new RedirectRH(&request, table));
     resource_path = assemble_ressource_path(request);
@@ -128,9 +124,6 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     if (!S_ISREG(sb.st_mode) || access(resource_path.c_str(), R_OK))
         return (new ErrorRH(&request, table, 404));
     // check if CGI script (match extension)
-    if (request.method == "DELETE") {
-        return new DeleteRH(&request, table, resource_path);
-    }
     if (!request.route->cgi_extension.empty() &&
         resource_path.find(request.route->cgi_extension) != std::string::npos) {
         if (request.method == "GET")
@@ -140,15 +133,17 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     }
     if (request.method == "POST")
         return new PostRH(&request, table);
-    if (request.method == "GET" || request.method == "HEAD")
+    else if (request.method == "GET" || request.method == "HEAD")
         return (new StaticRH(&request, table, resource_path));
+    else if (request.method == "DELETE") {
+        return new DeleteRH(&request, table, resource_path);
+    }
     return (new ErrorRH(&request, table, 501));
 }
 
 // checks each Client's received_data buffer for a request header,
 // instantiates a new HttpRequest and a suitable request handler
-int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table)
-{
+int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table) {
     // iterate over clients
     for (int fd = 3; fd < table.len(); ++fd) {
         if (table[fd].type != fd_client_socket) continue;
@@ -157,11 +152,11 @@ int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table)
 
         if (client.rh_locked || client.received_data.empty()) continue;
         HttpRequest *request = new_HttpRequest(client);
-        if (!request)
-        {
+        if (!request) {
             if (is_request_timeout(client))
                 send_error_resp_no_request(client, table, 408);
-            else if (client.received_data.size() == BUFFER_SIZE) // buffer is full
+            else if (client.received_data.size() ==
+                     BUFFER_SIZE)  // buffer is full
                 send_error_resp_no_request(client, table, 431);
             continue;
         }
