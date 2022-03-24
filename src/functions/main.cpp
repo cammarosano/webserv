@@ -61,7 +61,8 @@ int main(void)
     std::list<AReqHandler *> req_handlers;
 
     signal(SIGINT, signal_handler);
-    setup(table);
+    if (setup(table) == -1)
+        return (1);
     while (!stop)
     {
         do_io(table);
