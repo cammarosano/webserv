@@ -16,8 +16,10 @@ HttpRequest *AReqHandler::getRequest() { return request; }
 void AReqHandler::HttpResponse::assemble_header_str() {
     typedef std::map<std::string, std::string>::iterator iterator;
 
+	// default-additions
     if (http_version.empty())
         http_version = "HTTP/1.1";
+    header_fields["server"] = "webserv";
 
     // status-line
     header_str =

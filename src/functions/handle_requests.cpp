@@ -27,7 +27,7 @@ void handle_time_out(std::list<AReqHandler *>::iterator &it,
 	{
 		Client &client = req_handler->getRequest()->client;
 		clear_rh(req_handler);
-		disconnect_client(client, table, "webserver(time-out)");
+		disconnect_client(client, table, "webserv(time-out)");
 		it = list.erase(it);
 		return ;
 	}

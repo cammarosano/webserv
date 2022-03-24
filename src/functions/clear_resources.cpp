@@ -14,7 +14,7 @@ void clear_resources(FdManager &table, std::list<AReqHandler*> &list)
 	{
 		// disconnect clients
 		if (table[fd].type == fd_client_socket)
-			disconnect_client(*table[fd].client, table, "webserver(shut-down)");
+			disconnect_client(*table[fd].client, table, "webserv(shut-down)");
 		// close file descriptors
 		else if (table[fd].type != fd_none)
 			close(fd);
