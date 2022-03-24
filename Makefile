@@ -9,8 +9,10 @@ functions/listening_socket.cpp \
 functions/setup.cpp \
 functions/handle_requests.cpp \
 functions/clear_resources.cpp \
-functions/time_out.cpp \
+functions/error_request.cpp \
 functions/mime_type.cpp \
+functions/init_response.cpp \
+functions/time_out.cpp \
 request_handlers/CgiGetRH.cpp \
 request_handlers/ErrorRH.cpp \
 request_handlers/StaticRH.cpp \

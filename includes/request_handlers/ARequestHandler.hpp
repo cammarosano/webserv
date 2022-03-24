@@ -44,12 +44,10 @@ class AReqHandler {
     virtual void abort() = 0;
     virtual int time_out_abort();
 
-    bool is_time_out();
+    bool is_time_out(time_t current_time);
     HttpRequest *getRequest();
-    void update_last_io_activ();
-    void lock_client();
-    void unlock_client();
-    void disconnect_client();
+    Client *getClient();
+    void set_last_io_activ(time_t current_time);
     void add_to_bytes_sent(size_t n);
 
 	// maps extensions to content-type

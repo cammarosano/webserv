@@ -6,8 +6,6 @@ Python tests
 
 Time out inactive clients
 
-unify send_header and send_html_page (send... string?)
-
 Response: handle keep-alive or not.
 
 make file_fd and pipes fd non-blocking 

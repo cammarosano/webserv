@@ -2,9 +2,10 @@
 
 // calls poll()
 // does all read() and write() operations
-void do_io(FdManager &table)
+void do_io(FdManager &table, std::queue<Client*> &incoming_requests)
 {
     int n_fds;
+    time_t current_time = time(NULL);
 
     // debug
     if (DEBUG)
@@ -24,6 +25,7 @@ void do_io(FdManager &table)
     {
         std::cout << "poll() returned " << n_fds << std::endl;
         table.debug_info();
+        std::cout << "max fd number: " << table.len() << std::endl;
     }
 
     // iterate over poll_array
@@ -38,14 +40,14 @@ void do_io(FdManager &table)
             if (table[fd].type == fd_listen_socket)
                 accept_connection(fd, table);
             else if (table[fd].type == fd_client_socket)
-                recv_from_client(fd, table);
+                recv_from_client(fd, table, incoming_requests);
             else if (table[fd].type == fd_read)
                 read_from_fd(fd, table);
         }
         if (revents & POLLOUT) // fd ready for writing
         {
             if (table[fd].type == fd_client_socket)
-                send_to_client(fd, table);
+                send_to_client(fd, table, current_time);
             else if (table[fd].type == fd_write)
                 write_to_fd(fd, table);
         }
@@ -58,6 +60,7 @@ void signal_handler(int) {stop = true;}
 int main(void)
 {
     FdManager table;
+    std::queue<Client *> incoming_requests;
     std::list<AReqHandler *> req_handlers;
 
     signal(SIGINT, signal_handler);
@@ -65,9 +68,10 @@ int main(void)
         return (1);
     while (!stop)
     {
-        do_io(table);
-        new_requests(req_handlers, table);
+        do_io(table, incoming_requests);
+        new_requests(incoming_requests, req_handlers, table);
         handle_requests(req_handlers, table);
+        reaper(table);
     }
     clear_resources(table, req_handlers);
     return (0);

@@ -4,15 +4,17 @@
 // object returns NULL if buffer does not contain a complete request header
 // TODO: watch out for request bodies that end with an empty line
 // eventual trailing CRLF must be removed!!
-HttpRequest *new_HttpRequest(Client &client) {
+HttpRequest *new_HttpRequest(Client &client)
+{
     // look for end-of-header delimiter: 2CRLF
     size_t pos = client.received_data.find("\r\n\r\n");
 
-    if (pos == std::string::npos)  // not found: header is incomplete
+    if (pos == std::string::npos) // not found: header is incomplete
     {
-        if (client.incoming_request == false) {
+        if (client.begin_request == false)
+        {
             client.time_begin_request = time(NULL);
-            client.incoming_request = true;
+            client.begin_request = true;
         }
         return (NULL);
     }
@@ -20,156 +22,54 @@ HttpRequest *new_HttpRequest(Client &client) {
     // header is complete: consume data
     std::string header_str = client.received_data.substr(0, pos);
     client.received_data.erase(0, pos + 4);
-    client.incoming_request = false;
+    client.begin_request = false;
 
     // debug
     if (DEBUG)
-        std::cout << "---------\nThe following request header was received:\n"
-                  << header_str << "\n"
-                  << std::endl;
+        std::cout << "---------\nThe following request header was received:\n" << header_str << "\n" << std::endl;
 
     // create HttpRequest object
     return new HttpRequest(client, header_str);
 }
 
-// request.route cannot be NULL
-// separates the URI into relative_part + query string
-// assembles path removing the route prefix from the relative-part
-std::string assemble_ressource_path(HttpRequest &request) {
-    Route &r = *request.route;
-    std::string url = request.target;
-
-    url = url.substr(0, url.find('?'));  // remove query string
-    std::string path = r.root + '/' + url.substr(r.prefix.size());
-    if (DEBUG) std::cout << "ressource path: " << path << std::endl;
-    return (path);
-}
-
-// initiates a response when the resource path is a directory
-AReqHandler *directory_response(HttpRequest &request, FdManager &table,
-                                std::string &resource_path) {
-    struct stat sb;
-    Route &r = *request.route;
-
-    // add slash to the end if necessary
-    if (*resource_path.rbegin() != '/') resource_path += '/';
-
-    // first, try default index file
-    if (!r.default_index.empty())  // config file informs a default index
-    {
-        std::string default_index_path = resource_path + r.default_index;
-        // check if file exists and is a regular file (no dir)
-        if (stat(default_index_path.c_str(), &sb) == 0 && S_ISREG(sb.st_mode)) {
-            // debug
-            std::cout << "default index found: " << default_index_path
-                      << std::endl;
-            return (new StaticRH(&request, table, default_index_path));
-        }
-    }
-    // if not found, do directory listing, if enabled
-    if (r.auto_index) return (new DirectoryRH(&request, table, resource_path));
-    // fall back to a 403
-    return (new ErrorRH(&request, table, 403));
-}
-
-bool body_size_exceeds(HttpRequest &request) {
-    std::map<std::string, std::string>::iterator it;
-    size_t content_size;
-
-    if (!request.route->body_size_limit)  // 0 being considered no-limit
-        return (false);
-    it = request.header_fields.find("content-length");
-    if (it == request.header_fields.end())  // not found, size unknown
-        return (false);
-    content_size = strtol(it->second.c_str(), NULL, 10);
-    if (content_size >
-        request.route->body_size_limit * 1024 * 1024)  // Megabytes
-        return (true);
-    return (false);
-}
-
-bool is_method_allowed(HttpRequest &request) {
-    std::list<std::string>::iterator it;  // obs: a set would be faster
-
-    it = request.route->accepted_methods.begin();
-    if (request.route->accepted_methods.empty() &&
-        (request.method == "GET" || request.method == "HEAD"))
-        return true;
-    while (it != request.route->accepted_methods.end()) {
-        if (*it == request.method) return (true);
-        ++it;
-    }
-    return (false);
-}
-
-// resolve type of response: static_file, CGI, directory, error...
-// instantiate the correct request handler
-AReqHandler *init_response(HttpRequest &request, FdManager &table) {
-    std::string resource_path;
-    struct stat sb;
-
-    if (request.vserver->redirected)
-        return (new RedirectRH(&request, table));
-    if (!request.route) return (new ErrorRH(&request, table, 404));
-    if (request.route->redirected)
-        return (new RedirectRH(&request, table));
-    if (!is_method_allowed(request)) return (new ErrorRH(&request, table, 405));
-    if (body_size_exceeds(request)) return (new ErrorRH(&request, table, 413));
-    resource_path = assemble_ressource_path(request);
-    // check if ressource is available
-    if (stat(resource_path.c_str(), &sb) == -1)  // resource not found
-        return (new ErrorRH(&request, table, 404));
-    if (S_ISDIR(sb.st_mode))  // check if it's a directory
-        return (directory_response(request, table, resource_path));
-    // check if regular file and has read rights (obs: access() is a security
-    // hole!!)
-    if (!S_ISREG(sb.st_mode) || access(resource_path.c_str(), R_OK))
-        return (new ErrorRH(&request, table, 404));
-    // check if CGI script (match extension)
-    if (!request.route->cgi_extension.empty() &&
-        resource_path.find(request.route->cgi_extension) != std::string::npos) {
-        if (request.method == "GET")
-            return (new CgiGetRH(&request, table, resource_path));
-        if (request.method == "POST")
-            return (new CgiPostRH(&request, table, resource_path));
-    }
-    if (request.method == "POST")
-        return new PostRH(&request, table);
-    else if (request.method == "GET" || request.method == "HEAD")
-        return (new StaticRH(&request, table, resource_path));
-    else if (request.method == "DELETE") {
-        return new DeleteRH(&request, table, resource_path);
-    }
-    return (new ErrorRH(&request, table, 501));
+bool is_request_timeout(Client &client)
+{
+	if (std::difftime(time(NULL), client.time_begin_request) > REQUEST_TIME_OUT)
+		return (true);
+	return (false);
 }
 
 // checks each Client's received_data buffer for a request header,
 // instantiates a new HttpRequest and a suitable request handler
-int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table) {
-    // iterate over clients
-    for (int fd = 3; fd < table.len(); ++fd) {
-        if (table[fd].type != fd_client_socket) continue;
+void new_requests(std::queue<Client *> &incoming_requests,
+    std::list<AReqHandler *> &req_handlers_lst, FdManager &table)
+{
+    // iterate over clients with incoming requests
+    while (!incoming_requests.empty())
+    {
+        Client &client = *incoming_requests.front();
+        incoming_requests.pop();
 
-        Client &client = *table[fd].client;
-
-        if (client.rh_locked || client.received_data.empty()) continue;
+		// OBS: CLIENT MIGHT HAVE BEEN DELETED!!
         HttpRequest *request = new_HttpRequest(client);
-        if (!request) {
-            if (is_request_timeout(client))
+        if (!request) // check time-out or header above limit
+        {
+            if (is_request_timeout(client)) // TODO: move this to reaper, it does not work here!
                 send_error_resp_no_request(client, table, 408);
-            else if (client.received_data.size() ==
-                     BUFFER_SIZE)  // buffer is full
+            else if (client.received_data.size() == BUFFER_SIZE)
                 send_error_resp_no_request(client, table, 431);
             continue;
         }
         AReqHandler *req_handler;
-        try {
+        try
+        {
             req_handler = init_response(*request, table);
-        } catch (const std::exception &e) {
+        }
+        catch (const std::exception &e)
+        {
             req_handler = new ErrorRH(request, table, 500);
         }
-        req_handler->lock_client();
+        client.ongoing_response = req_handler;
         req_handlers_lst.push_back(req_handler);
     }
-    return (0);
 }

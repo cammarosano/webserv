@@ -1,6 +1,4 @@
 http://localhost:3000
 http://localhost:3001
-http://localhost:3000/cgi/test.py?this=is&a=query_string
-http://localhost:3000/cgi/test.py POST bodybodybody
 http://localhost:3000/form.html
-http://localhost:3000/shall_not_be_found
+http://localhost:3001/tagada/

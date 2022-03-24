@@ -5,6 +5,7 @@
 # define QUEUE_MAX_SIZE 10
 # define RESPONSE_TIME_OUT 5 // seconds
 # define REQUEST_TIME_OUT 10 // seconds
+# define CLIENT_TIME_OUT 5 // seconds (LOW VALUE FOR TESTING)
 # define POLL_TIME_OUT 2000 // miliseconds
 # define DEFAULT_MIME "text/plain"
 # ifndef DEBUG

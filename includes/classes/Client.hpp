@@ -9,6 +9,8 @@
 # include <iostream>
 # include <stdio.h> // perror
 # include <ctime>
+# include "macros.h"
+# include <queue>
 
 // forward declaration
 class AReqHandler;
@@ -19,7 +21,6 @@ struct Client {
     std::string ipv4_addr;
     std::string host_name;
 
-    bool rh_locked; // former "state". true means locked by Request Handler
     bool disconnect_after_send;
 
     // buffers
@@ -27,15 +28,20 @@ struct Client {
     std::string unsent_data;
     std::string decoded_body;
 
-    // ongoing response
+    // ongoing response (NULL if no response in course)
     AReqHandler *ongoing_response;
 
-	// time-out
-    bool incoming_request;
+	// time-out request
+    bool begin_request;
     time_t time_begin_request;
+
+    // time-out inactive client
+    time_t last_io; // monitoring just send2client
+    static std::queue<std::pair<time_t, int> > inactive_clients;
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
+
 
 	private:
     // get ip address and host name

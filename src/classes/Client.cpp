@@ -18,13 +18,21 @@ void Client::get_client_info(sockaddr &sa)
 Client::Client(int socket, sockaddr sa, std::list<Vserver> &vservers):
 socket(socket),
 vservers(vservers),
-rh_locked(false),
 disconnect_after_send(false),
 ongoing_response(NULL),
-incoming_request(false)
+begin_request(false)
 {
 	get_client_info(sa);
 	// log
 	std::cout << "Connection accepted: " << ipv4_addr << " (" <<
 		host_name << ")" << std::endl;
+    // planned capacity for buffers
+    received_data.reserve(BUFFER_SIZE);
+    unsent_data.reserve(BUFFER_SIZE);
+    // time-out monitoring
+    last_io = time(NULL);
+    inactive_clients.push(std::make_pair(last_io, socket));
 }
+
+// static variable
+std::queue<std::pair<time_t, int> > Client::inactive_clients;
