@@ -44,6 +44,7 @@ class AReqHandler {
     int send_html_str(std::string &html_page);
     bool response100_expected();
 
+    std::string get_mime_type(const std::string &file_name) const;
 
    public:
     AReqHandler(HttpRequest *request, FdManager &table);

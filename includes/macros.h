@@ -6,6 +6,7 @@
 # define RESPONSE_TIME_OUT 5 // seconds
 # define REQUEST_TIME_OUT 10 // seconds
 # define POLL_TIME_OUT 2000 // miliseconds
+# define DEFAULT_MIME "text/plain"
 # ifndef DEBUG
 	# define DEBUG 0
 # endif

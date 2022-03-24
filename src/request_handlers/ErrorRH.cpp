@@ -73,10 +73,16 @@ int ErrorRH::setup() {
     response.status_code_phrase =
         long_to_str(error_code) + ' ' + reason_phrases[error_code];
     if (res_type == sending_default) 
+    {
         response.header_fields["content-length"] =
             long_to_str(html_page.size());
-     else 
+        response.header_fields["content-type"] = "text/html";
+    }
+    else 
+    {
         response.header_fields["content-length"] = long_to_str(sb.st_size);
+        response.header_fields["content-type"] = get_mime_type(err_page);
+    }
     
     // TODO: and many other header_fields here.....
     assemble_header_str();   

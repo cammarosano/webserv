@@ -54,6 +54,7 @@
 
 int setup(FdManager &table);
 int get_listening_socket(std::string host_IP, unsigned short port);
+int parse_mime_types_file(std::map<std::string, std::string> &map);
 
 // IO
 

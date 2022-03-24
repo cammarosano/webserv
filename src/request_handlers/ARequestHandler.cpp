@@ -110,3 +110,30 @@ int AReqHandler::time_out_abort()
 
 // static variable
 std::map<std::string, std::string> AReqHandler::content_type;
+
+std::string get_extension(const std::string &file_name)
+{
+	size_t pos = file_name.rfind('.');
+	std::string extension;
+
+	// if found and not the last char
+	if (pos != std::string::npos && pos < file_name.size() - 1)
+		extension = file_name.substr(pos + 1);
+	return (extension);
+}
+
+// returns the mime_type based on file_name's extension
+std::string AReqHandler::get_mime_type(const std::string &file_name) const
+{
+    std::map<std::string, std::string>::iterator it;
+    std::string ext = get_extension(file_name);
+
+    if (ext.empty())  // no extension
+        return (DEFAULT_MIME);
+    if (ext == "html")
+        return ("text/html");  // optimization: save a map look-up
+    it = AReqHandler::content_type.find(ext);
+    if (it == AReqHandler::content_type.end())  // ext not found
+        return (DEFAULT_MIME);
+    return (it->second);
+}

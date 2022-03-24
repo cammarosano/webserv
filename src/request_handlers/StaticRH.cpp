@@ -30,6 +30,7 @@ int StaticRH::setup()
     response.http_version = "HTTP/1.1";
     response.status_code_phrase = "200 OK";
     response.header_fields["content-length"] = long_to_str(sb.st_size);
+    response.header_fields["content-type"] = get_mime_type(resource_path);
     // TODO: and many other header_fields here.....
     assemble_header_str();
     return (0); // ok

@@ -62,6 +62,7 @@ int DirectoryRH::_setup() {
     response.http_version = "HTTP/1.1";
     response.status_code_phrase = "200 OK";
     response.header_fields["content-length"] = long_to_str(html_page.length());
+    response.header_fields["content-type"] = "text/html";
 
     assemble_header_str();
     return 0;

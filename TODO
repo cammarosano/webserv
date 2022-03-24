@@ -4,6 +4,9 @@ function to extract the extension of a path
 Make lookup faster (if/else) for html files
 when setting up the header fields of a response, call this function 
 
+handle setup errors
+
+directoryRH error
 
 Python tests
 
