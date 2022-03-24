@@ -1,10 +1,4 @@
-Content-type:
-function to extract the extension of a path 
-	and lookup in the dictionaty
-Make lookup faster (if/else) for html files
-when setting up the header fields of a response, call this function 
-
-handle setup errors
+handle setup errors - David, exception
 
 directoryRH error
 

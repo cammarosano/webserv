@@ -5,22 +5,13 @@ ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
     state = s_setup;
 }
 
-ErrorRH::~ErrorRH() {}
-
-// ! repeaded code (see send_header)
-int ErrorRH::send_html_str() {
-    Client &client = request->client;
-    int max_bytes;
-
-    max_bytes = BUFFER_SIZE - client.unsent_data.size();
-    if (max_bytes <= 0)  // buffer is full
-        return 0;
-    client.unsent_data += html_page.substr(0, max_bytes);
-    html_page.erase(0, max_bytes);
-    table.set_pollout(client.socket);
-    if (html_page.empty()) return 1;
-    return 0;
+ErrorRH::~ErrorRH() {
+    if (res_type == sending_file && state < s_done) {
+        close(fd);
+        table.remove_fd(fd);
+    }
 }
+
 
 // true if found, and puts it in file_name
 bool ErrorRH::look_up_err_page(std::map<int, std::string> &error_pages,
@@ -69,7 +60,6 @@ int ErrorRH::setup() {
         html_page = generate_error_page(error_code);
 
     // fill-in header
-    response.http_version = "HTTP/1.1";
     response.status_code_phrase =
         long_to_str(error_code) + ' ' + reason_phrases[error_code];
     if (res_type == sending_default) 
@@ -85,7 +75,7 @@ int ErrorRH::setup() {
     }
     
     // TODO: and many other header_fields here.....
-    assemble_header_str();   
+    response.assemble_header_str();   
     return (0);
 }
 
@@ -98,7 +88,7 @@ int ErrorRH::respond() {
         state = s_sending_header;
     }
     if (state == s_sending_header) {
-        if (send_header() == 1) {
+        if (send_str(response.header_str) == 1) {
             if (res_type == sending_default)
                 state = s_sending_html_str;
             else
@@ -106,7 +96,7 @@ int ErrorRH::respond() {
         }
     }
     if (state == s_sending_html_str) {
-        if (send_html_str() == 1) state = s_done;
+        if (send_str(html_page) == 1) state = s_done;
     } else if (state == s_start_send_file) {
         table.add_fd_read(fd, request->client);
         state = s_sending_file;
@@ -126,10 +116,10 @@ int ErrorRH::respond() {
 
 void ErrorRH::abort() {
     if (res_type == sending_file) {
-        state = s_abort;
         close(fd);
         table.remove_fd(fd);
     }
+    state = s_abort;
 }
 
 int ErrorRH::time_out_abort()

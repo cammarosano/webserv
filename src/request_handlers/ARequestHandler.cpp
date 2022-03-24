@@ -13,41 +13,29 @@ AReqHandler::~AReqHandler() {}
 
 HttpRequest *AReqHandler::getRequest() { return request; }
 
-void AReqHandler::assemble_header_str() {
+void AReqHandler::HttpResponse::assemble_header_str() {
     typedef std::map<std::string, std::string>::iterator iterator;
+
+    if (http_version.empty())
+        http_version = "HTTP/1.1";
 
     // status-line
     header_str =
-        response.http_version + ' ' + response.status_code_phrase + "\r\n";
+        http_version + ' ' + status_code_phrase + "\r\n";
 
     // header-fiels
-    for (iterator it = response.header_fields.begin();
-         it != response.header_fields.end(); ++it)
+    for (iterator it = header_fields.begin();
+         it != header_fields.end(); ++it)
         header_str += it->first + ": " + it->second + "\r\n";
 
     // end header
     header_str += "\r\n";
 
     // log status-line
-    std::cout << "Response: " << response.http_version << " "
-              << response.status_code_phrase << std::endl;
+    std::cout << "Response: " << http_version << " "
+              << status_code_phrase << std::endl;
 }
 
-// transfer header_str to Client's unsent_data buffer
-// return 1 if complete, 0 if incomplete
-int AReqHandler::send_header() {
-    Client &client = request->client;
-    int max_bytes;
-
-    max_bytes = BUFFER_SIZE - client.unsent_data.size();
-    if (max_bytes <= 0)  // buffer is full
-        return 0;
-    client.unsent_data += header_str.substr(0, max_bytes);
-    header_str.erase(0, max_bytes);
-    table.set_pollout(client.socket);
-    if (header_str.empty()) return 1;
-    return 0;
-}
 
 bool AReqHandler::response100_expected() {
     std::map<std::string, std::string>::iterator it =
@@ -88,17 +76,20 @@ void AReqHandler::disconnect_client() { client_disconnected = true; }
 
 void AReqHandler::add_to_bytes_sent(size_t n) { bytes_sent += n; }
 
-int AReqHandler::send_html_str(std::string &html_page) {
+// transfer the content of a string to client.unsent_data (ex: http header, or
+// an auto-generated html page)
+// Returns 1 if complete, 0 otherwise
+int AReqHandler::send_str(std::string &str) {
     Client &client = request->client;
     int max_bytes;
 
     max_bytes = BUFFER_SIZE - client.unsent_data.size();
     if (max_bytes <= 0) return 0;
 
-    client.unsent_data += html_page.substr(0, max_bytes);
-    html_page.erase(0, max_bytes);
+    client.unsent_data += str.substr(0, max_bytes);
+    str.erase(0, max_bytes);
     table.set_pollout(client.socket);
-    if (html_page.empty()) return 1;
+    if (str.empty()) return 1;
     return 0;
 }
 

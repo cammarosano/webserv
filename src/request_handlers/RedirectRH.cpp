@@ -8,24 +8,21 @@ RedirectRH::RedirectRH(HttpRequest *request, FdManager &table)
         redirect = request->vserver->redirect;
     else
         redirect = request->route->redirect;
-    response.http_version = "HTTP/1.1";
     response.status_code_phrase = long_to_str(redirect.status_code) + ' ' +
                                   reason_phrases[redirect.status_code];
     response.header_fields["location"] = redirect.location;
-    assemble_header_str();
+    response.assemble_header_str();
 }
 
 RedirectRH::~RedirectRH() {}
 
 int RedirectRH::respond() {
-    if (send_header() == 0)
+    if (send_str(response.header_str) == 0)
         return 0;
-    else
-        state = s_done;
     return 1;
 }
 
-void RedirectRH::abort() { state = s_abort; }
+void RedirectRH::abort() {}
 
 std::map<int, std::string> RedirectRH::init_map() {
     std::map<int, std::string> map;
