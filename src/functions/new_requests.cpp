@@ -113,6 +113,8 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     if (body_size_exceeds(request)) return (new ErrorRH(&request, table, 413));
     if (request.vserver->redirected || request.route->redirected)
         return (new RedirectRH(&request, table));
+    // ressource doesn't exist not an error for post request
+    if (request.method == "POST") return (new PostRH(&request, table));
     resource_path = assemble_ressource_path(request);
     // check if ressource is available
     if (stat(resource_path.c_str(), &sb) == -1)  // resource not found
@@ -131,9 +133,8 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
         if (request.method == "POST")
             return (new CgiPostRH(&request, table, resource_path));
     }
-    if (request.method == "POST")
-        return new PostRH(&request, table);
-    else if (request.method == "GET" || request.method == "HEAD")
+
+    if (request.method == "GET" || request.method == "HEAD")
         return (new StaticRH(&request, table, resource_path));
     else if (request.method == "DELETE") {
         return new DeleteRH(&request, table, resource_path);
