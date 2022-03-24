@@ -3,8 +3,14 @@
 #include <fcntl.h>
 
 PostRH::PostRH(HttpRequest *request, FdManager &table)
-    : AReqHandler(request, table), bd(*request), rcv_data_size(0) {
+    : AReqHandler(request, table), bd(*request) {
+    Route *r = request->route;
+    body = "{ \"success\" : \"true\" }";
+    std::string file_name =
+        request->target.substr(r->prefix.length(), std::string::npos);
+    file_path = r->root + '/' + r->upload_dir + '/' + file_name;
     state = s_start;
+
     if (request->header_fields.find("expect") != request->header_fields.end()) {
         response.http_version = "HTTP/1.1";
         response.status_code_phrase = "100 continue";
@@ -16,17 +22,13 @@ PostRH::PostRH(HttpRequest *request, FdManager &table)
 PostRH::~PostRH() {}
 
 int PostRH::respond() {
-    Route *r = request->route;
     int ret_bd;
-    std::string body = "{ \"success\" : \"true\" }";
-    std::string file_name =
-        request->target.substr(r->prefix.length(), std::string::npos);
-    std::string upload_path = r->root + '/' + r->upload_dir + '/' + file_name;
+
     if (state == s_send_100_continue) {
         if (send_header() == 1) state = s_start;
     }
     if (state == s_start) {
-        fd = open(upload_path.c_str(), O_CREAT | O_WRONLY, 0644);
+        fd = open(file_path.c_str(), O_CREAT | O_WRONLY, 0644);
         if (fd < 0) return 500;
         table.add_fd_write(fd, request->client);
         state = s_receiving_body;

@@ -6,8 +6,8 @@
 class PostRH : public AReqHandler {
    private:
     BodyDecoder bd;
-    std::string buffer;
-    size_t rcv_data_size;
+    std::string file_path;
+    std::string body;
     int fd;
 
     enum {
