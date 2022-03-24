@@ -108,11 +108,13 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
     struct stat sb;
 
+    if (request.vserver->redirected)
+        return (new RedirectRH(&request, table));
     if (!request.route) return (new ErrorRH(&request, table, 404));
+    if (request.route->redirected)
+        return (new RedirectRH(&request, table));
     if (!is_method_allowed(request)) return (new ErrorRH(&request, table, 405));
     if (body_size_exceeds(request)) return (new ErrorRH(&request, table, 413));
-    if (request.vserver->redirected || request.route->redirected)
-        return (new RedirectRH(&request, table));
     resource_path = assemble_ressource_path(request);
     // check if ressource is available
     if (stat(resource_path.c_str(), &sb) == -1)  // resource not found
