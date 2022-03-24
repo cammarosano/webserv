@@ -133,7 +133,6 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
         if (request.method == "POST")
             return (new CgiPostRH(&request, table, resource_path));
     }
-
     if (request.method == "GET" || request.method == "HEAD")
         return (new StaticRH(&request, table, resource_path));
     else if (request.method == "DELETE") {

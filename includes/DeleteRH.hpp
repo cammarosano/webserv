@@ -12,7 +12,7 @@ class DeleteRH : public AReqHandler {
 
    private:
     std::string ressource_path;
-    std::ostringstream body;
+    std::string body;
 
     virtual int respond();
     virtual void abort();

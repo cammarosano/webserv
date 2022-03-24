@@ -1,13 +1,15 @@
 #if !defined(__CONFIG_PARSER_H__)
 #define __CONFIG_PARSER_H__
 
+#include <stdlib.h>  // EXIT_FAILURE
+
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include "config.hpp"
-#include <stdlib.h> // EXIT_FAILURE
-#include "utils.h"
 
+#include "config.hpp"
+#include "utils.h"
 
 class ConfigParser {
    private:

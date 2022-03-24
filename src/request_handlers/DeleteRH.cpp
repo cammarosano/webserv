@@ -10,16 +10,19 @@ DeleteRH::DeleteRH(HttpRequest *request, FdManager &table,
 DeleteRH::~DeleteRH() {}
 
 int DeleteRH::setup() {
-    body << "<html> <body><h1>ressource deleted</h1></body> </html>";
+    std::ostringstream temp;
+
+    temp << "<html> <body><h1>ressource deleted</h1></body> </html>";
     if (remove(ressource_path.c_str()) == -1) {
         // TODO
         throw std::exception();
     }
     response.http_version = "HTTP/1.1";
     response.status_code_phrase = "200 OK";
-    response.header_fields["content-length"] = long_to_str(body.str().length());
+    response.header_fields["content-length"] = long_to_str(temp.str().length());
     assemble_header_str();
     state = s_sending_header;
+    this->body = temp.str();
     return 0;
 }
 
@@ -28,8 +31,7 @@ int DeleteRH::respond() {
         if (send_header() == 1) state = s_sending_html_str;
     }
     if (state == s_sending_html_str) {
-        std::string temp = body.str();
-        if (send_html_str(temp) == 1) {
+        if (send_html_str(body) == 1) {
             state = s_done;
         }
     }

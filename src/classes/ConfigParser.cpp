@@ -1,12 +1,12 @@
 #include "ConfigParser.hpp"
 
-
 ConfigParser::ConfigParser(std::string &file_name) : curr_vs(NULL) {
     _f.open(file_name.c_str());
 
     if (!_f.good()) {
         std::cerr << "Error: failed to open: " << file_name << std::endl;
-        exit(EXIT_FAILURE);
+        _f.close();
+        throw std::exception();
     }
     _parse_config_file();
 }
