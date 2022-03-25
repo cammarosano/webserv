@@ -32,11 +32,8 @@
 
 - ### "Try to always use the most "C++" code possible (for example use <cstring> over <string.h>)."
 
-- ### Memory clean up when exiting program
-
 - ### Header fields in the Http response:
-  - content-type
-  - date
+   - date
 
 - ### make request Header parser more robust
 
