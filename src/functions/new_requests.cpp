@@ -46,12 +46,10 @@ void new_requests(FdManager &table)
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
         HttpRequest *request = new_HttpRequest(client);
-        if (!request) // check time-out or header above limit
+        if (!request) // check if header above limit
         {
-            // if (is_request_timeout(client)) // TODO: move this to reaper
-            //     send_error_resp_no_request(client, table, 408);
-            // else if (client.received_data.size() == BUFFER_SIZE)
-            //     send_error_resp_no_request(client, table, 431);
+            if (client.received_data.size() == BUFFER_SIZE)
+                send_error_resp_no_request(client, table, 431);
             continue;
         }
         AReqHandler *req_handler;

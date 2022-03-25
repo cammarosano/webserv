@@ -48,13 +48,17 @@ struct Client {
     ~Client();
 
 	// state
-    enum {idle, incoming_request, ongoing_response} state;
+    enum e_state {idle, incoming_request, ongoing_response} state;
     void update_state();
+    void update_state(e_state new_state);
 
     // sets 
     static std::set<Client*> idle_clients;
     static std::set<Client*> incoming_req_clients;
     static std::set<Client*> ongoing_resp_clients;
+
+    // instances counter
+    static int counter;
 
 	private:
     // get ip address and host name

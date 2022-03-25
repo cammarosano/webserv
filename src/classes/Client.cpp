@@ -20,6 +20,8 @@ request_handler(NULL)
 
     // time-out monitoring
     last_io = time(NULL);
+
+    ++counter;
 }
 
 Client::~Client()
@@ -36,6 +38,8 @@ Client::~Client()
         delete request;
         delete request_handler;
     }
+
+    --counter;
 }
 
 void Client::get_client_info(sockaddr &sa)
@@ -52,37 +56,47 @@ void Client::get_client_info(sockaddr &sa)
     host_name = host;
 }
 
-// changes state:
+void Client::update_state(e_state new_state)
+{
+    if (state == new_state)
+        return;
+
+    // remove from old state set
+    if (state == idle)
+        idle_clients.erase(this);
+    else if (state == incoming_request)
+        incoming_req_clients.erase(this);
+    else
+        ongoing_resp_clients.erase(this);
+
+    // add to new state set
+    if (new_state == idle)
+        idle_clients.insert(this);
+    else if (new_state == incoming_request)
+        incoming_req_clients.insert(this);
+    else 
+        ongoing_resp_clients.insert(this);
+    
+    // update state
+    state = new_state;
+}
+
+// changes state automatically:
 // idle -> incoming_resquest
 // incoming_request -> ongoing_response
 // ongoing_response -> idle (if received_data is empty) || incoming_request
 void Client::update_state()
 {
     if (state == idle)
-    {
-        state = incoming_request;
-        idle_clients.erase(this);
-        incoming_req_clients.insert(this);
-    }
+        update_state(incoming_request);
     else if (state == incoming_request)
-    {
-        state = ongoing_response;
-        incoming_req_clients.erase(this);
-        ongoing_resp_clients.insert(this);
-    }
+        update_state(ongoing_response);
     else
     {
-        ongoing_resp_clients.erase(this);
         if (received_data.empty())
-        {
-            state = idle;
-            idle_clients.insert(this);
-        }
+            update_state(idle);
         else
-        {
-            state = incoming_request;
-            incoming_req_clients.insert(this);
-        }
+            update_state(incoming_request);
     }
 }
 
@@ -90,3 +104,4 @@ void Client::update_state()
 std::set<Client*> Client::idle_clients;
 std::set<Client*> Client::incoming_req_clients;
 std::set<Client*> Client::ongoing_resp_clients;
+int Client::counter = 0;

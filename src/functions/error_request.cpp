@@ -14,4 +14,6 @@ void send_error_resp_no_request(Client &client, FdManager &table, int error_code
 	client.received_data.clear();
 	table.unset_pollin(client.socket);
 	client.disconnect_after_send = true;
+	client.update_state(Client::idle); 
+	// shall be reaped by connection time-out if data is never sent
 }

@@ -70,7 +70,6 @@ void read_from_fd(int fd, FdManager &table)
             " destinated to client at socket " << client.socket << std::endl;
 }
 
-
 void send_to_client(int socket, FdManager &table, time_t current_time)
 {
     Client &client = *table[socket].client;

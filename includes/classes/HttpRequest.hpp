@@ -6,7 +6,7 @@
 # include "utils.h"
 
 // forward declaration
-struct Client; // TODO: considerer removing the Client attribute. Client OWNS request
+struct Client;
 
 /*
 Holds all info from the HEADER of an HTTP request.
@@ -23,7 +23,7 @@ struct HttpRequest {
 
     HttpRequest(Client &client, std::string &header_str);
 
-   private:
+private:
     int parse_header(std::string &header_str);
     void resolve_vserver();
     void resolve_route();

@@ -45,7 +45,7 @@ void time_out_requests(FdManager &table, time_t now)
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
 		if (difftime(now, client.time_begin_request) > REQUEST_TIME_OUT)
-			remove_client(client, table, "webserv (request time-out)");
+			send_error_resp_no_request(client, table, 408);
 	}
 }
 
@@ -74,7 +74,8 @@ void time_out_idle_clients(FdManager &table, time_t now)
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
-		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT)
+		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT
+			|| Client::counter > N_CLIENTS_CLEANUP)
 			remove_client(client, table, "webserv (connection time-out)");
 	}
 }

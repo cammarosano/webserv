@@ -2,3 +2,5 @@ http://localhost:3000
 http://localhost:3001
 http://localhost:3000/form.html
 http://localhost:3001/tagada/
+http://localhost:3000/cgi/test.py?query=string
+http://localhost:3000/cgi/test.py POST bodybodybody

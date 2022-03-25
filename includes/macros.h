@@ -7,6 +7,7 @@
 # define RESPONSE_TIME_OUT 5 // seconds
 # define CONNECTION_TIME_OUT 10 // seconds (LOW VALUE FOR TESTING)
 # define REAPER_FREQUENCY 5 // seconds
+# define N_CLIENTS_CLEANUP 50
 # define POLL_TIME_OUT 2000 // miliseconds
 # define DEFAULT_MIME "text/plain"
 # ifndef DEBUG
