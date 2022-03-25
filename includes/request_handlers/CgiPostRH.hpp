@@ -13,7 +13,6 @@ private:
 	size_t	max_body_size;
 
 	int setup();
-	void release_resources();
 
 public:
 	CgiPostRH(HttpRequest *request, FdManager &table,
@@ -21,7 +20,7 @@ public:
 	~CgiPostRH();
 
 	virtual int respond();
-	virtual void abort();
+	virtual int time_out_code();
 };
 
 #endif

@@ -1,12 +1,6 @@
 #include "includes.hpp"
 
-void update_time_last_activ(Client &client)
-{
-    if (client.ongoing_response)
-        client.ongoing_response->update_last_io_activ();
-}
-
-void recv_from_client(int socket, FdManager &table)
+void recv_from_client(int socket, FdManager &table, time_t now)
 {
     char buffer[BUFFER_SIZE];
     Client &client = *table[socket].client;
@@ -20,16 +14,21 @@ void recv_from_client(int socket, FdManager &table)
     if (recvd_bytes == -1) // error
     {
         if (DEBUG) perror("read"); // REMOVE THIS BEFORE PUSH
-        disconnect_client(client, table, "webserv(read error)");
+        remove_client(client, table, "webserv(read error)");
         return;
     }
     if (recvd_bytes == 0) // connection closed by the client
     {
         if (DEBUG) std::cout << "socket " << socket << ": ";
-        disconnect_client(client, table, "peer");
+        remove_client(client, table, "peer");
         return;
     }
     client.received_data.append(buffer, recvd_bytes);
+    if (client.state == Client::idle)
+    {
+        client.update_state();
+        client.time_begin_request = now;
+    }
 
     // debug
     if (DEBUG)
@@ -54,7 +53,7 @@ void read_from_fd(int fd, FdManager &table)
     if (read_bytes == -1)
     {
         if (DEBUG) perror("read"); // REMOVE BEFORE PUSH
-        disconnect_client(client, table, "webserv (read error)");
+        remove_client(client, table, "webserv (read error)");
         return;
     }
     if (read_bytes == 0) // EOF
@@ -71,7 +70,7 @@ void read_from_fd(int fd, FdManager &table)
             " destinated to client at socket " << client.socket << std::endl;
 }
 
-void send_to_client(int socket, FdManager &table)
+void send_to_client(int socket, FdManager &table, time_t current_time)
 {
     Client &client = *table[socket].client;
     int bytes_sent;
@@ -86,7 +85,7 @@ void send_to_client(int socket, FdManager &table)
     if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
     {
         if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
-        disconnect_client(client, table, "webserv (write error)");
+        remove_client(client, table, "webserv (write error)");
         return;
     }
     client.unsent_data.erase(0, bytes_sent);
@@ -94,14 +93,15 @@ void send_to_client(int socket, FdManager &table)
     {
         if (client.disconnect_after_send)
         {
-            disconnect_client(client, table, "webserv");
+            remove_client(client, table, "webserv");
             return;
         }
         table.unset_pollout(client.socket);
     }
-    update_time_last_activ(client);
-    if (client.ongoing_response)
-        client.ongoing_response->add_to_bytes_sent(bytes_sent);
+    if (client.state == Client::ongoing_response)
+        client.request_handler->add_to_bytes_sent(bytes_sent);
+
+    client.last_io = current_time;
 
     // debug
     if (DEBUG)
@@ -126,7 +126,7 @@ void write_to_fd(int fd, FdManager &table)
     if (bytes_written == -1 || bytes_written == 0) // should we consider write 0 error?
     {
         if (DEBUG) perror("write"); // REMOVE BEFORE PUSH 
-        disconnect_client(client, table, "webserv (write error)");
+        remove_client(client, table, "webserv (write error)");
         return;
     }
     client.decoded_body.erase(0, bytes_written);

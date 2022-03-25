@@ -124,35 +124,6 @@ char **ACgiRH::setup_cgi_env()
     return (envp);
 }
 
-// CONSIDER REMOVING THIS
-// returns true if cgi process exited with code other than 0
-// updates child_process.wait_done
-bool ACgiRH::cgi_failed()
-{
-    int wstatus;
-    int ret;
 
-    ret = waitpid(cgi_process.pid, &wstatus, WNOHANG);
-    if (ret == -1)
-        perror("waitpid");
-    if (ret > 0)
-    {
-        cgi_process.wait_done = true;
-        if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0)
-        {
-            if (DEBUG) std::cout << "ERROR: CGI failed" << std::endl;
-
-            return (true);
-        }
-    }
-    return (false);
-}
-
-// todo: improve this based on the state (is it a client or a server problem?)
-int ACgiRH::time_out_abort()
-{
-    abort();
-    if (state <= s_recv_req_body)
-        return (408);
-    return(504);
-}
+// static variable
+std::list<pid_t> ACgiRH::child_processes;

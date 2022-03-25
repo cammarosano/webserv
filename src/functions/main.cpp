@@ -24,7 +24,10 @@ void do_io(FdManager &table)
     {
         std::cout << "poll() returned " << n_fds << std::endl;
         table.debug_info();
+        std::cout << "max fd number: " << table.len() << std::endl;
     }
+
+    time_t current_time = time(NULL);
 
     // iterate over poll_array
     for (int fd = 3; fd < table.len() && n_fds; fd++)
@@ -38,14 +41,14 @@ void do_io(FdManager &table)
             if (table[fd].type == fd_listen_socket)
                 accept_connection(fd, table);
             else if (table[fd].type == fd_client_socket)
-                recv_from_client(fd, table);
+                recv_from_client(fd, table, current_time);
             else if (table[fd].type == fd_read)
                 read_from_fd(fd, table);
         }
         if (revents & POLLOUT) // fd ready for writing
         {
             if (table[fd].type == fd_client_socket)
-                send_to_client(fd, table);
+                send_to_client(fd, table, current_time);
             else if (table[fd].type == fd_write)
                 write_to_fd(fd, table);
         }
@@ -58,7 +61,6 @@ void signal_handler(int) {stop = true;}
 int main(void)
 {
     FdManager table;
-    std::list<AReqHandler *> req_handlers;
 
     signal(SIGINT, signal_handler);
     if (setup(table) == -1)
@@ -66,9 +68,10 @@ int main(void)
     while (!stop)
     {
         do_io(table);
-        new_requests(req_handlers, table);
-        handle_requests(req_handlers, table);
+        new_requests(table);
+        handle_requests(table);
+        reaper(table);
     }
-    clear_resources(table, req_handlers);
+    clear_resources(table);
     return (0);
 }

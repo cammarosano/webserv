@@ -28,7 +28,17 @@ ACgiRH(request, table, script_path), bd(*request)
 
 CgiPostRH::~CgiPostRH()
 {
-	release_resources();
+	if (state > s_start)
+		table.remove_fd(cgi_output_fd);
+	if (state > s_start && state < s_recving_cgi_output)
+		table.remove_fd(cgi_input_fd);
+	if (state < s_recving_cgi_output)
+		close(cgi_input_fd);
+
+	close(cgi_output_fd);
+
+    if (waitpid(cgi_process, NULL, WNOHANG) == 0)
+        child_processes.push_back(cgi_process);
 }
 
 int CgiPostRH::setup()
@@ -53,8 +63,8 @@ int CgiPostRH::setup()
 	}
 	
 	// fork
-	cgi_process.pid = fork();
-    if (cgi_process.pid == -1)
+	cgi_process = fork();
+    if (cgi_process == -1)
     {
         perror("fork");
 		close(pipe_in[0]);
@@ -64,7 +74,7 @@ int CgiPostRH::setup()
         return (-1);
 	}
 
-	if (cgi_process.pid == 0) // child process
+	if (cgi_process == 0) // child process
 	{
 		// setup argv and envp for execve
 		char **argv = setup_cgi_argv();
@@ -110,7 +120,7 @@ int CgiPostRH::setup()
 
 	// parent process
 	if (DEBUG)
-		std::cout << "pid cgi process: " << cgi_process.pid << std::endl;
+		std::cout << "pid cgi process: " << cgi_process << std::endl;
 	close(pipe_out[1]); // close pipe out write end
 	close(pipe_in[0]); // close pipe in read end
 	cgi_output_fd = pipe_out[0];
@@ -121,11 +131,6 @@ int CgiPostRH::setup()
 int CgiPostRH::respond()
 {
 	int ret_bd;
-
-	if (state == s_abort)
-		return (-1);
-	// if (!cgi_process.wait_done && cgi_failed())
-	// 	return (502); // release_ressources done by destructor
 
 	switch (state)
 	{
@@ -163,8 +168,6 @@ int CgiPostRH::respond()
 			return (0);
 		if (bytes_sent == 0)
 			return (502);
-		table.remove_fd(cgi_output_fd);
-        close(cgi_output_fd);
 		state = s_done;
 
 	default: // case s_done
@@ -172,24 +175,9 @@ int CgiPostRH::respond()
 	}
 }
 
-void CgiPostRH::abort()
+int CgiPostRH::time_out_code()
 {
-	release_resources();
-	state = s_abort;
-}
-
-void CgiPostRH::release_resources()
-{
-	if (state < s_recving_cgi_output)
-	{
-		close(cgi_input_fd);
-		table.remove_fd(cgi_input_fd);
-	}
-	if (state < s_done)
-	{
-		table.remove_fd(cgi_output_fd);
-		close(cgi_output_fd);
-	}
-	if (state < s_abort && !cgi_process.wait_done)
-		table.add_child_to_reap(cgi_process);
+    if (state <= s_recv_req_body)
+        return (408);
+    return (504);
 }

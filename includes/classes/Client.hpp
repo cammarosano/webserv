@@ -9,9 +9,15 @@
 # include <iostream>
 # include <stdio.h> // perror
 # include <ctime>
+# include "macros.h"
+# include <queue>
+# include <set>
+# include <unistd.h>
+# include "ARequestHandler.hpp"
 
 // forward declaration
 class AReqHandler;
+struct HttpRequest;
 
 struct Client {
     int socket;
@@ -19,7 +25,6 @@ struct Client {
     std::string ipv4_addr;
     std::string host_name;
 
-    bool rh_locked; // former "state". true means locked by Request Handler
     bool disconnect_after_send;
 
     // buffers
@@ -27,15 +32,33 @@ struct Client {
     std::string unsent_data;
     std::string decoded_body;
 
-    // ongoing response
-    AReqHandler *ongoing_response;
+    // ongoing response (NULL if no response in course)
+    HttpRequest *request;
+    AReqHandler *request_handler;
 
-	// time-out
-    bool incoming_request;
+	// time-out request
     time_t time_begin_request;
+
+    // time-out inactive client
+    time_t last_io; // send2client || init_response
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
+    // destructor
+    ~Client();
+
+	// state
+    enum e_state {idle, incoming_request, ongoing_response} state;
+    void update_state();
+    void update_state(e_state new_state);
+
+    // sets 
+    static std::set<Client*> idle_clients;
+    static std::set<Client*> incoming_req_clients;
+    static std::set<Client*> ongoing_resp_clients;
+
+    // instances counter
+    static int counter;
 
 	private:
     // get ip address and host name

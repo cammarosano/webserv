@@ -5,13 +5,15 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
       client(request->client),
       table(table),
       client_disconnected(false),
-      bytes_sent(0) {
-    update_last_io_activ();
+      bytes_sent(0)
+{
 }
 
 AReqHandler::~AReqHandler() {}
 
 HttpRequest *AReqHandler::getRequest() { return request; }
+
+Client *AReqHandler::getClient() { return &client; }
 
 void AReqHandler::HttpResponse::assemble_header_str() {
     typedef std::map<std::string, std::string>::iterator iterator;
@@ -49,32 +51,12 @@ bool AReqHandler::response100_expected() {
     return (false);
 }
 
-void AReqHandler::update_last_io_activ() { std::time(&last_io_activity); }
-
-bool AReqHandler::is_time_out() {
-    if (std::difftime(time(NULL), last_io_activity) > RESPONSE_TIME_OUT)
-        return (true);
-    return (false);
+// returns error_code for time-out response
+int AReqHandler::time_out_code()
+{
+    return (408); // in doubt, blame it on the client
 }
 
-// trying to unlock a disconnectedd client
-// or one locked by a different RH instance has no effect
-void AReqHandler::unlock_client() {
-    if (client_disconnected) return;
-    if (client.rh_locked && client.ongoing_response == this) {
-        client.rh_locked = false;
-        client.ongoing_response = NULL;
-    }
-}
-
-// trying to lock a already locked client raises an exception
-void AReqHandler::lock_client() {
-    if (client.rh_locked) throw(std::exception());
-    client.rh_locked = true;
-    client.ongoing_response = this;
-}
-
-void AReqHandler::disconnect_client() { client_disconnected = true; }
 
 void AReqHandler::add_to_bytes_sent(size_t n) { bytes_sent += n; }
 
@@ -93,12 +75,6 @@ int AReqHandler::send_str(std::string &str) {
     table.set_pollout(client.socket);
     if (str.empty()) return 1;
     return 0;
-}
-
-int AReqHandler::time_out_abort()
-{
-    abort();
-    return (408); // in doubt, blame it on the client
 }
 
 // static variable

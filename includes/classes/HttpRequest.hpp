@@ -5,6 +5,9 @@
 # include "config.hpp"
 # include "utils.h"
 
+// forward declaration
+struct Client;
+
 /*
 Holds all info from the HEADER of an HTTP request.
 Upon construction, a string containing the header of a request is parsed,
@@ -20,7 +23,7 @@ struct HttpRequest {
 
     HttpRequest(Client &client, std::string &header_str);
 
-   private:
+private:
     int parse_header(std::string &header_str);
     void resolve_vserver();
     void resolve_route();

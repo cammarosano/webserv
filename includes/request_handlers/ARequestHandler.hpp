@@ -8,6 +8,10 @@
 #include "macros.h"
 #include "utils.h"
 
+// forward declaration
+struct HttpRequest;
+class FdManager;
+
 /*
 Abstract class for request handlers
 Request handlers for a specific kind of response (ex: serve a static file)
@@ -18,7 +22,6 @@ class AReqHandler {
     HttpRequest *request;
     Client &client;
     FdManager &table;
-    time_t last_io_activity;
     bool client_disconnected;
     size_t bytes_sent;
 
@@ -41,15 +44,10 @@ class AReqHandler {
     virtual ~AReqHandler();
 
     virtual int respond() = 0;
-    virtual void abort() = 0;
-    virtual int time_out_abort();
+    virtual int time_out_code();
 
-    bool is_time_out();
     HttpRequest *getRequest();
-    void update_last_io_activ();
-    void lock_client();
-    void unlock_client();
-    void disconnect_client();
+    Client *getClient();
     void add_to_bytes_sent(size_t n);
 
 	// maps extensions to content-type

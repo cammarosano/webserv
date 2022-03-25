@@ -9,7 +9,6 @@ class CgiGetRH: public ACgiRH
 
 private:
 	int setup();
-	void release_resources();
 
 public:
 	CgiGetRH(HttpRequest *request, FdManager &table,
@@ -17,7 +16,7 @@ public:
 	~CgiGetRH();
 
 	virtual int respond();
-	virtual void abort();
+	virtual int time_out_code();
 };
 
 

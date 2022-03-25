@@ -6,12 +6,12 @@ ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
 }
 
 ErrorRH::~ErrorRH() {
-    if (res_type == sending_file && state < s_done) {
+    if (res_type == sending_file)
+    {
         close(fd);
         table.remove_fd(fd);
     }
 }
-
 
 // true if found, and puts it in file_name
 bool ErrorRH::look_up_err_page(std::map<int, std::string> &error_pages,
@@ -104,27 +104,15 @@ int ErrorRH::respond() {
     }
     if (state == s_sending_file) {
         if (table[fd].is_EOF) {
-            close(fd);
-            table.remove_fd(fd);
             state = s_done;
         }
     }
     if (state == s_done) return (1);
-    if (state == s_abort) return (-1);
     return (0);
 }
 
-void ErrorRH::abort() {
-    if (res_type == sending_file) {
-        close(fd);
-        table.remove_fd(fd);
-    }
-    state = s_abort;
-}
-
-int ErrorRH::time_out_abort()
+int ErrorRH::time_out_code()
 {
-    abort();
     return (0); // means: no error response to inform this time, as this already
                 // is an error response
 }

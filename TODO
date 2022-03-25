@@ -4,11 +4,13 @@ directoryRH error
 
 Python tests
 
-Time out inactive clients
-
-unify send_header and send_html_page (send... string?)
+Test time-outs and header bigger than buffer
 
 Response: handle keep-alive or not.
+
+remove trailing spaces from received_data buffer
+
+Scenario: response if finished and new request is already in client's received_data. Poll with block?
 
 make file_fd and pipes fd non-blocking 
 

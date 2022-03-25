@@ -8,6 +8,9 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
+// forward declaration
+struct Client;
+
 enum e_fd_type
 {
 	fd_none,
@@ -23,14 +26,6 @@ struct fd_info {
     bool is_EOF;
 
     fd_info() : type(fd_none), client(NULL), is_EOF(false) {}
-};
-
-struct child_process {
-    pid_t pid;
-    bool wait_done;
-    bool sigterm_sent;
-
-    child_process() : wait_done(false), sigterm_sent(false) {}
 };
 
 /*
@@ -51,7 +46,6 @@ private:
 	int				capacity;
 	std::set<int>	fd_set;
 	std::map<int, std::list<Vserver> >	vservers_map;
-	std::list<child_process> child_proc_list;
 
 	void	reallocate();
 
@@ -76,9 +70,6 @@ public:
 	fd_info & operator[](int fd);
 
 	void debug_info() const;
-
-	void add_child_to_reap(child_process &child);
-	int reap_child_processes();
 };
 
 #endif

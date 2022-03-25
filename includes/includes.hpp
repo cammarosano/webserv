@@ -59,27 +59,29 @@ int parse_mime_types_file(std::map<std::string, std::string> &map);
 // IO
 
 void accept_connection(int listen_socket, FdManager &table);
-void recv_from_client(int socket, FdManager &table);
+void recv_from_client(int socket, FdManager &table, time_t now);
 void read_from_fd(int fd, FdManager &table);
-void send_to_client(int socket, FdManager &table);
+void send_to_client(int socket, FdManager &table, time_t current_time);
 void write_to_fd(int fd_cgi_input, FdManager &table);
 
 // process requests
 
-int new_requests(std::list<AReqHandler *> &req_handlers_lst, FdManager &table);
-int handle_requests(std::list<AReqHandler *> &list, FdManager &table);
+void new_requests(FdManager &table);
+AReqHandler *init_response(HttpRequest &request, FdManager &table);
+void handle_requests(FdManager &table);
 
 // clear
 
-void disconnect_client(Client &client, FdManager &table, const char *who);
-void clear_rh(AReqHandler *req_handler);
-void clear_resources(FdManager &table, std::list<AReqHandler*> &list);
-
-// time-out
-bool is_request_timeout(Client &client);
+void remove_client(Client &client, FdManager &table, const char *who);
+void replace_req_handler(Client &client, int error_code, FdManager &table);
+void clear_resources(FdManager &table);
+int reap_child_processes(std::list<pid_t> &list);
 
 // error-response without request
 void send_error_resp_no_request(Client &client, FdManager &table,
 								int error_code);
+
+// time-out
+void reaper(FdManager &table);
 
 #endif

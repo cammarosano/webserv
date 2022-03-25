@@ -30,7 +30,6 @@ class StaticRH : public AReqHandler {
     ~StaticRH();
 
     virtual int respond();
-    virtual void abort();
 };
 
 #endif
