@@ -6,12 +6,15 @@ ACgiRH(request, table, script_path)
 {
     if (setup() == -1)
         throw (std::exception());
-    state = s_start;
+    state = s_recving_cgi_output;
 }
 
 CgiGetRH::~CgiGetRH()
 {
-    release_resources();
+    table.remove_fd(cgi_output_fd);
+    close(cgi_output_fd);
+    if (waitpid(cgi_process, NULL, WNOHANG) == 0)
+        child_processes.push_back(cgi_process);
 }
 
 int CgiGetRH::setup()
@@ -26,8 +29,8 @@ int CgiGetRH::setup()
     }
 
     // fork
-    cgi_process.pid = fork();
-    if (cgi_process.pid == -1)
+    cgi_process = fork();
+    if (cgi_process == -1)
     {
         perror("fork");
         close(pipefd[0]);
@@ -35,7 +38,7 @@ int CgiGetRH::setup()
         return (-1);
     }
 
-    if (cgi_process.pid == 0) // child process
+    if (cgi_process == 0) // child process
     {
         // setup argv and envp for execve
         char **argv = setup_cgi_argv();
@@ -73,51 +76,24 @@ int CgiGetRH::setup()
 
     // parent process
     if (DEBUG)
-        std::cout << "pid cgi process: " << cgi_process.pid << std::endl;
+        std::cout << "pid cgi process: " << cgi_process << std::endl;
     close(pipefd[1]); // close write-end
     cgi_output_fd = pipefd[0];
+    table.add_fd_read(cgi_output_fd, client);
     return (0);
 }
 
 int CgiGetRH::respond()
 {
-    if (state == s_abort)
-        return (-1);
-
-    switch (state)
-    {
-    case s_start:
-        table.add_fd_read(cgi_output_fd, request->client);
-        state = s_recving_cgi_output;
-
-    case s_recving_cgi_output:
-        if (!table[cgi_output_fd].is_EOF) // not finished
-            return (0);
-        // if (cgi_failed() || bytes_sent == 0)
-        if (bytes_sent == 0)
-            return (502);
-        table.remove_fd(cgi_output_fd);
-        close(cgi_output_fd);
-        state = s_done;
-
-    default: // case s_done:
-        return (1);
-    }
+    if (!table[cgi_output_fd].is_EOF) // not finished
+        return (0);
+    if (bytes_sent == 0) // GCI failed
+        return (502);
+    state = s_done;
+    return (1);
 }
 
-void CgiGetRH::abort()
+int CgiGetRH::time_out_code()
 {
-    release_resources();
-    state = s_abort;
-}
-
-void CgiGetRH::release_resources()
-{
-    if (state < s_done)
-    {
-        table.remove_fd(cgi_output_fd);
-        close(cgi_output_fd);
-    }
-    if (state < s_abort && !cgi_process.wait_done)
-        table.add_child_to_reap(cgi_process);
+    return (504);
 }

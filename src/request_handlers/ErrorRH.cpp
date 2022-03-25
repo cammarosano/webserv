@@ -122,7 +122,7 @@ void ErrorRH::abort() {
     state = s_abort;
 }
 
-int ErrorRH::time_out_abort()
+int ErrorRH::time_out_code()
 {
     abort();
     return (0); // means: no error response to inform this time, as this already

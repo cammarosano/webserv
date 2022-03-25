@@ -5,8 +5,10 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
       client(request->client),
       table(table),
       client_disconnected(false),
-      bytes_sent(0) {
+      bytes_sent(0)
+{
     set_last_io_activ(time(NULL));
+    
 }
 
 AReqHandler::~AReqHandler() {}
@@ -63,10 +65,9 @@ bool AReqHandler::is_time_out(time_t current_time) {
 }
 
 
-// calls abort() and returns error_code for time-out response
-int AReqHandler::time_out_abort()
+// returns error_code for time-out response
+int AReqHandler::time_out_code()
 {
-    abort();
     return (408); // in doubt, blame it on the client
 }
 

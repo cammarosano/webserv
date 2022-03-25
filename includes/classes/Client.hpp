@@ -11,9 +11,13 @@
 # include <ctime>
 # include "macros.h"
 # include <queue>
+# include <set>
+# include <unistd.h>
+# include "ARequestHandler.hpp"
 
 // forward declaration
 class AReqHandler;
+struct HttpRequest;
 
 struct Client {
     int socket;
@@ -29,19 +33,28 @@ struct Client {
     std::string decoded_body;
 
     // ongoing response (NULL if no response in course)
-    AReqHandler *ongoing_response;
+    HttpRequest *request;
+    AReqHandler *request_handler;
 
 	// time-out request
-    bool begin_request;
     time_t time_begin_request;
 
     // time-out inactive client
     time_t last_io; // monitoring just send2client
-    static std::queue<std::pair<time_t, int> > inactive_clients;
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
+    // destructor
+    ~Client();
 
+	// state
+    enum {idle, incoming_request, ongoing_response} state;
+    void update_state();
+
+    // sets 
+    static std::set<Client*> idle_clients;
+    static std::set<Client*> incoming_req_clients;
+    static std::set<Client*> ongoing_resp_clients;
 
 	private:
     // get ip address and host name

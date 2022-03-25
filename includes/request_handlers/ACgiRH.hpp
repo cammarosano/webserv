@@ -13,7 +13,7 @@ protected:
 	std::string script_path;
 	std::string query_str;
 	int	cgi_output_fd;
-    child_process cgi_process;
+    pid_t cgi_process;
     enum e_state // order matters!!
     {
         s_send_100_response,
@@ -36,11 +36,12 @@ private:
 
 public:
     ACgiRH(HttpRequest *request, FdManager &table, std::string &script_path);
-    ~ACgiRH();
+    virtual ~ACgiRH();
 
     virtual int respond() = 0;
-    virtual void abort() = 0;
-    virtual int time_out_abort();
+    virtual int time_out_code() = 0;
+
+    static std::list<pid_t> child_processes;
 };
 
 #endif

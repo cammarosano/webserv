@@ -4,7 +4,7 @@
 
 #include "ARequestHandler.hpp"
 
-class DeleteRH : public ARequestHandler {
+class DeleteRH : public AReqHandler {
    public:
     DeleteRH(HttpRequest *request, FdManager &table,
              std::string &ressource_path);

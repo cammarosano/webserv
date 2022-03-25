@@ -5,6 +5,9 @@
 # include "config.hpp"
 # include "utils.h"
 
+// forward declaration
+struct Client; // TODO: considerer removing the Client attribute. Client OWNS request
+
 /*
 Holds all info from the HEADER of an HTTP request.
 Upon construction, a string containing the header of a request is parsed,

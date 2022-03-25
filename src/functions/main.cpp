@@ -2,7 +2,7 @@
 
 // calls poll()
 // does all read() and write() operations
-void do_io(FdManager &table, std::queue<Client*> &incoming_requests)
+void do_io(FdManager &table)
 {
     int n_fds;
     time_t current_time = time(NULL);
@@ -40,7 +40,7 @@ void do_io(FdManager &table, std::queue<Client*> &incoming_requests)
             if (table[fd].type == fd_listen_socket)
                 accept_connection(fd, table);
             else if (table[fd].type == fd_client_socket)
-                recv_from_client(fd, table, incoming_requests);
+                recv_from_client(fd, table);
             else if (table[fd].type == fd_read)
                 read_from_fd(fd, table);
         }
@@ -60,19 +60,17 @@ void signal_handler(int) {stop = true;}
 int main(void)
 {
     FdManager table;
-    std::queue<Client *> incoming_requests;
-    std::list<AReqHandler *> req_handlers;
 
     signal(SIGINT, signal_handler);
     if (setup(table) == -1)
         return (1);
     while (!stop)
     {
-        do_io(table, incoming_requests);
-        new_requests(incoming_requests, req_handlers, table);
-        handle_requests(req_handlers, table);
+        do_io(table);
+        new_requests(table);
+        handle_requests(table);
         reaper(table);
     }
-    clear_resources(table, req_handlers);
+    clear_resources(table);
     return (0);
 }

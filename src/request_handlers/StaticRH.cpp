@@ -11,7 +11,7 @@ StaticRH::StaticRH(HttpRequest *request, FdManager &table, std::string &resource
 StaticRH::~StaticRH()
 {
     close(fd_file);
-    if (state == s_sending_file)
+    if (state >= s_sending_file)
         table.remove_fd(fd_file);
 }
 
@@ -43,9 +43,6 @@ int StaticRH::setup()
 // -1 if response was aborted
 int StaticRH::respond()
 {
-    if (state == s_abort)
-        return (-1);
-
     switch (state)
     {
     case s_sending_header:
@@ -62,7 +59,6 @@ int StaticRH::respond()
     case s_sending_file:
         if (!table[fd_file].is_EOF) // incomplete
             return (0);
-        table.remove_fd(fd_file);
         state = s_done;
 
     default: // case s_done
@@ -70,11 +66,3 @@ int StaticRH::respond()
     }
 }
 
-// to be used in case of abrubt connection close from the client side
-// clear ressources and change state
-void StaticRH::abort()
-{
-    if (state == s_sending_file)
-        table.remove_fd(fd_file);
-    state = s_abort; // so it can be removed from the list of request_handlers
-}
