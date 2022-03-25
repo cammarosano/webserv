@@ -10,15 +10,16 @@ request_handler(NULL)
 	// log
 	std::cout << "Connection accepted: " << ipv4_addr << " (" <<
 		host_name << ")" << std::endl;
+
     // planned capacity for buffers
     received_data.reserve(BUFFER_SIZE);
     unsent_data.reserve(BUFFER_SIZE);
 
-    // time-out monitoring
-    last_io = time(NULL);
-
     state = idle;
     idle_clients.insert(this);
+
+    // time-out monitoring
+    last_io = time(NULL);
 }
 
 Client::~Client()

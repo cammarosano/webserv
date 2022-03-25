@@ -22,7 +22,6 @@ class AReqHandler {
     HttpRequest *request;
     Client &client;
     FdManager &table;
-    time_t last_io_activity;
     bool client_disconnected;
     size_t bytes_sent;
 
@@ -47,10 +46,8 @@ class AReqHandler {
     virtual int respond() = 0;
     virtual int time_out_code();
 
-    bool is_time_out(time_t current_time);
     HttpRequest *getRequest();
     Client *getClient();
-    void set_last_io_activ(time_t current_time);
     void add_to_bytes_sent(size_t n);
 
 	// maps extensions to content-type

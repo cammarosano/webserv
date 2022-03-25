@@ -1,6 +1,6 @@
 #include "includes.hpp"
 
-void recv_from_client(int socket, FdManager &table)
+void recv_from_client(int socket, FdManager &table, time_t now)
 {
     char buffer[BUFFER_SIZE];
     Client &client = *table[socket].client;
@@ -25,7 +25,10 @@ void recv_from_client(int socket, FdManager &table)
     }
     client.received_data.append(buffer, recvd_bytes);
     if (client.state == Client::idle)
+    {
         client.update_state();
+        client.time_begin_request = now;
+    }
 
     // debug
     if (DEBUG)
@@ -67,14 +70,6 @@ void read_from_fd(int fd, FdManager &table)
             " destinated to client at socket " << client.socket << std::endl;
 }
 
-// TODO: fix this time mess
-void update_time_last_activ(Client &client, time_t current_time)
-{
-    if (client.request_handler)
-        client.request_handler->set_last_io_activ(current_time);
-    client.last_io = current_time;
-    
-}
 
 void send_to_client(int socket, FdManager &table, time_t current_time)
 {
@@ -104,9 +99,10 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
         }
         table.unset_pollout(client.socket);
     }
-    update_time_last_activ(client, current_time);
-    if (client.request_handler)
+    if (client.state == Client::ongoing_response)
         client.request_handler->add_to_bytes_sent(bytes_sent);
+
+    client.last_io = current_time;
 
     // debug
     if (DEBUG)

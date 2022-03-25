@@ -7,8 +7,6 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
       client_disconnected(false),
       bytes_sent(0)
 {
-    set_last_io_activ(time(NULL));
-    
 }
 
 AReqHandler::~AReqHandler() {}
@@ -52,18 +50,6 @@ bool AReqHandler::response100_expected() {
         return (true);
     return (false);
 }
-
-void AReqHandler::set_last_io_activ(time_t current_time)
-{
-    last_io_activity = current_time;
-}
-
-bool AReqHandler::is_time_out(time_t current_time) {
-    if (std::difftime(current_time, last_io_activity) > RESPONSE_TIME_OUT)
-        return (true);
-    return (false);
-}
-
 
 // returns error_code for time-out response
 int AReqHandler::time_out_code()

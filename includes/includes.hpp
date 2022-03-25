@@ -59,7 +59,7 @@ int parse_mime_types_file(std::map<std::string, std::string> &map);
 // IO
 
 void accept_connection(int listen_socket, FdManager &table);
-void recv_from_client(int socket, FdManager &table);
+void recv_from_client(int socket, FdManager &table, time_t now);
 void read_from_fd(int fd, FdManager &table);
 void send_to_client(int socket, FdManager &table, time_t current_time);
 void write_to_fd(int fd_cgi_input, FdManager &table);
@@ -73,6 +73,7 @@ void handle_requests(FdManager &table);
 // clear
 
 void remove_client(Client &client, FdManager &table, const char *who);
+void replace_req_handler(Client &client, int error_code, FdManager &table);
 void clear_resources(FdManager &table);
 int reap_child_processes(std::list<pid_t> &list);
 

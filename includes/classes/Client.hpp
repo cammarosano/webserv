@@ -40,7 +40,7 @@ struct Client {
     time_t time_begin_request;
 
     // time-out inactive client
-    time_t last_io; // monitoring just send2client
+    time_t last_io; // send2client || init_response
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);

@@ -10,19 +10,11 @@ HttpRequest *new_HttpRequest(Client &client)
     size_t pos = client.received_data.find("\r\n\r\n");
 
     if (pos == std::string::npos) // not found: header is incomplete
-    {
-        // if (client.begin_request == false)
-        // {
-        //     client.time_begin_request = time(NULL);
-        //     client.begin_request = true;
-        // }
         return (NULL);
-    }
 
     // header is complete: consume data
     std::string header_str = client.received_data.substr(0, pos);
     client.received_data.erase(0, pos + 4);
-    // client.begin_request = false;
 
     // debug
     if (DEBUG)
@@ -46,6 +38,7 @@ void new_requests(FdManager &table)
     // iterate over clients with incoming requests
     std::set<Client*>::iterator it;
     std::set<Client*> &set = Client::incoming_req_clients;
+    time_t now = time(NULL);
 
     it = set.begin();
     while (it != set.end())
@@ -74,5 +67,6 @@ void new_requests(FdManager &table)
         client.request = request;
         client.request_handler = req_handler;
         client.update_state();
+        client.last_io = now;
     }
 }

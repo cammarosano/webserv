@@ -32,8 +32,6 @@ class ErrorRH : public AReqHandler {
     ~ErrorRH();
 
     virtual int respond();
-    virtual void abort();
-
     virtual int time_out_code();
 
     static std::map<int, std::string> init_map();

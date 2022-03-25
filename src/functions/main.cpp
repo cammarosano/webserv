@@ -5,7 +5,6 @@
 void do_io(FdManager &table)
 {
     int n_fds;
-    time_t current_time = time(NULL);
 
     // debug
     if (DEBUG)
@@ -28,6 +27,8 @@ void do_io(FdManager &table)
         std::cout << "max fd number: " << table.len() << std::endl;
     }
 
+    time_t current_time = time(NULL);
+
     // iterate over poll_array
     for (int fd = 3; fd < table.len() && n_fds; fd++)
     {
@@ -40,7 +41,7 @@ void do_io(FdManager &table)
             if (table[fd].type == fd_listen_socket)
                 accept_connection(fd, table);
             else if (table[fd].type == fd_client_socket)
-                recv_from_client(fd, table);
+                recv_from_client(fd, table, current_time);
             else if (table[fd].type == fd_read)
                 read_from_fd(fd, table);
         }
