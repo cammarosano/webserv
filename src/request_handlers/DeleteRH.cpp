@@ -15,21 +15,20 @@ int DeleteRH::setup() {
         // TODO
         throw std::exception();
     }
-    response.http_version = "HTTP/1.1";
     response.status_code_phrase = "200 OK";
     response.header_fields["content-length"] = long_to_str(body.str().length());
-    assemble_header_str();
+    response.assemble_header_str();
     state = s_sending_header;
     return 0;
 }
 
 int DeleteRH::respond() {
     if (state == s_sending_header) {
-        if (send_header() == 1) state = s_sending_html_str;
+        if (send_str(response.header_str) == 1) state = s_sending_html_str;
     }
     if (state == s_sending_html_str) {
         std::string temp = body.str();
-        if (send_html_str(temp) == 1) {
+        if (send_str(temp) == 1) {
             state = s_done;
         }
     }

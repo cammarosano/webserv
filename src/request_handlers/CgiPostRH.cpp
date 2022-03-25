@@ -20,7 +20,8 @@ ACgiRH(request, table, script_path), bd(*request)
 	state = s_start;
 	if (response100_expected())
 	{
-		header_str = "HTTP/1.1 100 Continue\r\n\r\n";
+		response.status_code_phrase = "100 Continue";
+		response.assemble_header_str();
 		state = s_send_100_response;
 	}
 }
@@ -129,7 +130,7 @@ int CgiPostRH::respond()
 	switch (state)
 	{
 	case s_send_100_response:
-		if (send_header() == 0) // incomplete
+		if (send_str(response.header_str) == 0) // incomplete
 			return (0);
 		state = s_start;
 		

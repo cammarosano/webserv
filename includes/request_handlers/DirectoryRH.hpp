@@ -13,6 +13,8 @@ class DirectoryRH : public AReqHandler {
     std::string ressource_path;
     std::string html_page;
 
+    enum {s_setup, s_sending_header, s_sending_html_str, s_done, s_abort} state;
+
    public:
     DirectoryRH(HttpRequest *request, FdManager &table,
                 const std::string &ressource_path);
@@ -23,7 +25,6 @@ class DirectoryRH : public AReqHandler {
 
    private:
     void _generate_autoindex_page();
-    int _send_html_str();
     int _setup();
 };
 

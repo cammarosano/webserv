@@ -20,7 +20,7 @@ class PostRH : public AReqHandler {
         s_sending_html_str
     } state;
 
-    int _save_file();
+    int _save_file(); // these 2 functions don't exist! (not defined)
     int _setup();
 
    public:

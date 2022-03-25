@@ -42,29 +42,14 @@ void DirectoryRH::_generate_autoindex_page() {
     html_page = res.str();
 }
 
-int DirectoryRH::_send_html_str() {
-    Client &client = request->client;
-    int max_bytes;
-
-    max_bytes = BUFFER_SIZE - client.unsent_data.size();
-    if (max_bytes <= 0) return 0;
-
-    client.unsent_data += html_page.substr(0, max_bytes);
-    html_page.erase(0, max_bytes);
-    table.set_pollout(client.socket);
-    if (html_page.empty()) return 1;
-    return 0;
-}
-
 int DirectoryRH::_setup() {
     _generate_autoindex_page();
 
-    response.http_version = "HTTP/1.1";
     response.status_code_phrase = "200 OK";
     response.header_fields["content-length"] = long_to_str(html_page.length());
     response.header_fields["content-type"] = "text/html";
 
-    assemble_header_str();
+    response.assemble_header_str();
     return 0;
 }
 
@@ -74,10 +59,10 @@ int DirectoryRH::respond() {
         state = s_sending_header;
     }
     if (state == s_sending_header) {
-        if (send_header() == 1) state = s_sending_html_str;
+        if (send_str(response.header_str) == 1) state = s_sending_html_str;
     }
     if (state == s_sending_html_str) {
-        if (_send_html_str() == 1) state = s_done;
+        if (send_str(html_page) == 1) state = s_done;
     }
     if (state == s_done) return 1;
     if (state == s_abort) return -1;

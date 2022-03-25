@@ -6,9 +6,8 @@ PostRH::PostRH(HttpRequest *request, FdManager &table)
     : AReqHandler(request, table), bd(*request), rcv_data_size(0) {
     state = s_start;
     if (request->header_fields.find("expect") != request->header_fields.end()) {
-        response.http_version = "HTTP/1.1";
         response.status_code_phrase = "100 continue";
-        assemble_header_str();
+        response.assemble_header_str();
         state = s_send_100_continue;
     }
 }
@@ -23,7 +22,7 @@ int PostRH::respond() {
         request->target.substr(r->prefix.length(), std::string::npos);
     std::string upload_path = r->root + '/' + r->upload_dir + '/' + file_name;
     if (state == s_send_100_continue) {
-        if (send_header() == 1) state = s_start;
+        if (send_str(response.header_str) == 1) state = s_start;
     }
     if (state == s_start) {
         fd = open(upload_path.c_str(), O_CREAT | O_WRONLY, 0644);
@@ -40,14 +39,13 @@ int PostRH::respond() {
         state = s_sending_header;
     }
     if (state == s_sending_header) {
-        response.http_version = "HTTP/1.1";
-        response.status_code_phrase = "201 created";
+        response.status_code_phrase = "201 Created";
         response.header_fields["content-length"] = long_to_str(body.length());
-        assemble_header_str();
-        if (send_header() == 1) state = s_sending_html_str;
+        response.assemble_header_str();
+        if (send_str(response.header_str) == 1) state = s_sending_html_str;
     }
     if (state == s_sending_html_str) {
-        if (send_html_str(body) == 1) state = s_done;
+        if (send_str(body) == 1) state = s_done;
     }
     if (state == s_done) return 1;
     if (state == s_abort) return -1;

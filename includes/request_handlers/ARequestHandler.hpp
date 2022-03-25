@@ -18,30 +18,20 @@ class AReqHandler {
     HttpRequest *request;
     Client &client;
     FdManager &table;
-    std::string header_str;
     time_t last_io_activity;
     bool client_disconnected;
     size_t bytes_sent;
-
-    enum e_rhstate {
-        s_setup,
-        s_sending_header,
-        s_start_send_file,
-        s_sending_file,
-        s_done,
-        s_abort,
-        s_sending_html_str
-    } state;
 
     struct HttpResponse {
         std::string http_version;
         std::string status_code_phrase;
         std::map<std::string, std::string> header_fields;
+
+        std::string header_str; // assemble_header_str() fills this up
+        void assemble_header_str();
     } response;
 
-    void assemble_header_str();
-    int send_header();
-    int send_html_str(std::string &html_page);
+    int send_str(std::string &str);
     bool response100_expected();
 
     std::string get_mime_type(const std::string &file_name) const;

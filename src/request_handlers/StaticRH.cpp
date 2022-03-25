@@ -11,6 +11,8 @@ StaticRH::StaticRH(HttpRequest *request, FdManager &table, std::string &resource
 StaticRH::~StaticRH()
 {
     close(fd_file);
+    if (state == s_sending_file)
+        table.remove_fd(fd_file);
 }
 
 // get fd for file in disk and generate response header
@@ -27,12 +29,11 @@ int StaticRH::setup()
         close(fd_file);
         return (-1);
     }
-    response.http_version = "HTTP/1.1";
     response.status_code_phrase = "200 OK";
     response.header_fields["content-length"] = long_to_str(sb.st_size);
     response.header_fields["content-type"] = get_mime_type(resource_path);
     // TODO: and many other header_fields here.....
-    assemble_header_str();
+    response.assemble_header_str();
     return (0); // ok
 }
 
@@ -48,7 +49,7 @@ int StaticRH::respond()
     switch (state)
     {
     case s_sending_header:
-        if (send_header() == 0) // incomplete
+        if (send_str(response.header_str) == 0) // incomplete
             return (0);
         if (request->method == "HEAD")
         {
