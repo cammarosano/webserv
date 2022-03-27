@@ -13,11 +13,13 @@ std::string str_tolower(std::string s) {
 }
 
 // changes s in place
-std::string &remove_trailing_spaces(std::string &s) {
+std::string &remove_trailing_spaces(std::string &s)
+{
     size_t i;
 
     i = 0;
-    while (i < s.length() && isspace(s[i])) ++i;
+    while (i < s.length() && isspace(s[i]))
+        ++i;
     s.erase(0, i);
     return (s);
 }

@@ -6,9 +6,11 @@
 // eventual trailing CRLF must be removed!!
 HttpRequest *new_HttpRequest(Client &client)
 {
+    // remove trailing spaces (possible left-overs from previous request's body)
+    remove_trailing_spaces(client.received_data);
+
     // look for end-of-header delimiter: 2CRLF
     size_t pos = client.received_data.find("\r\n\r\n");
-
     if (pos == std::string::npos) // not found: header is incomplete
         return (NULL);
 
