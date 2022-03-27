@@ -38,12 +38,12 @@ bool is_request_timeout(Client &client)
 void new_requests(FdManager &table)
 {
     // iterate over clients with incoming requests
-    std::set<Client*>::iterator it;
-    std::set<Client*> &set = Client::incoming_req_clients;
+    std::list<Client*>::iterator it;
+    std::list<Client*> &list = Client::incoming_req_clients;
     time_t now = time(NULL);
 
-    it = set.begin();
-    while (it != set.end())
+    it = list.begin();
+    while (it != list.end())
     {
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it

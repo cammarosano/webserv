@@ -24,7 +24,7 @@ void recv_from_client(int socket, FdManager &table, time_t now)
         return;
     }
     client.received_data.append(buffer, recvd_bytes);
-    if (client.state == Client::idle)
+    if (client.is_idle())
     {
         client.update_state();
         client.time_begin_request = now;
@@ -98,7 +98,7 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
         }
         table.unset_pollout(client.socket);
     }
-    if (client.state == Client::ongoing_response)
+    if (client.is_ongoing_response())
         client.request_handler->add_to_bytes_sent(bytes_sent);
 
     client.last_io = current_time;

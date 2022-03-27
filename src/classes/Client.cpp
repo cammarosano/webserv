@@ -15,8 +15,10 @@ request_handler(NULL)
     received_data.reserve(BUFFER_SIZE);
     unsent_data.reserve(BUFFER_SIZE);
 
+	// add to list
     state = idle;
-    idle_clients.insert(this);
+    idle_clients.push_front(this);
+    list_node = idle_clients.begin();
 
     // time-out monitoring
     last_io = time(NULL);
@@ -28,12 +30,12 @@ Client::~Client()
 {
     close(socket);
     if (state == idle)
-        idle_clients.erase(this);
+        idle_clients.erase(list_node);
     else if (state == incoming_request)
-        incoming_req_clients.erase(this);
+        incoming_req_clients.erase(list_node);
     else
     {
-        ongoing_resp_clients.erase(this);
+        ongoing_resp_clients.erase(list_node);
         // clear request and RH
         delete request;
         delete request_handler;
@@ -63,19 +65,28 @@ void Client::update_state(e_state new_state)
 
     // remove from old state set
     if (state == idle)
-        idle_clients.erase(this);
+        idle_clients.erase(list_node);
     else if (state == incoming_request)
-        incoming_req_clients.erase(this);
+        incoming_req_clients.erase(list_node);
     else
-        ongoing_resp_clients.erase(this);
+        ongoing_resp_clients.erase(list_node);
 
     // add to new state set
     if (new_state == idle)
-        idle_clients.insert(this);
+    {
+        idle_clients.push_front(this);
+        list_node = idle_clients.begin();
+    }
     else if (new_state == incoming_request)
-        incoming_req_clients.insert(this);
+    {
+        incoming_req_clients.push_front(this);
+        list_node = incoming_req_clients.begin();
+    }
     else 
-        ongoing_resp_clients.insert(this);
+    {
+        ongoing_resp_clients.push_front(this);
+        list_node = ongoing_resp_clients.begin();
+    }
     
     // update state
     state = new_state;
@@ -100,8 +111,22 @@ void Client::update_state()
     }
 }
 
+bool Client::is_idle()
+{
+    if (state == idle)
+        return (true);
+    return (false);
+}
+
+bool Client::is_ongoing_response()
+{
+    if (state == ongoing_response)
+        return (true);
+    return (false);
+}
+
 // static variables
-std::set<Client*> Client::idle_clients;
-std::set<Client*> Client::incoming_req_clients;
-std::set<Client*> Client::ongoing_resp_clients;
+std::list<Client*> Client::idle_clients;
+std::list<Client*> Client::incoming_req_clients;
+std::list<Client*> Client::ongoing_resp_clients;
 int Client::counter = 0;

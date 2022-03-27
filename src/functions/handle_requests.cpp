@@ -22,14 +22,14 @@ void finish_response(Client &client)
 void handle_requests(FdManager &table)
 {
 	// iterate over clients with ongoing responses
-    std::set<Client*>::iterator it;
-    std::set<Client*> &set = Client::ongoing_resp_clients;
+    std::list<Client*>::iterator it;
+    std::list<Client*> &list = Client::ongoing_resp_clients;
     AReqHandler *req_handler;
     int ret;
 
     // iterate over list of request handlers
-    it = set.begin();
-    while (it != set.end())
+    it = list.begin();
+    while (it != list.end())
     {
 		Client &client = **it;
 		++it; // following operations might invalidate iterator

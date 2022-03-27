@@ -37,10 +37,10 @@ void handle_response_time_out(Client &client, FdManager &table)
 void time_out_requests(FdManager &table, time_t now)
 {
     // iterate over clients with incoming requests
-    std::set<Client*> &set = Client::incoming_req_clients;
-    std::set<Client*>::iterator it = set.begin();
+    std::list<Client*> &list = Client::incoming_req_clients;
+    std::list<Client*>::iterator it = list.begin();
 
-    while (it != set.end())
+    while (it != list.end())
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
@@ -52,10 +52,10 @@ void time_out_requests(FdManager &table, time_t now)
 void time_out_responses(FdManager &table, time_t now)
 {
 	// iterate over clients with ongoing responses
-    std::set<Client*> &set = Client::ongoing_resp_clients;
-    std::set<Client*>::iterator it = set.begin();
+    std::list<Client*> &list = Client::ongoing_resp_clients;
+    std::list<Client*>::iterator it = list.begin();
 
-    while (it != set.end())
+    while (it != list.end())
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
@@ -67,10 +67,10 @@ void time_out_responses(FdManager &table, time_t now)
 void time_out_idle_clients(FdManager &table, time_t now)
 {
 	// iterate over idle clients
-    std::set<Client*> &set = Client::idle_clients;
-    std::set<Client*>::iterator it = set.begin();
+    std::list<Client*> &list = Client::idle_clients;
+    std::list<Client*>::iterator it = list.begin();
 
-    while (it != set.end())
+    while (it != list.end())
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
