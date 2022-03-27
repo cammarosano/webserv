@@ -4,8 +4,7 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
     : request(request),
       client(request->client),
       table(table),
-      client_disconnected(false),
-      bytes_sent(0)
+      bytes_recvd(0)
 {
 }
 
@@ -59,7 +58,7 @@ int AReqHandler::time_out_code()
 }
 
 
-void AReqHandler::add_to_bytes_sent(size_t n) { bytes_sent += n; }
+void AReqHandler::add_to_bytes_recvd(size_t n) { bytes_recvd += n; }
 
 // transfer the content of a string to client.unsent_data (ex: http header, or
 // an auto-generated html page)

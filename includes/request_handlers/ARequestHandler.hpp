@@ -23,8 +23,7 @@ class AReqHandler {
     HttpRequest *request;
     Client &client;
     FdManager &table;
-    bool client_disconnected;
-    size_t bytes_sent;
+    size_t bytes_recvd; // from file in disk or CGI
 
     struct HttpResponse {
         std::string http_version;
@@ -47,7 +46,7 @@ class AReqHandler {
 
     HttpRequest *getRequest();
     Client *getClient();
-    void add_to_bytes_sent(size_t n);
+    void add_to_bytes_recvd(size_t n);
 
     static std::string get_mime_type(const std::string &file_name);
     static std::string get_timestamp();
