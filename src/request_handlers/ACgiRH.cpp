@@ -73,7 +73,7 @@ std::map<std::string, std::string> ACgiRH::get_env_map()
         cgi_env["CONTENT_TYPE"] = it->second;
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     //  PATH_INFO: subject expects something different from the RFC3875
-    cgi_env["PATH_INFO"] = script_path; 
+    cgi_env["PATH_INFO"] = script_path;
     cgi_env["PATH-TRANSLATED"] = script_path; // no idea how to fill-in this one
     cgi_env["QUERY_STRING"] = query_str;
     cgi_env["REMOTE_ADDR"] = request->client.ipv4_addr;
@@ -81,7 +81,7 @@ std::map<std::string, std::string> ACgiRH::get_env_map()
     // OBS: skipping REMOTE_IDENT and REMOTE_USER
     cgi_env["REQUEST_METHOD"] = request->method;
     // SCRIPT_NAME = resource target without the query-string
-    cgi_env["SCRIPT_NAME"] = 
+    cgi_env["SCRIPT_NAME"] =
         request->target.substr(0, request->target.find('?'));
     std::string host = request->header_fields["host"];
     cgi_env["SERVER_NAME"] = host.substr(0, host.find(':'));

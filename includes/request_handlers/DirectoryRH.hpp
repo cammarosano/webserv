@@ -21,7 +21,6 @@ class DirectoryRH : public AReqHandler {
     ~DirectoryRH();
 
     virtual int respond();
-    virtual void abort();
 
    private:
     void _generate_autoindex_page();
