@@ -33,7 +33,8 @@
 - ### "Try to always use the most "C++" code possible (for example use <cstring> over <string.h>)."
 
 - ### Header fields in the Http response:
-   - date
+   - [x] content-type
+   - [x] date
 
 - ### make request Header parser more robust
 
@@ -48,8 +49,14 @@
   - subject's tester (not mandatory to pass this test)
   - curl, postman, etc
   - Conditions:
-    - hanging requests (sends only part of the header)
-    - hanging requests (sends header but only part of the body)
+    - hanging requests:
+      - sends only part of the header
+      - sends header but only part of the body
+    - hanging responses: cgi takes too long to finish response
+    - num clients above limit (MAX_CLIENTS)
+    - disconnected clients in the middle of a response
+    - ...
+
 
 - ### check also "Issues" in the repo
 
