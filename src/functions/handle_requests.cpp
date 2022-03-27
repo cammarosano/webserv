@@ -13,6 +13,8 @@ void finish_response(Client &client, FdManager &table)
 {
 	delete client.request;
 	delete client.request_handler;
+    // remove trailing spaces (possible left-overs from request's body)
+    remove_trailing_spaces(client.received_data);
 	client.update_state();
 	if (Client::counter > MAX_CLIENTS / 2)
 	{

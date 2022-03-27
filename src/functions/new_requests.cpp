@@ -2,17 +2,17 @@
 
 // extracts data from the client's received_data buffer into an HttpRequest
 // object returns NULL if buffer does not contain a complete request header
-// TODO: watch out for request bodies that end with an empty line
-// eventual trailing CRLF must be removed!!
-HttpRequest *new_HttpRequest(Client &client)
+HttpRequest *new_HttpRequest(Client &client, FdManager &table)
 {
-    // remove trailing spaces (possible left-overs from previous request's body)
-    remove_trailing_spaces(client.received_data);
-
     // look for end-of-header delimiter: 2CRLF
     size_t pos = client.received_data.find("\r\n\r\n");
     if (pos == std::string::npos) // not found: header is incomplete
+    {
+        // check if header size above limit
+        if (client.received_data.size() == BUFFER_SIZE)
+            send_error_resp_no_request(client, table, 431);
         return (NULL);
+    }
 
     // header is complete: consume data
     std::string header_str = client.received_data.substr(0, pos);
@@ -20,18 +20,13 @@ HttpRequest *new_HttpRequest(Client &client)
 
     // debug
     if (DEBUG)
-        std::cout << "---------\nThe following request header was received:\n" << header_str << "\n" << std::endl;
+        std::cout << "---------\nThe following request header was received:\n"
+             << header_str << "\n" << std::endl;
 
     // create HttpRequest object
     return new HttpRequest(client, header_str);
 }
 
-bool is_request_timeout(Client &client)
-{
-	if (std::difftime(time(NULL), client.time_begin_request) > REQUEST_TIME_OUT)
-		return (true);
-	return (false);
-}
 
 // checks each Client's received_data buffer for a HTTP request header,
 // instantiates a new HttpRequest and a suitable request handler
@@ -47,13 +42,9 @@ void new_requests(FdManager &table)
     {
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
-        HttpRequest *request = new_HttpRequest(client);
-        if (!request) // check if header above limit
-        {
-            if (client.received_data.size() == BUFFER_SIZE)
-                send_error_resp_no_request(client, table, 431);
+        HttpRequest *request = new_HttpRequest(client, table);
+        if (!request) 
             continue;
-        }
         AReqHandler *req_handler;
         try
         {
@@ -63,7 +54,8 @@ void new_requests(FdManager &table)
         {
             req_handler = new ErrorRH(request, table, 500);
         }
-        // Client owns request and request handler
+        // Client owns request and request handler 
+        // move lines below to AReqHandler's constructor?
         client.request = request;
         client.request_handler = req_handler;
         client.update_state();
