@@ -38,14 +38,17 @@ void time_out_requests(FdManager &table, time_t now)
 {
     // iterate over clients with incoming requests
     std::list<Client*> &list = Client::incoming_req_clients;
-    std::list<Client*>::iterator it = list.begin();
+	// the oldest ones are at the back
+    std::list<Client*>::reverse_iterator rit = list.rbegin();
 
-    while (it != list.end())
+    while (rit != list.rend())
 	{
-        Client &client = **it;
-        ++it; // move iterator, as following operations might invalidate it
+        Client &client = **rit;
+        ++rit; // move iterator, as following operations might invalidate it
 		if (difftime(now, client.time_begin_request) > REQUEST_TIME_OUT)
 			send_error_resp_no_request(client, table, 408);
+		else
+			return; // stop as soon as a non-timed-out client is found
 	}
 }
 
@@ -68,18 +71,22 @@ void time_out_idle_clients(FdManager &table, time_t now)
 {
 	// iterate over idle clients
     std::list<Client*> &list = Client::idle_clients;
-    std::list<Client*>::iterator it = list.begin();
+	// oldest ones are at the back of the list
+    std::list<Client*>::reverse_iterator rit = list.rbegin();
 
-    while (it != list.end())
+    while (rit != list.rend())
 	{
-        Client &client = **it;
-        ++it; // move iterator, as following operations might invalidate it
-		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT
-			|| Client::counter > N_CLIENTS_CLEANUP)
+        Client &client = **rit;
+        ++rit; // move iterator, as following operations might invalidate it
+		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT)
 			remove_client(client, table, "webserv (connection time-out)");
+		else
+			return; // stop when a non-timed-out client is found
 	}
 }
 
+// checks for time-outs
+// waits for child processes from terminated CGI responses
 void reaper(FdManager &table)
 {
 	static time_t last_run = time(NULL);
