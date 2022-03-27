@@ -22,6 +22,7 @@ void AReqHandler::HttpResponse::assemble_header_str() {
     if (http_version.empty())
         http_version = "HTTP/1.1";
     header_fields["server"] = "webserv";
+    header_fields["date"] = get_timestamp();
 
     // status-line
     header_str =
@@ -92,17 +93,40 @@ std::string get_extension(const std::string &file_name)
 }
 
 // returns the mime_type based on file_name's extension
-std::string AReqHandler::get_mime_type(const std::string &file_name) const
+std::string AReqHandler::get_mime_type(const std::string &file_name)
 {
     std::map<std::string, std::string>::iterator it;
     std::string ext = get_extension(file_name);
 
     if (ext.empty())  // no extension
         return (DEFAULT_MIME);
-    if (ext == "html")
-        return ("text/html");  // optimization: save a map look-up
-    it = AReqHandler::content_type.find(ext);
-    if (it == AReqHandler::content_type.end())  // ext not found
+    if (ext == "html") // optimization: avoid a map look-up
+        return ("text/html");  
+    it = content_type.find(ext);
+    if (it == content_type.end())  // ext not found
         return (DEFAULT_MIME);
     return (it->second);
+}
+
+// timestamp for "date" header-field
+std::string AReqHandler::get_timestamp() 
+{
+    static const char *wday_name[]
+        = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    static const char *mon_name[]
+        = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+            "Oct", "Nov", "Dec"};
+    time_t now = time(NULL);
+    tm *t = gmtime(&now);
+    std::ostringstream timestamp;
+	timestamp << std::setfill('0');
+    timestamp << wday_name[t->tm_wday] << ", ";
+    timestamp << std::setw(2) << t->tm_mday << ' ';
+	timestamp << mon_name[t->tm_mon] << ' ';
+	timestamp << 1900 + t->tm_year << ' ';
+	timestamp << std::setw(2) << t->tm_hour << ':';
+	timestamp << std::setw(2) << t->tm_min << ':';
+	timestamp << std::setw(2) << t->tm_sec << ' ';
+	timestamp << "GMT";
+	return (timestamp.str());
 }
