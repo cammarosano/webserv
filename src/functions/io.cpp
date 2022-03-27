@@ -91,12 +91,13 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
     client.unsent_data.erase(0, bytes_sent);
     if (client.unsent_data.empty())
     {
+        table.unset_pollout(client.socket);
         if (client.disconnect_after_send)
         {
-            remove_client(client, table, "webserv");
+            remove_client(client, table,
+				"webserv (disconnect after response sent)");
             return;
         }
-        table.unset_pollout(client.socket);
     }
     if (client.is_ongoing_response())
         client.request_handler->add_to_bytes_sent(bytes_sent);

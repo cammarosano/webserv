@@ -39,7 +39,7 @@ void do_io(FdManager &table)
         if ((revents & (POLLIN | POLLHUP))) // fd ready for reading
         {
             if (table[fd].type == fd_listen_socket)
-                accept_connection(fd, table);
+                accept_connection(fd, table, current_time);
             else if (table[fd].type == fd_client_socket)
                 recv_from_client(fd, table, current_time);
             else if (table[fd].type == fd_read)

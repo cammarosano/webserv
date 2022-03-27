@@ -9,11 +9,19 @@ void replace_req_handler(Client &client, int error_code, FdManager &table)
 	// make this standard behaviour for all error responses?
 }
 
-void finish_response(Client &client)
+void finish_response(Client &client, FdManager &table)
 {
 	delete client.request;
 	delete client.request_handler;
 	client.update_state();
+	if (Client::counter > MAX_CLIENTS / 2)
+	{
+		if (client.unsent_data.empty())
+			remove_client(client, table,
+				"webserv (disconnect after response sent)");
+		else
+			client.disconnect_after_send = true;
+	}
 }
 
 // calls the respond() method of each request handler in
@@ -36,7 +44,7 @@ void handle_requests(FdManager &table)
         req_handler = client.request_handler;
         ret = req_handler->respond();
 		if (ret == 1)
-			finish_response(client);
+			finish_response(client, table);
 		else if (ret > 1)
 			replace_req_handler(client, ret, table);
     }

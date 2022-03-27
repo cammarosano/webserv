@@ -58,7 +58,7 @@ int parse_mime_types_file(std::map<std::string, std::string> &map);
 
 // IO
 
-void accept_connection(int listen_socket, FdManager &table);
+void accept_connection(int listen_socket, FdManager &table, time_t now);
 void recv_from_client(int socket, FdManager &table, time_t now);
 void read_from_fd(int fd, FdManager &table);
 void send_to_client(int socket, FdManager &table, time_t current_time);
