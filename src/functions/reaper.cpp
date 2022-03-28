@@ -37,25 +37,28 @@ void handle_response_time_out(Client &client, FdManager &table)
 void time_out_requests(FdManager &table, time_t now)
 {
     // iterate over clients with incoming requests
-    std::set<Client*> &set = Client::incoming_req_clients;
-    std::set<Client*>::iterator it = set.begin();
+    std::list<Client*> &list = Client::incoming_req_clients;
+	// the oldest ones are at the front
+    std::list<Client*>::iterator it = list.begin();
 
-    while (it != set.end())
+    while (it != list.end())
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
 		if (difftime(now, client.time_begin_request) > REQUEST_TIME_OUT)
 			send_error_resp_no_request(client, table, 408);
+		else
+			return; // stop as soon as a non-timed-out client is found
 	}
 }
 
 void time_out_responses(FdManager &table, time_t now)
 {
 	// iterate over clients with ongoing responses
-    std::set<Client*> &set = Client::ongoing_resp_clients;
-    std::set<Client*>::iterator it = set.begin();
+    std::list<Client*> &list = Client::ongoing_resp_clients;
+    std::list<Client*>::iterator it = list.begin();
 
-    while (it != set.end())
+    while (it != list.end())
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
@@ -67,19 +70,23 @@ void time_out_responses(FdManager &table, time_t now)
 void time_out_idle_clients(FdManager &table, time_t now)
 {
 	// iterate over idle clients
-    std::set<Client*> &set = Client::idle_clients;
-    std::set<Client*>::iterator it = set.begin();
+    std::list<Client*> &list = Client::idle_clients;
+	// oldest ones are at the front of the list
+    std::list<Client*>::iterator it = list.begin();
 
-    while (it != set.end())
+    while (it != list.end())
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
-		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT
-			|| Client::counter > N_CLIENTS_CLEANUP)
+		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT)
 			remove_client(client, table, "webserv (connection time-out)");
+		else
+			return; // stop when a non-timed-out client is found
 	}
 }
 
+// checks for time-outs
+// waits for child processes from terminated CGI responses
 void reaper(FdManager &table)
 {
 	static time_t last_run = time(NULL);

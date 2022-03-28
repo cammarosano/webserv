@@ -1,29 +1,42 @@
 #include "includes.hpp"
 
-int open_listening_sockets(FdManager &table, std::map<ip_port, std::list<Vserver> > &config)
+int open_listening_sockets(FdManager &table,
+                            std::map<ip_port, std::list<Vserver> > &config)
 {
-    typedef std::map<ip_port, std::list<Vserver> >::iterator iterator;
+    std::map<ip_port, std::list<Vserver> >::iterator it;
 
-    for (iterator it = config.begin(); it != config.end(); ++it)
+    for (it = config.begin(); it != config.end(); ++it)
     {
         std::string ip = it->first.first;
         unsigned short port = it->first.second;
 
         int listening_socket = get_listening_socket(ip, port);
-        // skipping error check... :/
-
+        if (listening_socket == -1)
+        {
+            clear_resources(table);
+            return (-1);
+        }
         table.add_listen_socket(listening_socket, it->second);
     }
     return (0);
 }
 
-int setup(FdManager &table)
+std::string resolve_file_name(int argc, char **argv)
+{
+    if (argc == 1)
+        return ("conf/default.conf");
+    return (argv[1]);
+}
+
+
+int setup(FdManager &table, int argc, char **argv)
 {
     ConfigParser parser;
     std::map<ip_port, std::list<Vserver> > config;
+    std::string file_name = resolve_file_name(argc, argv);
     try
     {
-      config = parser.parse("./conf/default.conf"); 
+      config = parser.parse(file_name.c_str()); 
     }
     catch (const ConfigParser::ConfigParserException& e)
     {
@@ -33,7 +46,8 @@ int setup(FdManager &table)
     // content-types file
     parse_mime_types_file(AReqHandler::content_type);
 
-    open_listening_sockets(table, config);
+    if (open_listening_sockets(table, config) == -1)
+        return (-1);
 
     return (0);
 }

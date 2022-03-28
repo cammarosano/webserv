@@ -9,11 +9,21 @@ void replace_req_handler(Client &client, int error_code, FdManager &table)
 	// make this standard behaviour for all error responses?
 }
 
-void finish_response(Client &client)
+void finish_response(Client &client, FdManager &table)
 {
 	delete client.request;
 	delete client.request_handler;
+    // remove trailing spaces (possible left-overs from request's body)
+    remove_trailing_spaces(client.received_data);
 	client.update_state();
+	if (Client::counter > MAX_CLIENTS / 2)
+	{
+		if (client.unsent_data.empty())
+			remove_client(client, table,
+				"webserv (disconnect after response sent)");
+		else
+			client.disconnect_after_send = true;
+	}
 }
 
 // calls the respond() method of each request handler in
@@ -22,21 +32,21 @@ void finish_response(Client &client)
 void handle_requests(FdManager &table)
 {
 	// iterate over clients with ongoing responses
-    std::set<Client*>::iterator it;
-    std::set<Client*> &set = Client::ongoing_resp_clients;
+    std::list<Client*>::iterator it;
+    std::list<Client*> &list = Client::ongoing_resp_clients;
     AReqHandler *req_handler;
     int ret;
 
     // iterate over list of request handlers
-    it = set.begin();
-    while (it != set.end())
+    it = list.begin();
+    while (it != list.end())
     {
 		Client &client = **it;
 		++it; // following operations might invalidate iterator
         req_handler = client.request_handler;
         ret = req_handler->respond();
 		if (ret == 1)
-			finish_response(client);
+			finish_response(client, table);
 		else if (ret > 1)
 			replace_req_handler(client, ret, table);
     }

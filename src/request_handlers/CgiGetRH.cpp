@@ -87,7 +87,7 @@ int CgiGetRH::respond()
 {
     if (!table[cgi_output_fd].is_EOF) // not finished
         return (0);
-    if (bytes_sent == 0) // GCI failed
+    if (bytes_recvd == 0) // GCI failed
         return (502);
     state = s_done;
     return (1);
