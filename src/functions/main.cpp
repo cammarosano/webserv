@@ -58,12 +58,12 @@ void do_io(FdManager &table)
 bool stop = false; // evil global var
 void signal_handler(int) {stop = true;}
 
-int main(void)
+int main(int argc, char** argv)
 {
     FdManager table;
 
     signal(SIGINT, signal_handler);
-    if (setup(table) == -1)
+    if (setup(table, argc, argv) == -1)
         return (1);
     while (!stop)
     {

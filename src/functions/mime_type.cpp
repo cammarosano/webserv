@@ -11,7 +11,7 @@ int parse_mime_types_file(std::map<std::string, std::string> &map)
 
     if (!fs.is_open())
     {
-        std::cout << "Failed to load conf/mime.types" << std::endl;
+        std::cout << "Alert: Failed to load conf/mime.types" << std::endl;
         return (-1);
     }
 	// pre-block: expect "types"
@@ -20,7 +20,8 @@ int parse_mime_types_file(std::map<std::string, std::string> &map)
 	pre_block_stream >> line;
 	if (line != "types" )
     {
-        std::cout << "conf/mime.types: bad format" << std::endl;
+        std::cout << "Alert: Failed to load conf/mime.types (bad format)"
+					<< std::endl;
 		return (-1);
     }
 	
@@ -40,8 +41,6 @@ int parse_mime_types_file(std::map<std::string, std::string> &map)
 			ls >> extension;
 			map[extension] = media_type;
 		}
-		
 	}
 	return (0);
 }
-

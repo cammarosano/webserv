@@ -77,9 +77,6 @@ int AReqHandler::send_str(std::string &str) {
     return 0;
 }
 
-// static variable
-std::map<std::string, std::string> AReqHandler::content_type;
-
 std::string get_extension(const std::string &file_name)
 {
 	size_t pos = file_name.rfind('.');
@@ -129,3 +126,6 @@ std::string AReqHandler::get_timestamp()
 	timestamp << "GMT";
 	return (timestamp.str());
 }
+
+// static variable
+std::map<std::string, std::string> AReqHandler::content_type;
