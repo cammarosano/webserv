@@ -38,13 +38,13 @@ void time_out_requests(FdManager &table, time_t now)
 {
     // iterate over clients with incoming requests
     std::list<Client*> &list = Client::incoming_req_clients;
-	// the oldest ones are at the back
-    std::list<Client*>::reverse_iterator rit = list.rbegin();
+	// the oldest ones are at the front
+    std::list<Client*>::iterator it = list.begin();
 
-    while (rit != list.rend())
+    while (it != list.end())
 	{
-        Client &client = **rit;
-        ++rit; // move iterator, as following operations might invalidate it
+        Client &client = **it;
+        ++it; // move iterator, as following operations might invalidate it
 		if (difftime(now, client.time_begin_request) > REQUEST_TIME_OUT)
 			send_error_resp_no_request(client, table, 408);
 		else
@@ -71,13 +71,13 @@ void time_out_idle_clients(FdManager &table, time_t now)
 {
 	// iterate over idle clients
     std::list<Client*> &list = Client::idle_clients;
-	// oldest ones are at the back of the list
-    std::list<Client*>::reverse_iterator rit = list.rbegin();
+	// oldest ones are at the front of the list
+    std::list<Client*>::iterator it = list.begin();
 
-    while (rit != list.rend())
+    while (it != list.end())
 	{
-        Client &client = **rit;
-        ++rit; // move iterator, as following operations might invalidate it
+        Client &client = **it;
+        ++it; // move iterator, as following operations might invalidate it
 		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT)
 			remove_client(client, table, "webserv (connection time-out)");
 		else

@@ -17,8 +17,8 @@ request_handler(NULL)
 
 	// add to list
     state = idle;
-    idle_clients.push_front(this);
-    list_node = idle_clients.begin();
+    idle_clients.push_back(this);
+    list_node = --idle_clients.end();
 
     // time-out monitoring
     last_io = time(NULL);
@@ -74,18 +74,18 @@ void Client::update_state(e_state new_state)
     // add to new state set
     if (new_state == idle)
     {
-        idle_clients.push_front(this);
-        list_node = idle_clients.begin();
+        idle_clients.push_back(this);
+        list_node = --idle_clients.end();
     }
     else if (new_state == incoming_request)
     {
-        incoming_req_clients.push_front(this);
-        list_node = incoming_req_clients.begin();
+        incoming_req_clients.push_back(this);
+        list_node = --incoming_req_clients.end();
     }
     else 
     {
-        ongoing_resp_clients.push_front(this);
-        list_node = ongoing_resp_clients.begin();
+        ongoing_resp_clients.push_back(this);
+        list_node = --ongoing_resp_clients.end();
     }
     
     // update state

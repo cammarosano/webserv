@@ -6,7 +6,7 @@
 # define MAX_CLIENTS 255
 # define REQUEST_TIME_OUT 5 // seconds
 # define RESPONSE_TIME_OUT 5 // seconds
-# define CONNECTION_TIME_OUT 60 // seconds 
+# define CONNECTION_TIME_OUT 10 // seconds LOW VALUE FOR TESTING
 # define MIN_IDLE_TIME 2 // seconds
 # define REAPER_FREQUENCY 5 // seconds
 # define POLL_TIME_OUT 2000 // miliseconds
