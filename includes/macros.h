@@ -3,11 +3,12 @@
 
 # define BUFFER_SIZE 8192
 # define QUEUE_MAX_SIZE 10
+# define MAX_CLIENTS 255
 # define REQUEST_TIME_OUT 5 // seconds
 # define RESPONSE_TIME_OUT 5 // seconds
-# define CONNECTION_TIME_OUT 10 // seconds (LOW VALUE FOR TESTING)
+# define CONNECTION_TIME_OUT 10 // seconds LOW VALUE FOR TESTING
+# define MIN_IDLE_TIME 2 // seconds
 # define REAPER_FREQUENCY 5 // seconds
-# define N_CLIENTS_CLEANUP 50
 # define POLL_TIME_OUT 2000 // miliseconds
 # define DEFAULT_MIME "text/plain"
 # ifndef DEBUG

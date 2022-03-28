@@ -24,7 +24,7 @@ void recv_from_client(int socket, FdManager &table, time_t now)
         return;
     }
     client.received_data.append(buffer, recvd_bytes);
-    if (client.state == Client::idle)
+    if (client.is_idle())
     {
         client.update_state();
         client.time_begin_request = now;
@@ -64,6 +64,9 @@ void read_from_fd(int fd, FdManager &table)
     client.unsent_data.append(buffer, read_bytes);
     table.set_pollout(client.socket);
 
+    if (client.is_ongoing_response()) // is this check unnecessary?
+        client.request_handler->add_to_bytes_recvd(read_bytes);
+
     // debug
     if (DEBUG)
         std::cout << read_bytes << " bytes were read from fd " << fd <<
@@ -91,15 +94,14 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
     client.unsent_data.erase(0, bytes_sent);
     if (client.unsent_data.empty())
     {
+        table.unset_pollout(client.socket);
         if (client.disconnect_after_send)
         {
-            remove_client(client, table, "webserv");
+            remove_client(client, table,
+				"webserv (disconnect after response sent)");
             return;
         }
-        table.unset_pollout(client.socket);
     }
-    if (client.state == Client::ongoing_response)
-        client.request_handler->add_to_bytes_sent(bytes_sent);
 
     client.last_io = current_time;
 

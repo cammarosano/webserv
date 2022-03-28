@@ -20,6 +20,8 @@ class AReqHandler;
 struct HttpRequest;
 
 struct Client {
+    enum e_state {idle, incoming_request, ongoing_response};
+
     int socket;
     std::list<Vserver> &vservers;
     std::string ipv4_addr;
@@ -36,31 +38,34 @@ struct Client {
     HttpRequest *request;
     AReqHandler *request_handler;
 
-	// time-out request
+	// time-outs 
     time_t time_begin_request;
-
-    // time-out inactive client
-    time_t last_io; // send2client || init_response
+    time_t last_io; // send2client || new_requests()
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
     // destructor
     ~Client();
 
-	// state
-    enum e_state {idle, incoming_request, ongoing_response} state;
+	// state checks and changes
     void update_state();
     void update_state(e_state new_state);
+    bool is_idle();
+    bool is_ongoing_response();
 
-    // sets 
-    static std::set<Client*> idle_clients;
-    static std::set<Client*> incoming_req_clients;
-    static std::set<Client*> ongoing_resp_clients;
+    // lists 
+    std::list<Client*>::iterator list_node;
+
+    static std::list<Client*> idle_clients;
+    static std::list<Client*> incoming_req_clients;
+    static std::list<Client*> ongoing_resp_clients;
 
     // instances counter
     static int counter;
 
-	private:
+private:
+    e_state state;
+
     // get ip address and host name
     void get_client_info(sockaddr &sa);
 };

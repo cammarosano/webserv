@@ -39,7 +39,7 @@ void do_io(FdManager &table)
         if ((revents & (POLLIN | POLLHUP))) // fd ready for reading
         {
             if (table[fd].type == fd_listen_socket)
-                accept_connection(fd, table);
+                accept_connection(fd, table, current_time);
             else if (table[fd].type == fd_client_socket)
                 recv_from_client(fd, table, current_time);
             else if (table[fd].type == fd_read)
@@ -58,12 +58,12 @@ void do_io(FdManager &table)
 bool stop = false; // evil global var
 void signal_handler(int) {stop = true;}
 
-int main(void)
+int main(int argc, char** argv)
 {
     FdManager table;
 
     signal(SIGINT, signal_handler);
-    if (setup(table) == -1)
+    if (setup(table, argc, argv) == -1)
         return (1);
     while (!stop)
     {

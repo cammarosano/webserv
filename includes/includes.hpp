@@ -52,13 +52,13 @@
 
 // setup
 
-int setup(FdManager &table);
+int setup(FdManager &table, int argc, char **argv);
 int get_listening_socket(std::string host_IP, unsigned short port);
 int parse_mime_types_file(std::map<std::string, std::string> &map);
 
 // IO
 
-void accept_connection(int listen_socket, FdManager &table);
+void accept_connection(int listen_socket, FdManager &table, time_t now);
 void recv_from_client(int socket, FdManager &table, time_t now);
 void read_from_fd(int fd, FdManager &table);
 void send_to_client(int socket, FdManager &table, time_t current_time);
