@@ -4,11 +4,11 @@ directoryRH error
 
 Python tests
 
-Test time-outs and header bigger than buffer
 
 Response: handle keep-alive or not.
 
-remove trailing spaces from received_data buffer
+CGI interpreter: handler relative_path case
+
 
 Scenario: response if finished and new request is already in client's received_data. Poll with block?
 
