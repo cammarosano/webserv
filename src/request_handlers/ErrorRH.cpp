@@ -62,7 +62,7 @@ int ErrorRH::setup() {
     // fill-in header
     response.status_code_phrase =
         long_to_str(error_code) + ' ' + reason_phrases[error_code];
-    if (res_type == sending_default) 
+    if (res_type == sending_default)
     {
         response.header_fields["content-length"] =
             long_to_str(html_page.size());

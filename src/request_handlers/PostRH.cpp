@@ -1,18 +1,13 @@
 #include "PostRH.hpp"
+#include "macros.h"
 
 #include <fcntl.h>
-#include <sys/stat.h>
 
 PostRH::PostRH(HttpRequest *request, FdManager &table) : AReqHandler(request, table), bd(*request)
 {
     Route *r = request->route;
     body = "{ \"success\" : \"true\" }";
     // check if upload_dir exist?
-    struct stat sb;
-    if (stat((r->root + '/' + r->upload_dir).c_str(), &sb) == -1)
-    {
-        throw std::exception();
-    }
     std::string file_name = request->target.substr(r->prefix.length(), std::string::npos);
     file_path = r->root + '/' + r->upload_dir + '/' + file_name;
     state = s_start;

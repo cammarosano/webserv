@@ -1,49 +1,71 @@
 #include "DirectoryRH.hpp"
+#include <cstddef>
+#include <dirent.h>
+#include <list>
+#include <string>
+#include <utility>
 
 DirectoryRH::DirectoryRH(HttpRequest *request, FdManager &table, const std::string &path)
     : AReqHandler(request, table), ressource_path(path)
 {
-    state = s_setup;
+    _setup();
+    state = s_sending_header;
 }
 
 DirectoryRH::~DirectoryRH()
 {
 }
 
+std::list<std::pair<std::string, unsigned char> > DirectoryRH::_get_files_name()
+{
+    struct dirent *dir;
+    std::list<std::pair<std::string, unsigned char> > files;
+    DIR *d = opendir(ressource_path.c_str());
+
+    if (!d)
+        throw std::exception();
+    while ((dir = readdir(d)) != NULL)
+    {
+        if (dir->d_type == DT_DIR)
+            files.push_front(std::make_pair(dir->d_name, dir->d_type));
+        else
+            files.push_back(std::make_pair(dir->d_name, dir->d_type));
+    }
+    closedir(d);
+    return files;
+}
+
 void DirectoryRH::_generate_autoindex_page()
 {
-    DIR *d;
     std::ostringstream res;
-    struct dirent *dir;
+    std::list<std::pair<std::string, unsigned char> > files = _get_files_name();
 
-    d = opendir(ressource_path.c_str());
     res << "<!DOCTYPE html>\n";
     res << "<html>\n";
     res << "<head>\n";
     res << "<title>" << ressource_path << "</title>\n";
     res << "</head>\n";
     res << "<body>\n";
-    if (d)
+    std::list<std::pair<std::string, unsigned char> >::iterator f_it = files.begin();
+    
+    while (f_it != files.end())
     {
-        while ((dir = readdir(d)) != NULL)
-        {
-            std::string param = request->target;
-            std::string::iterator it = --(param.end());
-            if (*it == '/')
-                param.erase(it);
-            if (param == "/")
-                param.clear();
-            res << "<a href=";
-            res << "\"" << param << "/" << dir->d_name;
-            if (dir->d_type == DT_DIR)
-                res << "/";
-            res << "\" >";
-            res << dir->d_name;
-            if (dir->d_type == DT_DIR)
-                res << "/";
-            res << "</a> <br>";
-        }
-        closedir(d);
+        std::string param = request->target;
+        std::string::iterator it = --(param.end());
+        if (*it == '/')
+            param.erase(it);
+        if (param == "/")
+            param.clear();
+        res << "<a href=";
+        res << "\"" << param << "/" << f_it->first;
+        if (f_it->second == DT_DIR)
+            res << "/";
+        res << "\" >";
+        res << f_it->first;
+        if (f_it->second == DT_DIR)
+            res << "/";
+        res << "</a> <br>";
+        ++f_it;
     }
     res << "</body>\n";
     res << "</html>";
@@ -65,9 +87,6 @@ int DirectoryRH::respond()
 {
     switch (state)
     {
-    case s_setup:
-        _setup();
-        state = s_sending_header;
     case s_sending_header:
         if (send_str(response.header_str) == 0)
             return 0;
