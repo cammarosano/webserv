@@ -19,11 +19,18 @@ void finish_response(Client &client, FdManager &table)
 	if (Client::counter > MAX_CLIENTS / 2)
 	{
 		if (client.unsent_data.empty())
+		{
 			remove_client(client, table,
 				"webserv (disconnect after response sent)");
+			return; // experimental
+		}
 		else
 			client.disconnect_after_send = true;
 	}
+
+	// experimental
+	if (!client.is_idle()) // if state is incoming_request
+		table.poll_block = false;
 }
 
 // calls the respond() method of each request handler in

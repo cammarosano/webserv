@@ -10,8 +10,15 @@ void do_io(FdManager &table)
     if (DEBUG)
         std::cout << "Blocking at poll()" << std::endl;
 
+    // experimental
+    int poll_time_out = (table.poll_block ? POLL_TIME_OUT : 0);
+
     // call poll()
-    n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
+    n_fds = poll(table.get_poll_array(), table.len(), poll_time_out);
+
+    // experimental = reset poll_block to true
+    table.poll_block = true;
+
     // n_fds = poll(table.get_poll_array(), table.len(), -1);
     if (n_fds == -1)
     {
@@ -56,9 +63,12 @@ void do_io(FdManager &table)
 }
 
 bool stop = false; // evil global var
-void signal_handler(int) {stop = true;}
+void signal_handler(int)
+{
+    stop = true;
+}
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     FdManager table;
 

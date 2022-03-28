@@ -70,6 +70,9 @@ public:
 	fd_info & operator[](int fd);
 
 	void debug_info() const;
+
+	// experimental
+	bool poll_block;
 };
 
 #endif

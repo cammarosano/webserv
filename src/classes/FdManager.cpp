@@ -1,14 +1,19 @@
 #include "FdManager.hpp"
 
-FdManager::FdManager() : capacity(10) {
+FdManager::FdManager() : capacity(10)
+{
     fd_table = new fd_info[capacity];
     poll_array = new pollfd[capacity];
 
     // initialise poll_array
-    for (int i = 0; i < capacity; i++) {
+    for (int i = 0; i < capacity; i++)
+    {
         poll_array[i].fd = -1;
         poll_array[i].events = 0;
     }
+
+    // experimental
+    poll_block = true;
 }
 
 FdManager::~FdManager() {
