@@ -4,31 +4,28 @@
 #include "ARequestHandler.hpp"
 #include "BodyDecoder.hpp"
 class PostRH : public AReqHandler {
-   private:
+  private:
     BodyDecoder bd;
-    std::string buffer;
-    size_t rcv_data_size;
+    std::string file_path;
+    std::string body;
+
     int fd;
 
     enum {
+        s_send_100_continue,
         s_start,
         s_receiving_body,
-        s_done,
-        s_abort,
-        s_send_100_continue,
         s_sending_header,
-        s_sending_html_str
+        s_sending_html_str,
+        s_done,
+        s_abort
     } state;
 
-    int _save_file(); // these 2 functions don't exist! (not defined)
-    int _setup();
-
-   public:
+  public:
     PostRH(HttpRequest *request, FdManager &table);
     ~PostRH();
 
     virtual int respond();
-    virtual void abort();
 };
 
-#endif  // __POST_RH_HPP__
+#endif // __POST_RH_HPP__

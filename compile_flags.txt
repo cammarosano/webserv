@@ -1,5 +1,4 @@
--xc++
--I
-./includes
-./includes/classes
-./includes/request_handlers
+clang
+-I./includes/classes
+-I./includes/ 
+-I./includes/request_handlers
