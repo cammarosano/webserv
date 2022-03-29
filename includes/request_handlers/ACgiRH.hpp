@@ -10,6 +10,7 @@
 
 class ACgiRH : public AReqHandler {
 protected:
+	std::string resource_path;
 	std::string script_path;
 	std::string query_str;
 	int	cgi_output_fd;
@@ -35,7 +36,7 @@ private:
     std::map<std::string, std::string> get_env_map();
 
 public:
-    ACgiRH(HttpRequest *request, FdManager &table, std::string &script_path);
+    ACgiRH(HttpRequest *request, FdManager &table, std::string &resource_path);
     virtual ~ACgiRH();
 
     virtual int respond() = 0;

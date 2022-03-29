@@ -1,10 +1,13 @@
 #include "ACgiRH.hpp"
 
 ACgiRH::ACgiRH(HttpRequest *request, FdManager &table,
-                std::string &script_path):
+                std::string &resource_path):
 AReqHandler(request, table),
-script_path(script_path)
+resource_path(resource_path)
 {
+    std::string cgi_ext = request->route->cgi_extension;
+    script_path
+        = resource_path.substr(0, resource_path.find(cgi_ext) + cgi_ext.size());
     query_str = get_query_str();
 }
 
