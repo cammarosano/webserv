@@ -130,6 +130,8 @@ void FdManager::set_pollout(int fd) { poll_array[fd].events |= POLLOUT; }
 
 void FdManager::unset_pollout(int fd) { poll_array[fd].events &= ~POLLOUT; }
 
+void FdManager::set_pollin(int fd) { poll_array[fd].events |= POLLIN; }
+
 void FdManager::unset_pollin(int fd) { poll_array[fd].events &= ~POLLIN; }
 
 std::list<Vserver> &FdManager::get_vserver_lst(int listen_socket) {
