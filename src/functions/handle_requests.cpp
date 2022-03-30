@@ -16,19 +16,21 @@ void finish_response(Client &client, FdManager &table)
     // remove trailing spaces (possible left-overs from request's body)
     remove_trailing_spaces(client.received_data);
 	client.update_state();
+	table.set_pollin(client.socket); // experimental
+
 	if (Client::counter > MAX_CLIENTS / 2)
 	{
 		if (client.unsent_data.empty())
 		{
 			remove_client(client, table,
 				"webserv (disconnect after response sent)");
-			return; // experimental
 		}
-		else
+		else if (client.is_idle())
+		{
+			table.unset_pollin(client.socket);
 			client.disconnect_after_send = true;
+		}
 	}
-
-
 }
 
 // calls the respond() method of each request handler in

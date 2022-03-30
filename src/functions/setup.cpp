@@ -28,13 +28,22 @@ std::string resolve_file_name(int argc, char **argv)
     return (argv[1]);
 }
 
+
 int setup(FdManager &table, int argc, char **argv)
 {
+    ConfigParser parser;
+    std::map<ip_port, std::list<Vserver> > config;
     std::string file_name = resolve_file_name(argc, argv);
-    ConfigParser parser(file_name);
-    std::map<ip_port, std::list<Vserver> > config = parser.getConfig();
-
-    // mime.types file
+    try
+    {
+      config = parser.parse(file_name.c_str()); 
+    }
+    catch (const ConfigParser::ConfigParserException& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return (-1);
+    }
+    // content-types file
     parse_mime_types_file(AReqHandler::content_type);
 
     if (open_listening_sockets(table, config) == -1)

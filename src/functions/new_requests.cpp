@@ -60,5 +60,6 @@ void new_requests(FdManager &table)
         client.request_handler = req_handler;
         client.update_state();
         client.last_io = now;
+        table.unset_pollin(client.socket); // experimental
     }
 }

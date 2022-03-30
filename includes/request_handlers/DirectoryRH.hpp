@@ -1,3 +1,6 @@
+#include <list>
+#include <string>
+#include <utility>
 #if !defined(__DIRECTORY_RH_H__)
 #define __DIRECTORY_RH_H__
 
@@ -21,11 +24,11 @@ class DirectoryRH : public AReqHandler {
     ~DirectoryRH();
 
     virtual int respond();
-    virtual void abort();
 
    private:
     void _generate_autoindex_page();
     int _setup();
+    std::list<std::pair<std::string, unsigned char> > _get_files_name();
 };
 
 #endif  // __DIRECTORY_RH_H__

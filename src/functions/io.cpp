@@ -29,7 +29,6 @@ void recv_from_client(int socket, FdManager &table, time_t now)
         client.update_state();
         client.time_begin_request = now;
     }
-
     // debug
     if (DEBUG)
         std::cout << "Received " << recvd_bytes <<
@@ -78,7 +77,7 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
     Client &client = *table[socket].client;
     int bytes_sent;
 
-    if (client.unsent_data.empty()) // POLLOUT should not be set in the first place...
+    if (client.unsent_data.empty())
     {
         table.unset_pollout(client.socket);
         return;

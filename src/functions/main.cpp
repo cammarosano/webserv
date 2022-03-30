@@ -18,7 +18,7 @@ void do_io(FdManager &table)
     // n_fds = poll(table.get_poll_array(), table.len(), -1);
     if (n_fds == -1)
     {
-        // perror("poll");
+        perror("poll");
         return;
     }
 

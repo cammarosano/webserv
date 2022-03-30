@@ -142,6 +142,7 @@ int CgiPostRH::respond()
 	case s_start:
 		table.add_fd_read(cgi_output_fd, request->client);
 		table.add_fd_write(cgi_input_fd, request->client);
+		table.set_pollin(client.socket); // experimental
 		state = s_recv_req_body;
 
 	case s_recv_req_body:
@@ -154,6 +155,7 @@ int CgiPostRH::respond()
 			table.set_pollout(cgi_input_fd);
 		if (ret_bd == 0) // not finished
 			return (0);
+		table.unset_pollin(client.socket); // experimental
 		state = s_sending_body2cgi;
 
 	case s_sending_body2cgi:

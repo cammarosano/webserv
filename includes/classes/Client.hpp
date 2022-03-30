@@ -51,6 +51,7 @@ struct Client {
     void update_state();
     void update_state(e_state new_state);
     bool is_idle();
+    bool is_incoming_request();
     bool is_ongoing_response();
 
     // lists 

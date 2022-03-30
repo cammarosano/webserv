@@ -1,10 +1,10 @@
+#include "StaticRH.hpp"
 #include "includes.hpp"
 
 // request.route cannot be NULL
 // separates the URI into relative_part + query string
 // assembles path removing the route prefix from the relative-part
-std::string assemble_ressource_path(HttpRequest &request)
-{
+std::string assemble_ressource_path(HttpRequest &request) {
     Route &r = *request.route;
     std::string url = request.target;
 
@@ -15,25 +15,37 @@ std::string assemble_ressource_path(HttpRequest &request)
     return (path);
 }
 
-// initiates a response when the resource path is a directory
-AReqHandler *directory_response(HttpRequest &request, FdManager &table, std::string &resource_path)
+// returns 1 if file, 2 if dir, 0 otherwise
+int is_resource_available(std::string &path)
 {
     struct stat sb;
+
+    if (stat(path.c_str(), &sb) == -1)
+        return (0);
+    if (S_ISREG(sb.st_mode))
+        return (1);
+    if (S_ISDIR(sb.st_mode))
+        return (2);
+    return (0);
+}
+
+// initiates a response when the resource path is a directory
+AReqHandler *directory_response(HttpRequest &request, FdManager &table,
+                                std::string &resource_path) {
     Route &r = *request.route;
 
     // add slash to the end if necessary
     if (*resource_path.rbegin() != '/')
         resource_path += '/';
-
     // first, try default index file
     if (!r.default_index.empty()) // config file informs a default index
     {
         std::string default_index_path = resource_path + r.default_index;
         // check if file exists and is a regular file (no dir)
-        if (stat(default_index_path.c_str(), &sb) == 0 && S_ISREG(sb.st_mode))
-        {
+        if (is_resource_available(default_index_path) == 1) {
             // debug
-            std::cout << "default index found: " << default_index_path << std::endl;
+            std::cout << "default index found: " << default_index_path
+                      << std::endl;
             return (new StaticRH(&request, table, default_index_path));
         }
     }
@@ -44,8 +56,7 @@ AReqHandler *directory_response(HttpRequest &request, FdManager &table, std::str
     return (new ErrorRH(&request, table, 403));
 }
 
-bool body_size_exceeds(HttpRequest &request)
-{
+bool body_size_exceeds(HttpRequest &request) {
     std::map<std::string, std::string>::iterator it;
     size_t content_size;
 
@@ -55,20 +66,20 @@ bool body_size_exceeds(HttpRequest &request)
     if (it == request.header_fields.end()) // not found, size unknown
         return (false);
     content_size = strtol(it->second.c_str(), NULL, 10);
-    if (content_size > request.route->body_size_limit * 1024 * 1024) // Megabytes
+    if (content_size >
+        request.route->body_size_limit * 1024 * 1024) // Megabytes
         return (true);
     return (false);
 }
 
-bool is_method_allowed(HttpRequest &request)
-{
+bool is_method_allowed(HttpRequest &request) {
     std::list<std::string>::iterator it; // obs: a set would be faster
 
-    it = request.route->accepted_methods.begin();
-    if (request.route->accepted_methods.empty() && (request.method == "GET" || request.method == "HEAD"))
+    if (request.route->accepted_methods.empty() &&
+        (request.method == "GET" || request.method == "HEAD"))
         return true;
-    while (it != request.route->accepted_methods.end())
-    {
+    it = request.route->accepted_methods.begin();
+    while (it != request.route->accepted_methods.end()) {
         if (*it == request.method)
             return (true);
         ++it;
@@ -76,12 +87,46 @@ bool is_method_allowed(HttpRequest &request)
     return (false);
 }
 
+
+// check if path contains extension, removes aditional path and check
+// if script exists
+bool is_cgi_request(std::string resource_path, Route &route)
+{
+    // look for cgi extension and interpreter
+    if (route.cgi_extension.empty())
+        return (false);
+    size_t pos = resource_path.find(route.cgi_extension);
+    if (pos == std::string::npos) 
+        return (false);
+
+    // if anything after script name, must start with '/'
+    size_t ext_len = route.cgi_extension.size();
+    if (pos + ext_len > resource_path.size() && resource_path[pos + ext_len] != '/')
+        return (false);
+
+    // deduce script_path and check if available
+    std::string script_path = resource_path.substr(0, pos + ext_len);
+    if (is_resource_available(script_path) == 1) 
+        return (true);
+    return (false);
+}
+
+AReqHandler *cgi_response(HttpRequest &request, FdManager &table,
+    std::string &resource_path)
+{
+    if (request.route->cgi_interpreter.empty())
+        return (new ErrorRH(&request, table, 502)); // bad gateway
+    if (request.method == "GET")
+        return (new CgiGetRH(&request, table, resource_path));
+    if (request.method == "POST")
+        return (new CgiPostRH(&request, table, resource_path));
+    return (new ErrorRH(&request, table, 501));
+}
+
 // resolve type of response: static_file, CGI, directory, error...
 // instantiate the correct request handler
-AReqHandler *init_response(HttpRequest &request, FdManager &table)
-{
+AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
-    struct stat sb;
 
     if (request.vserver->redirected)
         return (new RedirectRH(&request, table));
@@ -94,29 +139,21 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table)
     if (body_size_exceeds(request))
         return (new ErrorRH(&request, table, 413));
     resource_path = assemble_ressource_path(request);
-    // check if ressource is available
-    if (stat(resource_path.c_str(), &sb) == -1) // resource not found
-        return (new ErrorRH(&request, table, 404));
-    if (S_ISDIR(sb.st_mode)) // check if it's a directory
-        return (directory_response(request, table, resource_path));
-    // check if regular file and has read rights (obs: access() is a security
-    // hole!!)
-    if (!S_ISREG(sb.st_mode) || access(resource_path.c_str(), R_OK))
-        return (new ErrorRH(&request, table, 404));
-    // check if CGI script (match extension)
-    if (!request.route->cgi_extension.empty() && resource_path.find(request.route->cgi_extension) != std::string::npos)
-    {
-        if (request.method == "GET")
-            return (new CgiGetRH(&request, table, resource_path));
-        if (request.method == "POST")
-            return (new CgiPostRH(&request, table, resource_path));
-    }
-    if (request.method == "POST")
+    if (is_cgi_request(resource_path, *request.route))
+        return (cgi_response(request, table, resource_path));
+    // ressource not available not an error for post
+    if (request.method == "POST") // upload
         return new PostRH(&request, table);
-    else if (request.method == "GET" || request.method == "HEAD")
+    // check if ressource is available
+    int ret = is_resource_available(resource_path);
+    if (ret == 0) // not available
+        return (new ErrorRH(&request, table, 404));
+    if (ret == 2) // directory
+        return (directory_response(request, table, resource_path));
+    // file
+    if (request.method == "GET" || request.method == "HEAD")
         return (new StaticRH(&request, table, resource_path));
-    else if (request.method == "DELETE")
-    {
+    if (request.method == "DELETE") {
         return new DeleteRH(&request, table, resource_path);
     }
     return (new ErrorRH(&request, table, 501));
