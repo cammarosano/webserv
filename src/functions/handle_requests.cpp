@@ -28,9 +28,7 @@ void finish_response(Client &client, FdManager &table)
 			client.disconnect_after_send = true;
 	}
 
-	// experimental
-	if (!client.is_idle()) // if state is incoming_request
-		table.poll_block = false;
+
 }
 
 // calls the respond() method of each request handler in

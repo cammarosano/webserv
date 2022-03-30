@@ -12,8 +12,6 @@ FdManager::FdManager() : capacity(10)
         poll_array[i].events = 0;
     }
 
-    // experimental
-    poll_block = true;
 }
 
 FdManager::~FdManager() {

@@ -71,8 +71,6 @@ public:
 
 	void debug_info() const;
 
-	// experimental
-	bool poll_block;
 };
 
 #endif
