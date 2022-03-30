@@ -64,7 +64,7 @@ int CgiGetRH::setup()
         if (chdir(request->route->root.c_str()) == -1)
             exit(1);
         
-        close(2); // hide errors
+        // close(2); // hide errors
 
         // exec()
         execve(argv[0], argv, envp);

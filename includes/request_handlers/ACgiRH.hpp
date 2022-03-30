@@ -26,6 +26,7 @@ protected:
     } state;
 
     std::string get_query_str();
+    std::string get_script_path();
 	char **setup_cgi_argv();
 	char **setup_cgi_env();
     bool cgi_failed();

@@ -92,7 +92,7 @@ bool is_method_allowed(HttpRequest &request) {
 // if script exists
 bool is_cgi_request(std::string resource_path, Route &route)
 {
-    // look for cgi extension
+    // look for cgi extension and interpreter
     if (route.cgi_extension.empty())
         return (false);
     size_t pos = resource_path.find(route.cgi_extension);
@@ -114,6 +114,8 @@ bool is_cgi_request(std::string resource_path, Route &route)
 AReqHandler *cgi_response(HttpRequest &request, FdManager &table,
     std::string &resource_path)
 {
+    if (request.route->cgi_interpreter.empty())
+        return (new ErrorRH(&request, table, 502)); // bad gateway
     if (request.method == "GET")
         return (new CgiGetRH(&request, table, resource_path));
     if (request.method == "POST")
