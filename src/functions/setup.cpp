@@ -41,7 +41,7 @@ int setup(FdManager &table, int argc, char **argv)
     catch (const ConfigParser::ConfigParserException& e)
     {
         std::cerr << e.what() << std::endl;
-        exit(EXIT_FAILURE);
+        return (-1);
     }
     // content-types file
     parse_mime_types_file(AReqHandler::content_type);

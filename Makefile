@@ -66,7 +66,7 @@ debug:		CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address \
 debug:		$(NAME)
 
 valgrind:	CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
-valgrind:	$(NAME)
+valgrind:	clean $(NAME)
 
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@
