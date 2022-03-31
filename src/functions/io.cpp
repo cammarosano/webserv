@@ -1,5 +1,8 @@
 #include "includes.hpp"
 
+// read() from client's socket
+// data is stored in Client::received_data
+// if client was in "idle" state, state is updated to "incoming_request"
 void recv_from_client(int socket, FdManager &table, time_t now)
 {
     char buffer[BUFFER_SIZE];
@@ -35,9 +38,8 @@ void recv_from_client(int socket, FdManager &table, time_t now)
             " bytes from client at socket " << socket << std::endl;
 }
 
-// reads data from a fd (file or pipe)
-// copies it into Client's unsent data buffer
-// if error, response is terminated and client disconnected
+// reads data from a fd (file or pipe with CGI output)
+// copies it into Client:unsent_data buffer
 void read_from_fd(int fd, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
@@ -72,6 +74,8 @@ void read_from_fd(int fd, FdManager &table)
             " destinated to client at socket " << client.socket << std::endl;
 }
 
+// write() to Client's socket.
+// Client::unsent_data is the data source.
 void send_to_client(int socket, FdManager &table, time_t current_time)
 {
     Client &client = *table[socket].client;
@@ -110,8 +114,8 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
                     << socket << std::endl;
 }
 
-// write data from Client's decoded_body to fd (file or pipe)
-// if error, response is terminated and client disconnected
+// write data from Client's decoded_body to fd (file for uploads, or pipe to
+// CGI input)
 void write_to_fd(int fd, FdManager &table)
 {
     Client &client = *table[fd].client;

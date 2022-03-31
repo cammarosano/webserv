@@ -12,7 +12,6 @@ void do_io(FdManager &table)
 
     // call poll()
     n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
-    // n_fds = poll(table.get_poll_array(), table.len(), -1);
     if (n_fds == -1)
     {
         // perror("poll");
@@ -62,7 +61,7 @@ int main(int argc, char** argv)
 {
     FdManager table;
 
-    signal(SIGINT, signal_handler);
+    std::signal(SIGINT, signal_handler);
     if (setup(table, argc, argv) == -1)
         return (1);
     while (!stop)

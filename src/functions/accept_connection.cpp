@@ -40,7 +40,7 @@ void accept_connection(int listen_socket, FdManager &table, time_t now)
         if (!make_room_for_new_client(table, now))
         {
             // refuse_connection(listen_socket);
-            return; // make it wait
+            return; // make it wait for next IO round
         }
     }
 

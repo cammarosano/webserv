@@ -3,6 +3,7 @@
 
 // C stuff
 # include <cstring> // memset
+# include <csignal>
 
 // classes
 #include "ARequestHandler.hpp"
