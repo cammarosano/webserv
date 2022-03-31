@@ -1,8 +1,7 @@
 #include "includes.hpp"
 
-// request.route cannot be NULL
-// separates the URI into relative_part + query string
-// assembles path removing the route prefix from the relative-part
+// Assembles path removing the query string and replacing the route prefix for 
+// the route's root from the relative-part
 std::string assemble_ressource_path(HttpRequest &request) {
     Route &r = *request.route;
     std::string url = request.target;
@@ -14,7 +13,7 @@ std::string assemble_ressource_path(HttpRequest &request) {
     return (path);
 }
 
-// returns 1 if file, 2 if dir, 0 otherwise
+// returns 1 if regular file, 2 if directory, 0 otherwise
 int is_resource_available(std::string &path)
 {
     struct stat sb;
@@ -110,6 +109,7 @@ bool is_cgi_request(std::string resource_path, Route &route)
     return (false);
 }
 
+// initiates response when resource_path is a CGI script
 AReqHandler *cgi_response(HttpRequest &request, FdManager &table,
     std::string &resource_path)
 {
@@ -122,8 +122,8 @@ AReqHandler *cgi_response(HttpRequest &request, FdManager &table,
     return (new ErrorRH(&request, table, 501));
 }
 
-// resolve type of response: static_file, CGI, directory, error...
-// instantiate the correct request handler
+// Resolves type of response: static_file, CGI, directory, error etc.
+// Instantiates the correct request handler
 AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     std::string resource_path;
 
@@ -152,8 +152,8 @@ AReqHandler *init_response(HttpRequest &request, FdManager &table) {
     // file
     if (request.method == "GET" || request.method == "HEAD")
         return (new StaticRH(&request, table, resource_path));
-    if (request.method == "DELETE") {
+    if (request.method == "DELETE") 
         return new DeleteRH(&request, table, resource_path);
-    }
+    
     return (new ErrorRH(&request, table, 501));
 }

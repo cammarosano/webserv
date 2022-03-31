@@ -30,9 +30,18 @@ void finish_response(Client &client, FdManager &table)
 		table.set_pollout(client.socket); // trick to avoid blocking at poll
 }
 
-// calls the respond() method of each request handler in
-// the list. deletes request and request handler when
-// the response is complete.
+// For each client in "ongoing_response" state, calls the respond() method of
+// its request handler.
+// Respond() return values are:
+// 1 : finished
+// 0 : not finished
+// HTTP error_code: finished with error
+//
+// When response is finished:
+// - deletes request and request handler
+// - updates client's state
+// When response() returns an error code, the request handler is replaced by
+// an ErrorRH.
 void handle_requests(FdManager &table)
 {
 	// iterate over clients with ongoing responses
@@ -49,7 +58,7 @@ void handle_requests(FdManager &table)
 		++it; // following operations might invalidate iterator
         req_handler = client.request_handler;
         ret = req_handler->respond();
-		if (ret == 1)
+		if (ret == 1) // response is complete
 			finish_response(client, table);
 		else if (ret > 1)
 			replace_req_handler(client, ret, table);

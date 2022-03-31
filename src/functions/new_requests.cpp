@@ -1,7 +1,8 @@
 #include "includes.hpp"
 
-// extracts data from the client's received_data buffer into an HttpRequest
-// object returns NULL if buffer does not contain a complete request header
+// Extracts data from the client's received_data buffer into an HttpRequest
+// object
+// Returns NULL if buffer does not contain a complete request header
 HttpRequest *new_HttpRequest(Client &client, FdManager &table)
 {
     // look for end-of-header delimiter: 2CRLF
@@ -28,8 +29,12 @@ HttpRequest *new_HttpRequest(Client &client, FdManager &table)
 }
 
 
-// checks each Client's received_data buffer for a HTTP request header,
-// instantiates a new HttpRequest and a suitable request handler
+// Checks clients in "incoming_request" state if their received_data buffer
+// contains a complete HTTP request header.
+// If so,
+// - instantiates a HttpRequest object
+// - instantiates a suitable request handler object (via init_response())
+// - update client's state to "ongoing_response"
 void new_requests(FdManager &table)
 {
     // iterate over clients with incoming requests
@@ -54,8 +59,6 @@ void new_requests(FdManager &table)
         {
             req_handler = new ErrorRH(request, table, 500);
         }
-        // Client owns request and request handler 
-        // move lines below to AReqHandler's constructor?
         client.request = request;
         client.request_handler = req_handler;
         client.update_state();
