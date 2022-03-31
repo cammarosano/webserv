@@ -1,17 +1,18 @@
 #include "includes.hpp"
 
+// parses "conf/mime.types" file into a map <file_extension->media_type>
 int parse_mime_types_file(std::map<std::string, std::string> &map)
 {
-	std::fstream fs("conf/mime.types");
+	std::fstream fs(MIME_TYPES_FILE);
 	std::string pre_block;
 	std::string block;
 	std::string line;
 	std::string media_type;
 	std::string extension;
 
-    if (!fs.is_open())
+    if (!fs.good())
     {
-        std::cout << "Alert: Failed to load conf/mime.types" << std::endl;
+        std::cout << "Alert: Failed to load " << MIME_TYPES_FILE << std::endl;
         return (-1);
     }
 	// pre-block: expect "types"
@@ -20,8 +21,8 @@ int parse_mime_types_file(std::map<std::string, std::string> &map)
 	pre_block_stream >> line;
 	if (line != "types" )
     {
-        std::cout << "Alert: Failed to load conf/mime.types (bad format)"
-					<< std::endl;
+        std::cout << "Alert: Failed to load " << MIME_TYPES_FILE
+			<< "(bad format)" << std::endl;
 		return (-1);
     }
 	

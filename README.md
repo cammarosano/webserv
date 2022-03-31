@@ -2,40 +2,6 @@
 
 ## TODO
 
--  ### configuration file parser
-
-    - ### parse server block
-      - [x] listening port
-      - [x] server names
-      - [x] error pages
-      - [ ] body size limit (accept other than M ?)
-    - ### parse location block
-      - [x] root
-      - [x] auto_index
-      - [x] default index file
-      - [x] cgi extension
-      - [x] cgi interpreter
-      - [x] accepted method
-      - [ ] upload accepted
-      - [ ] upload dir
-      - [x] redirection
-
-
-- ### request handler class for Redirections
-  - [x] redirect server
-  - [ ] redirect location
-
-- ### request handler class for Directory listing
-
-  - [x] generates an HTML page with the directory listing (auto-index)
-  - [ ] display folder first then files (optional)
-
-- ### "Try to always use the most "C++" code possible (for example use <cstring> over <string.h>)."
-
-- ### Header fields in the Http response:
-   - [x] content-type
-   - [x] date
-
 - ### make request Header parser more robust
 
 - ### website for correction:

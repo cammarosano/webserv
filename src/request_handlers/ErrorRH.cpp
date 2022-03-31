@@ -3,6 +3,8 @@
 ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
     : AReqHandler(request, table), error_code(error_code) {
     state = s_setup;
+    table.unset_pollin(client.socket); // client will be disconnected after resp
+    client.received_data.clear(); // clear possible body of a bad request
 }
 
 ErrorRH::~ErrorRH() {
@@ -82,32 +84,44 @@ int ErrorRH::setup() {
 // returns 1 if response if complete
 // 0 if response not yet complete
 // -1 if response was aborted
-int ErrorRH::respond() {
-    if (state == s_setup) {
+int ErrorRH::respond()
+{
+    if (state == s_setup)
+    {
         setup();
         state = s_sending_header;
     }
-    if (state == s_sending_header) {
-        if (send_str(response.header_str) == 1) {
+    if (state == s_sending_header)
+    {
+        if (send_str(response.header_str) == 1)
+        {
             if (res_type == sending_default)
                 state = s_sending_html_str;
             else
                 state = s_start_send_file;
         }
     }
-    if (state == s_sending_html_str) {
-        if (send_str(html_page) == 1) state = s_done;
-    } else if (state == s_start_send_file) {
-        table.add_fd_read(fd, request->client);
+    if (state == s_sending_html_str)
+    {
+        if (send_str(html_page) == 1)
+            state = s_done;
+    }
+    else if (state == s_start_send_file)
+    {
+        table.add_fd_read(fd, client);
         state = s_sending_file;
         return 0;
     }
-    if (state == s_sending_file) {
-        if (table[fd].is_EOF) {
+    if (state == s_sending_file)
+    {
+        if (table[fd].is_EOF)
             state = s_done;
-        }
     }
-    if (state == s_done) return (1);
+    if (state == s_done)
+    {
+        client.disconnect_after_send = true;
+        return (1);
+    }
     return (0);
 }
 

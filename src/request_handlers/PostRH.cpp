@@ -27,7 +27,6 @@ PostRH::~PostRH()
 int PostRH::respond()
 {
     int ret_bd;
-    Client &client = request->client;
 
     switch (state)
     {
@@ -39,7 +38,7 @@ int PostRH::respond()
         fd = open(file_path.c_str(), O_CREAT | O_WRONLY, 0644);
         if (fd < 0)
             return 500;
-        table.add_fd_write(fd, request->client);
+        table.add_fd_write(fd, client);
         state = s_receiving_body;
     case s_receiving_body:
         ret_bd = bd.decode_body();

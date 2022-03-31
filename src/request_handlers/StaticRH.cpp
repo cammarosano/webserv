@@ -53,7 +53,7 @@ int StaticRH::respond()
             state = s_done;
             return (1);
         }
-        table.add_fd_read(fd_file, request->client);
+        table.add_fd_read(fd_file, client);
         state = s_sending_file;
 
     case s_sending_file:

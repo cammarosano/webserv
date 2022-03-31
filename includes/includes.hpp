@@ -32,8 +32,8 @@ int parse_mime_types_file(std::map<std::string, std::string> &map);
 
 void accept_connection(int listen_socket, FdManager &table, time_t now);
 void recv_from_client(int socket, FdManager &table, time_t now);
-void read_from_fd(int fd, FdManager &table);
 void send_to_client(int socket, FdManager &table, time_t current_time);
+void read_from_fd(int fd, FdManager &table);
 void write_to_fd(int fd_cgi_input, FdManager &table);
 
 // process requests
@@ -50,10 +50,12 @@ void clear_resources(FdManager &table);
 int reap_child_processes(std::list<pid_t> &list);
 
 // error-response without request
+
 void send_error_resp_no_request(Client &client, FdManager &table,
 								int error_code);
 
-// time-out
+// time-out and wait CGI processes
+
 void reaper(FdManager &table);
 
 #endif

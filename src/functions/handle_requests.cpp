@@ -26,8 +26,10 @@ void finish_response(Client &client, FdManager &table)
     // remove trailing spaces (possible left-overs from request's body)
     remove_trailing_spaces(client.received_data);
 	client.update_state();
-	if (client.is_incoming_request())
-		table.set_pollout(client.socket); // trick to avoid blocking at poll
+
+	// avoid blocking at poll, force send_to_client() to be called
+	if (client.is_incoming_request() || client.disconnect_after_send)
+		table.set_pollout(client.socket); 
 }
 
 // For each client in "ongoing_response" state, calls the respond() method of

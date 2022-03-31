@@ -16,7 +16,7 @@ is resolved (based on the "target" field).
 */
 struct HttpRequest {
     Client &client;
-    Vserver *vserver;                          // resolved virutal server
+    Vserver *vserver;                          // resolved virtual server
     Route *route;                              // resolved route
     std::string method, target, http_version;  // request-line
     std::map<std::string, std::string> header_fields;
@@ -24,7 +24,7 @@ struct HttpRequest {
     HttpRequest(Client &client, std::string &header_str);
 
 private:
-    int parse_header(std::string &header_str);
+    void parse_header(std::string &header_str);
     void resolve_vserver();
     void resolve_route();
 };

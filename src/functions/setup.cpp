@@ -24,11 +24,15 @@ int open_listening_sockets(FdManager &table,
 std::string resolve_file_name(int argc, char **argv)
 {
     if (argc == 1)
-        return ("conf/default.conf");
+        return (DEFAULT_CONFIG_FILE);
     return (argv[1]);
 }
 
 
+// parses config file (argv[1] or DEFAULT_CONFIG_FILE if no argv[1])
+// parses MIME_TYPES_FILE (for "content-type" response header-field)
+// open listening sockets
+// returns -1 if error, 0 otherwise
 int setup(FdManager &table, int argc, char **argv)
 {
     ConfigParser parser;
@@ -43,11 +47,8 @@ int setup(FdManager &table, int argc, char **argv)
         std::cerr << e.what() << std::endl;
         return (-1);
     }
-    // content-types file
     parse_mime_types_file(AReqHandler::content_type);
-
     if (open_listening_sockets(table, config) == -1)
         return (-1);
-
     return (0);
 }

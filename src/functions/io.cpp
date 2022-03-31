@@ -76,25 +76,30 @@ void read_from_fd(int fd, FdManager &table)
 
 // write() to Client's socket.
 // Client::unsent_data is the data source.
+// Clients tagged with "disconnect_after_send" are removed if the unsent_data
+// buffer is emptied
 void send_to_client(int socket, FdManager &table, time_t current_time)
 {
     Client &client = *table[socket].client;
     int bytes_sent;
 
-    if (client.unsent_data.empty()) // POLLOUT should not be set in the first place...
+    if (!client.unsent_data.empty())
     {
-        table.unset_pollout(client.socket);
-        return;
+        bytes_sent = write(socket, client.unsent_data.data(),
+                            client.unsent_data.size());
+        if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
+        {
+            if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
+            remove_client(client, table, "webserv (write error)");
+            return;
+        }
+        client.unsent_data.erase(0, bytes_sent);
+        client.last_io = current_time;
+        // debug
+        if (DEBUG)
+            std::cout << bytes_sent << " bytes were sent to client at socket "
+                        << socket << std::endl;
     }
-    bytes_sent = write(socket, client.unsent_data.data(),
-                        client.unsent_data.size());
-    if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
-    {
-        if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
-        remove_client(client, table, "webserv (write error)");
-        return;
-    }
-    client.unsent_data.erase(0, bytes_sent);
     if (client.unsent_data.empty())
     {
         table.unset_pollout(client.socket);
@@ -105,13 +110,6 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
             return;
         }
     }
-
-    client.last_io = current_time;
-
-    // debug
-    if (DEBUG)
-        std::cout << bytes_sent << " bytes were sent to client at socket "
-                    << socket << std::endl;
 }
 
 // write data from Client's decoded_body to fd (file for uploads, or pipe to

@@ -85,7 +85,7 @@ void time_out_idle_clients(FdManager &table, time_t now)
 	}
 }
 
-// checks for time-outs
+// checks for time-outs and removes Clients
 // waits for child processes from terminated CGI responses
 void reaper(FdManager &table)
 {

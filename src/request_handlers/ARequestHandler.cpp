@@ -61,7 +61,6 @@ void AReqHandler::add_to_bytes_recvd(size_t n) { bytes_recvd += n; }
 // an auto-generated html page)
 // Returns 1 if complete, 0 otherwise
 int AReqHandler::send_str(std::string &str) {
-    Client &client = request->client;
     int max_bytes;
 
     max_bytes = BUFFER_SIZE - client.unsent_data.size();

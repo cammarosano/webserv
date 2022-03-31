@@ -11,6 +11,8 @@
 # define REAPER_FREQUENCY 5 // seconds
 # define POLL_TIME_OUT 2000 // miliseconds
 # define DEFAULT_MIME "text/plain"
+# define DEFAULT_CONFIG_FILE "conf/default.conf"
+# define MIME_TYPES_FILE "conf/mime.types"
 # ifndef DEBUG
 	# define DEBUG 0
 # endif

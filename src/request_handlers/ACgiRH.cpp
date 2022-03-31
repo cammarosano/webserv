@@ -92,8 +92,8 @@ std::map<std::string, std::string> ACgiRH::get_env_map()
     cgi_env["PATH_INFO"] = resource_path;
     cgi_env["PATH-TRANSLATED"] = resource_path; // no idea how to fill-in this one
     cgi_env["QUERY_STRING"] = query_str;
-    cgi_env["REMOTE_ADDR"] = request->client.ipv4_addr;
-    cgi_env["REMOTE_HOST"] = request->client.host_name;
+    cgi_env["REMOTE_ADDR"] = client.ipv4_addr;
+    cgi_env["REMOTE_HOST"] = client.host_name;
     // OBS: skipping REMOTE_IDENT and REMOTE_USER
     cgi_env["REQUEST_METHOD"] = request->method;
     // SCRIPT_NAME = resource target without the query-string
