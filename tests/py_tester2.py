@@ -25,6 +25,7 @@ def client(client_id):
 			s.close()
 			s = requests.Session()
 
+	s.close()
 	print(f"Client {client_id} finished. Requests sent: {requests_sent}")
 
 for client_id in range(n_clients):
