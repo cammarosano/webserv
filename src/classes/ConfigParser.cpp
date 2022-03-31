@@ -182,6 +182,7 @@ void ConfigParser::_parse_route_upload(std::istringstream &iss, Route &r)
 void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
 {
     std::string parsed;
+    bool mega = false;
 
     iss >> parsed;
     size_t c = parsed.find(';');
@@ -190,16 +191,18 @@ void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
         throw ConfigParser::ConfigParserException("Error: Config file: route max body size");
     }
     parsed = parsed.substr(0, c);
-    if (*(parsed.rbegin()) != 'M')
+    if (*(parsed.rbegin()) == 'M')
     {
-        throw ConfigParser::ConfigParserException("Error: Config file: route max body size should end with 'M'");
+        mega = true;
+        parsed = parsed.substr(0, parsed.length() - 1);
     }
-    parsed = parsed.substr(0, parsed.length() - 1);
     if (!str_is_number(parsed))
     {
         throw ConfigParser::ConfigParserException("Error: Config file: max body size should be a number");
     }
     r.body_size_limit = std::atoi(parsed.c_str());
+    if (mega)
+        r.body_size_limit *= 1000000;
 }
 
 // TODO: cut this function in pieces

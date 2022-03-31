@@ -66,7 +66,7 @@ bool body_size_exceeds(HttpRequest &request) {
         return (false);
     content_size = strtol(it->second.c_str(), NULL, 10);
     if (content_size >
-        request.route->body_size_limit * 1024 * 1024) // Megabytes
+        request.route->body_size_limit)
         return (true);
     return (false);
 }
