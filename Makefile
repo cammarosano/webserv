@@ -9,7 +9,7 @@ functions/listening_socket.cpp \
 functions/setup.cpp \
 functions/handle_requests.cpp \
 functions/clear_resources.cpp \
-functions/error_request.cpp \
+functions/error_resp_no_request.cpp \
 functions/mime_type.cpp \
 functions/init_response.cpp \
 functions/reaper.cpp \

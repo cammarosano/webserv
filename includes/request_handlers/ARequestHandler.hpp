@@ -44,8 +44,6 @@ class AReqHandler {
     virtual int respond() = 0;
     virtual int time_out_code();
 
-    HttpRequest *getRequest();
-    Client *getClient();
     void add_to_bytes_recvd(size_t n);
 
     static std::string get_mime_type(const std::string &file_name);

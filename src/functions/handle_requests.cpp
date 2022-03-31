@@ -5,7 +5,7 @@ void replace_req_handler(Client &client, int error_code, FdManager &table)
 {
 	delete client.request_handler;
 	client.request_handler = new ErrorRH(client.request, table, error_code); 
-	client.disconnect_after_send = true;
+	// client.disconnect_after_send = true; // this is wrong!!
 	// make this standard behaviour for all error responses?
 }
 

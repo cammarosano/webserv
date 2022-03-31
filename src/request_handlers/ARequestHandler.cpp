@@ -10,9 +10,6 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
 
 AReqHandler::~AReqHandler() {}
 
-HttpRequest *AReqHandler::getRequest() { return request; }
-
-Client *AReqHandler::getClient() { return &client; }
 
 void AReqHandler::HttpResponse::assemble_header_str() {
     typedef std::map<std::string, std::string>::iterator iterator;
