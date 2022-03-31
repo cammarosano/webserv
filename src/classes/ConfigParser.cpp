@@ -1,5 +1,4 @@
 #include "ConfigParser.hpp"
-#include <exception>
 
 ConfigParser::ConfigParser() : curr_vs(NULL)
 {

@@ -1,37 +1,8 @@
 #ifndef INCLUDES_HPP
 #define INCLUDES_HPP
 
-// C++ stuff
-#include <iostream>
-#include <list>
-#include <map>
-#include <queue>
-#include <set>
-#include <sstream>
-#include <string>
-#include <utility>
-
 // C stuff
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <poll.h>
-#include <signal.h>
-#include <stdlib.h>  // atoi
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-
-#include "config.hpp"
-#include "macros.h"
-#include "utils.h"
+# include <cstring> // memset
 
 // classes
 #include "ARequestHandler.hpp"
@@ -69,11 +40,11 @@ void write_to_fd(int fd_cgi_input, FdManager &table);
 void new_requests(FdManager &table);
 AReqHandler *init_response(HttpRequest &request, FdManager &table);
 void handle_requests(FdManager &table);
+void replace_req_handler(Client &client, int error_code, FdManager &table);
 
 // clear
 
 void remove_client(Client &client, FdManager &table, const char *who);
-void replace_req_handler(Client &client, int error_code, FdManager &table);
 void clear_resources(FdManager &table);
 int reap_child_processes(std::list<pid_t> &list);
 

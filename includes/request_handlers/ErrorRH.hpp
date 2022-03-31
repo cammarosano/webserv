@@ -8,7 +8,6 @@
 # include <unistd.h>
 # include <fcntl.h>
 
-
 /*
 Request handler for error responses
 */

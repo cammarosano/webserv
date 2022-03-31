@@ -1,7 +1,4 @@
 #include "PostRH.hpp"
-#include "macros.h"
-
-#include <fcntl.h>
 
 PostRH::PostRH(HttpRequest *request, FdManager &table) : AReqHandler(request, table), bd(*request)
 {

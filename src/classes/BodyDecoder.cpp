@@ -15,8 +15,8 @@ length_decoded(0)
 	}
 	else if (type == content_length)
 	{
-		content_len = strtol(request.header_fields["content-length"].c_str(),
-			NULL, 10);
+		content_len = std::strtol(
+			request.header_fields["content-length"].c_str(), NULL, 10);
 		bytes_left = content_len;
 		if (DEBUG) std::cout << "Content-Length: " << bytes_left << std::endl;
 	}
@@ -148,7 +148,7 @@ int BodyDecoder::decode_chunked()
 			return (0); // come back after another IO round
 		if (!validade_chunk_size_line(raw_data, pos))
 			return (-1);
-		chunk_size = strtol(raw_data.c_str(), NULL, 16);
+		chunk_size = std::strtol(raw_data.c_str(), NULL, 16);
 		if (DEBUG) std::cout << "Chunk-size: " << chunk_size << std::endl;
 		if (chunk_size == 0)
 			return (finish());

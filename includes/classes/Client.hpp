@@ -7,7 +7,7 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <iostream>
-# include <stdio.h> // perror
+# include <cstdio> // perror
 # include <ctime>
 # include "macros.h"
 # include <queue>

@@ -1,9 +1,4 @@
 #include "DirectoryRH.hpp"
-#include <cstddef>
-#include <dirent.h>
-#include <list>
-#include <string>
-#include <utility>
 
 DirectoryRH::DirectoryRH(HttpRequest *request, FdManager &table, const std::string &path)
     : AReqHandler(request, table), ressource_path(path)

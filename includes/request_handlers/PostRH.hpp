@@ -3,6 +3,11 @@
 
 #include "ARequestHandler.hpp"
 #include "BodyDecoder.hpp"
+#include "macros.h"
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 class PostRH : public AReqHandler {
   private:
     BodyDecoder bd;

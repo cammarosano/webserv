@@ -6,7 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <stdlib.h> // EXIT_FAILURE
+#include <cstdlib>
+#include <exception>
 
 class ConfigParser {
   private:

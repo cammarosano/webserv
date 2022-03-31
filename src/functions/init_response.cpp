@@ -1,4 +1,3 @@
-#include "StaticRH.hpp"
 #include "includes.hpp"
 
 // request.route cannot be NULL
