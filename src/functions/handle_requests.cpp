@@ -11,19 +11,23 @@ void replace_req_handler(Client &client, int error_code, FdManager &table)
 
 void finish_response(Client &client, FdManager &table)
 {
+	
+	if (!client.unsent_data.empty())
+	// RH's job is done, but client still hasn't received
+	// the complete response
+	{
+		if (Client::counter > MAX_CLIENTS / 2)
+			client.disconnect_after_send = true;
+		return ; 
+	}
+
 	delete client.request;
 	delete client.request_handler;
     // remove trailing spaces (possible left-overs from request's body)
     remove_trailing_spaces(client.received_data);
 	client.update_state();
-	if (Client::counter > MAX_CLIENTS / 2)
-	{
-		if (client.unsent_data.empty())
-			remove_client(client, table,
-				"webserv (disconnect after response sent)");
-		else
-			client.disconnect_after_send = true;
-	}
+	if (client.is_incoming_request())
+		table.set_pollout(client.socket); // trick to avoid blocking at poll
 }
 
 // calls the respond() method of each request handler in

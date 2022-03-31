@@ -118,6 +118,14 @@ bool Client::is_idle()
     return (false);
 }
 
+bool Client::is_incoming_request()
+{
+    if (state == incoming_request)
+        return (true);
+    return (false);
+}
+
+
 bool Client::is_ongoing_response()
 {
     if (state == ongoing_response)

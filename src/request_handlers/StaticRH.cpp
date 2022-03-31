@@ -60,6 +60,7 @@ int StaticRH::respond()
         if (!table[fd_file].is_EOF) // incomplete
             return (0);
         state = s_done;
+
     default: // case s_done
         return (1);
     }

@@ -2,8 +2,8 @@
 # define MACROS_H
 
 # define BUFFER_SIZE 8192
-# define QUEUE_MAX_SIZE 10
-# define MAX_CLIENTS 255
+# define QUEUE_MAX_SIZE 128
+# define MAX_CLIENTS 100
 # define REQUEST_TIME_OUT 5 // seconds
 # define RESPONSE_TIME_OUT 5 // seconds
 # define CONNECTION_TIME_OUT 10 // seconds LOW VALUE FOR TESTING

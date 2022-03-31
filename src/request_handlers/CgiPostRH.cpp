@@ -28,7 +28,7 @@ ACgiRH(request, table, script_path), bd(*request)
 
 CgiPostRH::~CgiPostRH()
 {
-	if (state > s_start)
+	if (state > s_start && state < s_done)
 		table.remove_fd(cgi_output_fd);
 	if (state > s_start && state < s_recving_cgi_output)
 		table.remove_fd(cgi_input_fd);
@@ -168,6 +168,7 @@ int CgiPostRH::respond()
 			return (0);
 		if (bytes_recvd == 0)
 			return (502);
+		table.remove_fd(cgi_output_fd);
 		state = s_done;
 
 	default: // case s_done

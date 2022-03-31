@@ -6,12 +6,13 @@ ACgiRH(request, table, script_path)
 {
     if (setup() == -1)
         throw (std::exception());
-    state = s_recving_cgi_output;
+    state = s_start;
 }
 
 CgiGetRH::~CgiGetRH()
 {
-    table.remove_fd(cgi_output_fd);
+    if (state > s_start && state < s_done)
+        table.remove_fd(cgi_output_fd);
     close(cgi_output_fd);
     if (waitpid(cgi_process, NULL, WNOHANG) == 0)
         child_processes.push_back(cgi_process);
@@ -64,7 +65,7 @@ int CgiGetRH::setup()
         if (chdir(request->route->root.c_str()) == -1)
             exit(1);
         
-        // close(2); // hide errors
+        close(2); // hide errors
 
         // exec()
         execve(argv[0], argv, envp);
@@ -79,18 +80,28 @@ int CgiGetRH::setup()
         std::cout << "pid cgi process: " << cgi_process << std::endl;
     close(pipefd[1]); // close write-end
     cgi_output_fd = pipefd[0];
-    table.add_fd_read(cgi_output_fd, client);
     return (0);
 }
 
 int CgiGetRH::respond()
 {
-    if (!table[cgi_output_fd].is_EOF) // not finished
-        return (0);
-    if (bytes_recvd == 0) // GCI failed
-        return (502);
-    state = s_done;
-    return (1);
+    switch (state)
+    {
+    case s_start:
+        table.add_fd_read(cgi_output_fd, client);
+        state = s_recving_cgi_output;
+
+    case s_recving_cgi_output:
+        if (!table[cgi_output_fd].is_EOF) // not finished
+            return (0);
+        if (bytes_recvd == 0) // GCI failed
+            return (502);
+        table.remove_fd(cgi_output_fd);
+        state = s_done;
+    
+    default: // case s_done
+        return (1);
+    }
 }
 
 int CgiGetRH::time_out_code()
