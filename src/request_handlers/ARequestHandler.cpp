@@ -4,8 +4,17 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
     : request(request),
       client(request->client),
       table(table),
-      bytes_recvd(0)
+      bytes_recvd(0),
+      keep_alive(true)
 {
+    // keep-alive close if server is busy
+    if (Client::counter > MAX_CLIENTS / 2)
+    {
+        keep_alive = false;
+        response.header_fields["connection"] = "close";
+    }
+
+
 }
 
 AReqHandler::~AReqHandler() {}

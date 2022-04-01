@@ -27,10 +27,10 @@ def client_session(client_id):
 					r = s.get(urls[requests_sent % 4])
 				requests_sent += 1
 		except requests.exceptions.RequestException as err:
-			# print(f"Exception at client {client_id}: {err}")
+			print(f"Exception at client {client_id}: {err}")
 			s.close()
 			s = requests.Session()
-			print(f"Client {client_id} REconnected.")
+			# print(f"Client {client_id} REconnected.")
 
 	s.close()
 	print(f"Client {client_id} finished. Requests sent: {requests_sent}")

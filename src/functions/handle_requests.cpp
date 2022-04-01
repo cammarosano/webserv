@@ -11,13 +11,15 @@ void replace_req_handler(Client &client, int error_code, FdManager &table)
 
 void finish_response(Client &client, FdManager &table)
 {
+	if (client.request_handler->keep_alive == false)
+		client.disconnect_after_send = true;
 	
 	if (!client.unsent_data.empty())
 	// RH's job is done, but client still hasn't received
 	// the complete response
 	{
-		if (Client::counter > MAX_CLIENTS / 2)
-			client.disconnect_after_send = true;
+		// if (Client::counter > MAX_CLIENTS / 2)
+			// client.disconnect_after_send = true;
 		return ; 
 	}
 
