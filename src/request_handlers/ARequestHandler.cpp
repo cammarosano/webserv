@@ -13,8 +13,6 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
         keep_alive = false;
         response.header_fields["connection"] = "close";
     }
-
-
 }
 
 AReqHandler::~AReqHandler() {}
@@ -48,6 +46,10 @@ void AReqHandler::HttpResponse::assemble_header_str()
     header_str += "\r\n";
 }
 
+void AReqHandler::HttpResponse::assemble_100_continue_str()
+{
+    header_str = "HTTP/1.1 100 Continue\r\n\r\n";
+}
 
 bool AReqHandler::response100_expected() {
     std::map<std::string, std::string>::iterator it =

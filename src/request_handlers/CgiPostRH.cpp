@@ -20,8 +20,7 @@ ACgiRH(request, table, script_path), bd(*request)
 	state = s_start;
 	if (response100_expected())
 	{
-		response.status_code_phrase = "100 Continue";
-		response.assemble_header_str();
+		response.assemble_100_continue_str();
 		state = s_send_100_response;
 	}
 }

@@ -10,9 +10,7 @@ PostRH::PostRH(HttpRequest *request, FdManager &table) : AReqHandler(request, ta
     state = s_start;
     if (request->header_fields.find("expect") != request->header_fields.end())
     {
-        response.http_version = "HTTP/1.1";
-        response.status_code_phrase = "100 continue";
-        response.assemble_header_str();
+        response.assemble_100_continue_str();
         state = s_send_100_continue;
     }
 }

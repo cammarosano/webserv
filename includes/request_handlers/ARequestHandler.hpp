@@ -33,6 +33,7 @@ class AReqHandler {
         std::string header_str; // assemble_header_str() fills this up
         void assemble_header_str();
         void assemble_partial_header_str();
+        void assemble_100_continue_str();
     } response;
 
     int send_str(std::string &str);
