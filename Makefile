@@ -27,7 +27,8 @@ classes/FdManager.cpp \
 classes/BodyDecoder.cpp \
 classes/Client.cpp \
 classes/HttpRequest.cpp \
-classes/ConfigParser.cpp 
+classes/ConfigParser.cpp \
+classes/HttpResponse.cpp
 
 # shell cmd: find includes/ -type f
 INC = \
@@ -46,6 +47,7 @@ classes/HttpRequest.hpp \
 classes/FdManager.hpp \
 classes/ConfigParser.hpp \
 classes/BodyDecoder.hpp \
+classes/HttpResponse.hpp \
 macros.h \
 utils.h \
 config.hpp \

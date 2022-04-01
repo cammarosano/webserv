@@ -5,6 +5,8 @@ ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
     state = s_setup;
     table.unset_pollin(client.socket); // client will be disconnected after resp
     client.received_data.clear(); // clear possible body of a bad request
+    keep_alive = false;
+    response.header_fields["Connection"] = "close";
 }
 
 ErrorRH::~ErrorRH() {
@@ -62,22 +64,21 @@ int ErrorRH::setup() {
         html_page = generate_error_page(error_code);
 
     // fill-in header
-    response.status_code_phrase =
-        long_to_str(error_code) + ' ' + reason_phrases[error_code];
-    response.header_fields["connection"] = "close";
+    response.status_code = error_code;
     if (res_type == sending_default)
     {
-        response.header_fields["content-length"] =
+        response.header_fields["Content-Length"] =
             long_to_str(html_page.size());
-        response.header_fields["content-type"] = "text/html";
+        response.header_fields["Content-Type"] = "text/html";
     }
     else 
     {
-        response.header_fields["content-length"] = long_to_str(sb.st_size);
-        response.header_fields["content-type"] = get_mime_type(err_page);
+        response.header_fields["Content-Length"] = long_to_str(sb.st_size);
+        response.header_fields["Content-Type"] = response.get_mime_type(err_page);
     }
-    
-    // TODO: and many other header_fields here.....
+    if (error_code == 405)
+        response.include_allow_header(request->route->accepted_methods);
+
     response.assemble_header_str();   
     return (0);
 }
@@ -119,10 +120,7 @@ int ErrorRH::respond()
             state = s_done;
     }
     if (state == s_done)
-    {
-        client.disconnect_after_send = true;
         return (1);
-    }
     return (0);
 }
 
@@ -133,44 +131,19 @@ int ErrorRH::time_out_code()
 }
 
 // static function
-std::map<int, std::string> ErrorRH::init_map() {
-    std::map<int, std::string> map;
-
-    map[400] = "Bad Request";
-    map[403] = "Forbidden";
-    map[404] = "Not Found";
-    map[405] = "Method Not Allowed";
-    map[408] = "Request Timeout";
-    map[413] = "Payload Too Large";
-    map[431] = "Request Header Fields Too Large";
-
-    map[500] = "Internal Server Error";
-    map[501] = "Not Implemented";
-    map[502] = "Bad Gateway";
-    map[504] = "Gateway Timeout";
-
-    return map;
-}
-
-// static variable
-std::map<int, std::string> ErrorRH::reason_phrases = init_map();
-
-// static function
 std::string ErrorRH::generate_error_page(int error_code)
 {
     std::ostringstream oss;
+    std::string error_reason = HttpResponse::reason_phrases[error_code];
 
     oss << "<!DOCTYPE html>"
         << "<html>"
         << "<head>"
-        << "<title>" << error_code << ' ' << reason_phrases[error_code]
-        << "</title>"
+        << "<title>" << error_code << ' ' << error_reason << "</title>"
         << "</head>"
         << "<body>"
-        << "<p>"
-        << "Webserv42 default error page"
-        << "</p>"
-        << "<h1>" << error_code << ' ' << reason_phrases[error_code] << "</h1>"
+        << "<p>" << "Webserv42 default error page" << "</p>"
+        << "<h1>" << error_code << ' ' << error_reason << "</h1>"
         << "</body>"
         << "</html>";
 

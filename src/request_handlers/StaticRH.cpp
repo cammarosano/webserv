@@ -29,10 +29,9 @@ int StaticRH::setup()
         close(fd_file);
         return (-1);
     }
-    response.status_code_phrase = "200 OK";
-    response.header_fields["content-length"] = long_to_str(sb.st_size);
-    response.header_fields["content-type"] = get_mime_type(resource_path);
-    // TODO: and many other header_fields here.....
+    response.status_code = 200;
+    response.header_fields["Content-Length"] = long_to_str(sb.st_size);
+    response.header_fields["Content-Type"] = response.get_mime_type(resource_path);
     response.assemble_header_str();
     return (0); // ok
 }

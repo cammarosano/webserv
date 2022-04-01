@@ -103,9 +103,6 @@ void read_from_fd(int fd, FdManager &table)
     client.unsent_data.append(buffer, read_bytes);
     table.set_pollout(client.socket);
 
-    if (client.is_ongoing_response()) // is this check unnecessary?
-        client.request_handler->add_to_bytes_recvd(read_bytes);
-
     // debug
     if (DEBUG)
         std::cout << read_bytes << " bytes were read from fd " << fd <<

@@ -7,6 +7,7 @@
 # include <sys/stat.h>
 # include <unistd.h>
 # include <fcntl.h>
+# include "HttpResponse.hpp"
 
 /*
 Request handler for error responses
@@ -25,17 +26,13 @@ class ErrorRH : public AReqHandler {
     bool look_up_err_page(std::map<int, std::string> &error_pages,
         std::string &file_name);
 
-
    public:
     ErrorRH(HttpRequest *request, FdManager &table, int error_code);
     ~ErrorRH();
 
     virtual int respond();
     virtual int time_out_code();
-
-    static std::map<int, std::string> init_map();
     
-    static std::map<int, std::string> reason_phrases;
     static std::string generate_error_page(int error_code);
 };
 

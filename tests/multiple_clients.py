@@ -9,7 +9,7 @@ urls = ["http://localhost:3000/",
 		"http://localhost:3000/cgi/test.py"]
 
 n_requests_per_client = 10
-n_clients = 200
+n_clients = 300
 
 
 # client tries to make n_requests in one connection, reconnects if necessary

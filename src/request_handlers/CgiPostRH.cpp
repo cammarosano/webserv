@@ -168,7 +168,7 @@ int CgiPostRH::respond()
 				return (502);
 			return (0);
 		}
-        response.status_code_phrase = "200 OK";
+        response.status_code = 200;
         response.assemble_partial_header_str();
         // now the hacky part
         client.unsent_data.insert(0, response.header_str);

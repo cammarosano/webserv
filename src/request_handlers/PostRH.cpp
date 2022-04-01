@@ -49,7 +49,7 @@ int PostRH::respond()
         state = s_sending_header;
     case s_sending_header:
         response.http_version = "HTTP/1.1";
-        response.status_code_phrase = "201 created";
+        response.status_code = 201;
         response.header_fields["content-length"] = long_to_str(body.length());
         response.assemble_header_str();
         if (send_str(response.header_str) == 0)

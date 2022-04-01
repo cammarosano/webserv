@@ -47,7 +47,7 @@ int setup(FdManager &table, int argc, char **argv)
         std::cerr << e.what() << std::endl;
         return (-1);
     }
-    parse_mime_types_file(AReqHandler::content_type);
+    parse_mime_types_file(HttpResponse::content_type);
     if (open_listening_sockets(table, config) == -1)
         return (-1);
     return (0);

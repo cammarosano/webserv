@@ -16,6 +16,7 @@
 #include "ErrorRH.hpp"
 #include "FdManager.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 #include "PostRH.hpp"
 #include "RedirectRH.hpp"
 #include "StaticRH.hpp"

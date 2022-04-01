@@ -19,9 +19,9 @@ int make_room_for_new_client(FdManager &table, time_t now)
     if (Client::idle_clients.empty())
         return (0);
 
-    Client &oldest_idle_client = *Client::idle_clients.back();
+    Client &oldest_idle_client = *Client::idle_clients.front();
     // clients idle for less the MIN_IDLE_TIME shall not be disconnected
-    if (difftime(now, oldest_idle_client.last_io) < MIN_IDLE_TIME)
+    if (difftime(now, oldest_idle_client.last_io) < MIN_IDLE_TIME) // there's a risk the client sent a new request (check polls returned events??)
         return (0);
     remove_client(oldest_idle_client, table,
                     "webserv (max num clients reached)");
@@ -35,13 +35,10 @@ void accept_connection(int listen_socket, FdManager &table, time_t now)
     sockaddr client_addr;
     socklen_t addrlen = sizeof(client_addr);
 
-    if (Client::counter > MAX_CLIENTS)
+    if (Client::counter >= MAX_CLIENTS)
     {
         if (!make_room_for_new_client(table, now))
-        {
-            // refuse_connection(listen_socket);
             return; // make it wait for next IO round
-        }
     }
 
     // accept new connection
