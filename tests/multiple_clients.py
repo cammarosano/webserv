@@ -18,19 +18,12 @@ def client_session(client_id):
 	requests_sent = 0
 	s = requests.Session()
 	print(f"Client {client_id} connected.")
-	while (requests_sent < n_requests_per_client):
-		try:
-			while requests_sent < n_requests_per_client:
-				if requests_sent % 4 == 3:
-					r = s.post(urls[2], data={'hello':'you', 'bye':'me'})
-				else:
-					r = s.get(urls[requests_sent % 4])
-				requests_sent += 1
-		except requests.exceptions.RequestException as err:
-			print(f"Exception at client {client_id}: {err}")
-			s.close()
-			s = requests.Session()
-			# print(f"Client {client_id} REconnected.")
+	while requests_sent < n_requests_per_client:
+		if requests_sent % 4 == 3:
+			r = s.post(urls[2], data={'hello':'you', 'bye':'me'})
+		else:
+			r = s.get(urls[requests_sent % 4])
+		requests_sent += 1
 
 	s.close()
 	print(f"Client {client_id} finished. Requests sent: {requests_sent}")

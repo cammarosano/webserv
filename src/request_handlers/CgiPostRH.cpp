@@ -28,15 +28,13 @@ ACgiRH(request, table, script_path), bd(*request)
 
 CgiPostRH::~CgiPostRH()
 {
-	if (state > s_start && state < s_done)
-		table.remove_fd(cgi_output_fd);
-	if (state > s_start && state < s_recving_cgi_output)
-		table.remove_fd(cgi_input_fd);
-	if (state < s_recving_cgi_output)
+	if (state < s_recv_cgi_header)
 		close(cgi_input_fd);
-
+	if (state > s_start && state < s_recv_cgi_header)
+		table.remove_fd(cgi_input_fd);
+	if (state > s_sending_body2cgi && state < s_done)
+		table.remove_fd(cgi_output_fd);
 	close(cgi_output_fd);
-
     if (waitpid(cgi_process, NULL, WNOHANG) == 0)
         child_processes.push_back(cgi_process);
 }
@@ -140,7 +138,6 @@ int CgiPostRH::respond()
 		state = s_start;
 		
 	case s_start:
-		table.add_fd_read(cgi_output_fd, client);
 		table.add_fd_write(cgi_input_fd, client);
 		state = s_recv_req_body;
 
@@ -161,13 +158,26 @@ int CgiPostRH::respond()
 			return (0);
 		close(cgi_input_fd); // sends EOF
 		table.remove_fd(cgi_input_fd);
+		table.add_fd_read(cgi_output_fd, client);
+        table.unset_pollout(client.socket); // make sure nothing's gonna be sent
+		state = s_recv_cgi_header;
+
+	case s_recv_cgi_header:
+		if (client.unsent_data.empty())
+		{
+			if (table[cgi_output_fd].is_EOF) // CGI failed
+				return (502);
+			return (0);
+		}
+        response.status_code_phrase = "200 OK";
+        response.assemble_partial_header_str();
+        // now the hacky part
+        client.unsent_data.insert(0, response.header_str);
 		state = s_recving_cgi_output;
 
 	case s_recving_cgi_output:
-		if (!table[cgi_output_fd].is_EOF) // not finished
-			return (0);
-		if (bytes_recvd == 0)
-			return (502);
+        if (!table[cgi_output_fd].is_EOF) // not finished
+            return (0);
 		table.remove_fd(cgi_output_fd);
 		state = s_done;
 

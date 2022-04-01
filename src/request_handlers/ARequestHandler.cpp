@@ -20,30 +20,32 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
 AReqHandler::~AReqHandler() {}
 
 
-void AReqHandler::HttpResponse::assemble_header_str() {
+void AReqHandler::HttpResponse::assemble_partial_header_str()
+{
     typedef std::map<std::string, std::string>::iterator iterator;
 
-	// default-additions
+    // default-additions
     if (http_version.empty())
         http_version = "HTTP/1.1";
     header_fields["server"] = "webserv";
     header_fields["date"] = get_timestamp();
 
     // status-line
-    header_str =
-        http_version + ' ' + status_code_phrase + "\r\n";
+    header_str = http_version + ' ' + status_code_phrase + "\r\n";
 
     // header-fiels
-    for (iterator it = header_fields.begin();
-         it != header_fields.end(); ++it)
+    for (iterator it = header_fields.begin(); it != header_fields.end(); ++it)
         header_str += it->first + ": " + it->second + "\r\n";
 
+    // log status-line
+    std::cout << "Response: " << http_version << " " << status_code_phrase << std::endl;
+}
+
+void AReqHandler::HttpResponse::assemble_header_str()
+{
+    assemble_partial_header_str();
     // end header
     header_str += "\r\n";
-
-    // log status-line
-    std::cout << "Response: " << http_version << " "
-              << status_code_phrase << std::endl;
 }
 
 

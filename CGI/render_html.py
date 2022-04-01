@@ -30,8 +30,8 @@ except:
 	body = "HTML page could not be rendered"
 
 # output response header
-print("HTTP/1.1 200 OK")
-print("Content-Type: text/html; charset=UTF-8")
+# print("HTTP/1.1 200 OK")
+print("Content-Type: text/html; charset=UTF-8", end="\r\n")
 print("Content-Length: " + str(len(body)), end="\r\n\r\n")
 
 # output response body

@@ -38,42 +38,6 @@ void recv_from_client(int socket, FdManager &table, time_t now)
             " bytes from client at socket " << socket << std::endl;
 }
 
-// reads data from a fd (file or pipe with CGI output)
-// copies it into Client:unsent_data buffer
-void read_from_fd(int fd, FdManager &table)
-{
-    char buffer[BUFFER_SIZE];
-    int max_read;
-    int read_bytes;
-    Client &client = *table[fd].client;
-
-    max_read = BUFFER_SIZE - client.unsent_data.size();
-    if (max_read <= 0)
-        return;
-    read_bytes = read(fd, buffer, max_read);
-    if (read_bytes == -1)
-    {
-        if (DEBUG) perror("read"); // REMOVE BEFORE PUSH
-        remove_client(client, table, "webserv (read error)");
-        return;
-    }
-    if (read_bytes == 0) // EOF
-    {
-        table[fd].is_EOF = true;
-        return;
-    }
-    client.unsent_data.append(buffer, read_bytes);
-    table.set_pollout(client.socket);
-
-    if (client.is_ongoing_response()) // is this check unnecessary?
-        client.request_handler->add_to_bytes_recvd(read_bytes);
-
-    // debug
-    if (DEBUG)
-        std::cout << read_bytes << " bytes were read from fd " << fd <<
-            " destinated to client at socket " << client.socket << std::endl;
-}
-
 // write() to Client's socket.
 // Client::unsent_data is the data source.
 // Clients tagged with "disconnect_after_send" are removed if the unsent_data
@@ -111,6 +75,43 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
         }
     }
 }
+
+// reads data from a fd (file or pipe with CGI output)
+// copies it into Client:unsent_data buffer
+void read_from_fd(int fd, FdManager &table)
+{
+    char buffer[BUFFER_SIZE];
+    int max_read;
+    int read_bytes;
+    Client &client = *table[fd].client;
+
+    max_read = BUFFER_SIZE - client.unsent_data.size();
+    if (max_read <= 0)
+        return;
+    read_bytes = read(fd, buffer, max_read);
+    if (read_bytes == -1)
+    {
+        if (DEBUG) perror("read"); // REMOVE BEFORE PUSH
+        remove_client(client, table, "webserv (read error)");
+        return;
+    }
+    if (read_bytes == 0) // EOF
+    {
+        table[fd].is_EOF = true;
+        return;
+    }
+    client.unsent_data.append(buffer, read_bytes);
+    table.set_pollout(client.socket);
+
+    if (client.is_ongoing_response()) // is this check unnecessary?
+        client.request_handler->add_to_bytes_recvd(read_bytes);
+
+    // debug
+    if (DEBUG)
+        std::cout << read_bytes << " bytes were read from fd " << fd <<
+            " destinated to client at socket " << client.socket << std::endl;
+}
+
 
 // write data from Client's decoded_body to fd (file for uploads, or pipe to
 // CGI input)
