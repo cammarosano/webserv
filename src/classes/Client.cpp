@@ -24,7 +24,6 @@ request_handler(NULL)
     last_io = time(NULL);
 
     ++counter;
-    std::cout << "NUM CLIENTS: " << counter << std::endl;
 }
 
 Client::~Client()

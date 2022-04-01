@@ -7,7 +7,7 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
       keep_alive(true)
 {
     // keep-alive false if server is busy
-    if (Client::counter > MAX_CLIENTS * 0.9)
+    if (Client::counter > MAX_CLIENTS * CONN_CLOSE_THRESHOLD)
     {
         keep_alive = false;
         response.header_fields["Connection"] = "close";

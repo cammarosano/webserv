@@ -2,12 +2,13 @@
 # define MACROS_H
 
 # define BUFFER_SIZE 8192
-# define QUEUE_MAX_SIZE 128
-# define MAX_CLIENTS 100
+# define QUEUE_MAX_SIZE 1000
+# define MAX_CLIENTS 500
+# define CONN_CLOSE_THRESHOLD 0.5
 # define REQUEST_TIME_OUT 5 // seconds
 # define RESPONSE_TIME_OUT 5 // seconds
-# define CONNECTION_TIME_OUT 10 // seconds LOW VALUE FOR TESTING
-# define MIN_IDLE_TIME 3 // seconds
+# define CONNECTION_TIME_OUT 60 // seconds LOW VALUE FOR TESTING
+# define MIN_IDLE_TIME 5 // seconds
 # define REAPER_FREQUENCY 5 // seconds
 # define POLL_TIME_OUT 2000 // miliseconds
 # define DEFAULT_MIME "text/plain"
