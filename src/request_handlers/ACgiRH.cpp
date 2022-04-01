@@ -7,6 +7,8 @@ resource_path(resource_path)
 {
     script_path = get_script_path();
     query_str = get_query_str();
+    keep_alive = true; // consider sending the status line and some header fields
+                        // as a server's role...
 }
 
 ACgiRH::~ACgiRH()
