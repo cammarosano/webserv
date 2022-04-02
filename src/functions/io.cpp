@@ -3,7 +3,7 @@
 // read() from client's socket
 // data is stored in Client::received_data
 // if client was in "idle" state, state is updated to "incoming_request"
-void recv_from_client(int socket, FdManager &table, time_t now)
+void recv_from_client(int socket, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
     Client &client = *table[socket].client;
@@ -28,10 +28,8 @@ void recv_from_client(int socket, FdManager &table, time_t now)
     }
     client.received_data.append(buffer, recvd_bytes);
     if (client.is_idle())
-    {
         client.update_state();
-        client.time_begin_request = now;
-    }
+
     // debug
     if (DEBUG)
         std::cout << "Received " << recvd_bytes <<
@@ -42,7 +40,7 @@ void recv_from_client(int socket, FdManager &table, time_t now)
 // Client::unsent_data is the data source.
 // Clients tagged with "disconnect_after_send" are removed if the unsent_data
 // buffer is emptied
-void send_to_client(int socket, FdManager &table, time_t current_time)
+void send_to_client(int socket, FdManager &table)
 {
     Client &client = *table[socket].client;
     int bytes_sent;
@@ -58,7 +56,6 @@ void send_to_client(int socket, FdManager &table, time_t current_time)
             return;
         }
         client.unsent_data.erase(0, bytes_sent);
-        client.last_io = current_time;
         // debug
         if (DEBUG)
             std::cout << bytes_sent << " bytes were sent to client at socket "

@@ -21,7 +21,7 @@ request_handler(NULL)
     list_node = --idle_clients.end();
 
     // time-out monitoring
-    last_io = time(NULL);
+    last_state_change = time(NULL);
 
     ++counter;
 }
@@ -90,6 +90,8 @@ void Client::update_state(e_state new_state)
     
     // update state
     state = new_state;
+    // update time
+    last_state_change = time(NULL);
 }
 
 // changes state automatically:

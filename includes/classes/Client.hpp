@@ -39,8 +39,7 @@ struct Client {
     AReqHandler *request_handler;
 
 	// time-outs 
-    time_t time_begin_request;
-    time_t last_io; // send2client || new_requests()
+    time_t last_state_change;
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);

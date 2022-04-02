@@ -43,19 +43,14 @@ void finish_response(Client &client, FdManager &table)
 void handle_requests(FdManager &table)
 {
 	// iterate over clients with ongoing responses
-    std::list<Client*>::iterator it;
     std::list<Client*> &list = Client::ongoing_resp_clients;
-    AReqHandler *req_handler;
-    int ret;
+    std::list<Client*>::iterator it = list.begin();
 
-    // iterate over list of request handlers
-    it = list.begin();
     while (it != list.end())
     {
 		Client &client = **it;
 		++it; // following operations might invalidate iterator
-        req_handler = client.request_handler;
-        ret = req_handler->respond();
+        int ret = client.request_handler->respond();
 		if (ret == 1) // response is complete
 			finish_response(client, table);
 		else if (ret > 1)

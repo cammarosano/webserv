@@ -38,11 +38,9 @@ HttpRequest *new_HttpRequest(Client &client, FdManager &table)
 void new_requests(FdManager &table)
 {
     // iterate over clients with incoming requests
-    std::list<Client*>::iterator it;
     std::list<Client*> &list = Client::incoming_req_clients;
-    time_t now = time(NULL);
+    std::list<Client*>::iterator it = list.begin();
 
-    it = list.begin();
     while (it != list.end())
     {
         Client &client = **it;
@@ -62,6 +60,5 @@ void new_requests(FdManager &table)
         client.request = request;
         client.request_handler = req_handler;
         client.update_state();
-        client.last_io = now;
     }
 }

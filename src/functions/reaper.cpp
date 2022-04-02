@@ -31,7 +31,10 @@ void handle_response_time_out(Client &client, FdManager &table)
 	if (!time_out_code) // terminate response and disconnect client
 		remove_client(client, table, "webserv (response time-out)");
 	else
+	{
 		replace_req_handler(client, time_out_code, table);
+		client.last_state_change = time(NULL); // reset time-out timer
+	}
 }
 
 void time_out_requests(FdManager &table, time_t now)
@@ -45,7 +48,7 @@ void time_out_requests(FdManager &table, time_t now)
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
-		if (difftime(now, client.time_begin_request) > REQUEST_TIME_OUT)
+		if (difftime(now, client.last_state_change) > REQUEST_TIME_OUT)
 			send_error_resp_no_request(client, table, 408);
 		else
 			return; // stop as soon as a non-timed-out client is found
@@ -62,7 +65,7 @@ void time_out_responses(FdManager &table, time_t now)
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
-		if (difftime(now, client.last_io) > RESPONSE_TIME_OUT)
+		if (difftime(now, client.last_state_change) > RESPONSE_TIME_OUT)
 			handle_response_time_out(client, table);
 	}
 }
@@ -78,7 +81,7 @@ void time_out_idle_clients(FdManager &table, time_t now)
 	{
         Client &client = **it;
         ++it; // move iterator, as following operations might invalidate it
-		if (difftime(now, client.last_io) > CONNECTION_TIME_OUT)
+		if (difftime(now, client.last_state_change) > CONNECTION_TIME_OUT)
 			remove_client(client, table, "webserv (connection time-out)");
 		else
 			return; // stop when a non-timed-out client is found
