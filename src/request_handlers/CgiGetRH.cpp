@@ -29,6 +29,15 @@ int CgiGetRH::setup()
         return (-1);
     }
 
+    // make read-end non-blocking (fcntl)
+    if (fcntl(pipefd[0], F_SETFL, O_NONBLOCK) == -1)
+    {
+        perror("fcntl");
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return (-1);
+    }
+
     // fork
     cgi_process = fork();
     if (cgi_process == -1)

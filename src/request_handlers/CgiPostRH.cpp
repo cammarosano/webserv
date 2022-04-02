@@ -58,7 +58,19 @@ int CgiPostRH::setup()
 		close(pipe_in[1]);
 		return (-1);
 	}
-	
+
+	// make pipe_out read-end and pipe_in write-end non-blocking
+    if (fcntl(pipe_out[0], F_SETFL, O_NONBLOCK) == -1
+		|| fcntl(pipe_in[1], F_SETFL, O_NONBLOCK) == -1)
+    {
+        perror("fcntl");
+		close(pipe_in[0]);
+		close(pipe_in[1]);
+		close(pipe_out[0]);
+		close(pipe_out[1]);
+        return (-1);
+    }
+
 	// fork
 	cgi_process = fork();
     if (cgi_process == -1)
@@ -105,7 +117,7 @@ int CgiPostRH::setup()
         // chdir to cgi root ("correct directory" ??)
         chdir(request->route->root.c_str());
 
-        close(2); // hide errors
+        // close(2); // hide errors
 
 		// exec()
 		execve(argv[0], argv, envp);

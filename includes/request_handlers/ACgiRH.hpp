@@ -3,6 +3,7 @@
 
 # include "ARequestHandler.hpp"
 # include <unistd.h>
+# include <fcntl.h>
 # include <string.h>
 # include "utils.h"
 # include <sys/types.h>
