@@ -9,22 +9,23 @@ void replace_req_handler(Client &client, int error_code, FdManager &table)
 
 void finish_response(Client &client, FdManager &table)
 {
-	if (client.request_handler->keep_alive == false)
-		client.disconnect_after_send = true;
-	
 	if (!client.unsent_data.empty())
-	// RH's job is done, but client still hasn't received
-	// the complete response
-		return ; 
+		return ; // client still hasn't received the complete response
+
+	if (client.request_handler->keep_alive == false)
+	{
+		remove_client(client, table, "webserv (Connection: close)");
+		return;
+	}
 
 	delete client.request;
 	delete client.request_handler;
-    // remove trailing spaces (possible left-overs from request's body)
-    remove_trailing_spaces(client.received_data);
+	// remove trailing spaces (possible left-overs from request's body)
+	remove_trailing_spaces(client.received_data);
 	client.update_state();
 
-	// avoid blocking at poll, force send_to_client() to be called
-	if (client.is_incoming_request() || client.disconnect_after_send)
+	// avoid blocking at poll, as client sockets are always POLLOUT ready
+	if (client.is_incoming_request())
 		table.set_pollout(client.socket); 
 }
 
