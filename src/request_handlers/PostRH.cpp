@@ -33,7 +33,7 @@ int PostRH::respond()
             return 0;
         state = s_start;
     case s_start:
-        fd = open(file_path.c_str(), O_CREAT | O_WRONLY, 0644);
+        fd = open(file_path.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0644);
         if (fd < 0)
             return 500;
         table.add_fd_write(fd, client);

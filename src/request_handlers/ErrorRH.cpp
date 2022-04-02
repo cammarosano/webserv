@@ -54,15 +54,13 @@ int ErrorRH::setup() {
     res_type = sending_default;
     if (custom_error_page(err_page))
     {
-        fd = open(err_page.c_str(), O_RDONLY);
-        if (fd != -1 && fstat(fd, &sb) == 0) // if no error
-            res_type = sending_file;
-        // set to non-blocking
-        if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
+        fd = open(err_page.c_str(), O_RDONLY | O_NONBLOCK);
+        if (fd != -1)
         {
-            perror("fcntl");
-            close(fd);
-            res_type = sending_default;
+            if(fstat(fd, &sb) == 0) // if no error
+                res_type = sending_file;
+            else
+                close(fd);
         }
     }
 

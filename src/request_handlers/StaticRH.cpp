@@ -21,7 +21,7 @@ int StaticRH::setup()
 {
     struct stat sb;
 
-    fd_file = open(resource_path.c_str(), O_RDONLY);
+    fd_file = open(resource_path.c_str(), O_RDONLY | O_NONBLOCK);
     if (fd_file == -1)
         return (-1);
     if (fstat(fd_file, &sb) == -1) 
