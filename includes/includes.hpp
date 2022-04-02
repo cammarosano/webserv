@@ -57,6 +57,6 @@ void send_error_resp_no_request(Client &client, FdManager &table,
 
 // time-out and wait CGI processes
 
-void reaper(FdManager &table);
+void house_keeper(FdManager &table);
 
 #endif

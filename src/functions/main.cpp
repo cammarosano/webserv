@@ -11,7 +11,7 @@ void do_io(FdManager &table)
         std::cout << "Blocking at poll()" << std::endl;
 
     // call poll()
-    n_fds = poll(table.get_poll_array(), table.len(), POLL_TIME_OUT);
+    n_fds = poll(table.get_poll_array(), table.len(), POLL_TIMEOUT);
     if (n_fds == -1)
     {
         // perror("poll");
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
         do_io(table);
         new_requests(table);
         handle_requests(table);
-        reaper(table);
+        house_keeper(table);
     }
     clear_resources(table);
     return (0);

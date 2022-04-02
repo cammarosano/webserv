@@ -12,7 +12,7 @@ functions/clear_resources.cpp \
 functions/error_resp_no_request.cpp \
 functions/mime_type.cpp \
 functions/init_response.cpp \
-functions/reaper.cpp \
+functions/house_keeper.cpp \
 request_handlers/CgiGetRH.cpp \
 request_handlers/ErrorRH.cpp \
 request_handlers/StaticRH.cpp \

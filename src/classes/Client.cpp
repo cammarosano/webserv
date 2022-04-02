@@ -60,9 +60,6 @@ void Client::get_client_info(sockaddr &sa)
 
 void Client::update_state(e_state new_state)
 {
-    if (state == new_state)
-        return;
-
     // remove from old state set
     if (state == idle)
         idle_clients.erase(list_node);
