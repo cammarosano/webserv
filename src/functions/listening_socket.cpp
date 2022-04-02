@@ -25,7 +25,7 @@ int get_listening_socket(std::string host_IP, unsigned short port)
     if (fcntl(listen_socket, F_SETFL, O_NONBLOCK) == -1)
     {
         perror("fcntl");
-        return(-1);
+        return (-1);
     }
 
     // set up address (host_ip:port) for the bind() call

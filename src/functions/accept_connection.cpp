@@ -48,6 +48,13 @@ void accept_connection(int listen_socket, FdManager &table)
         return;
     }
 
+    // make sure it's a non-blocking socket (see OBS below)
+    if (fcntl(client_socket, F_SETFL, O_NONBLOCK) == -1)
+    {
+        perror("fcntl");
+        return;
+    }
+
     // create Client
     Client *client = new Client(client_socket,
                         client_addr, table.get_vserver_lst(listen_socket));
@@ -58,3 +65,11 @@ void accept_connection(int listen_socket, FdManager &table)
     std::cout << "Connection accepted. Client socket: " << client_socket
               << std::endl;
 }
+
+/*
+OBS: man page accept() linux
+ On Linux, the new socket returned by accept() does not inherit file status flags such as O_NONBLOCK and O_ASYNC from  the
+listening  socket.   This  behavior  differs from the canonical BSD sockets implementation.  Portable programs should not
+rely on inheritance or noninheritance of file status flags and always explicitly set all required flags on the socket re‐
+turned from accept().
+*/
