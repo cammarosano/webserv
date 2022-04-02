@@ -17,8 +17,6 @@ AReqHandler::AReqHandler(HttpRequest *request, FdManager &table)
 AReqHandler::~AReqHandler() {}
 
 
-
-
 bool AReqHandler::response100_expected() {
     std::map<std::string, std::string>::iterator it =
         request->header_fields.find("expect");
