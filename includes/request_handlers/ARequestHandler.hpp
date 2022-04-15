@@ -1,13 +1,12 @@
 #ifndef AREQUESTHANDLER_HPP
 #define AREQUESTHANDLER_HPP
 
-#include <ctime>
 
+#include "HttpResponse.hpp"
 #include "FdManager.hpp"
 #include "HttpRequest.hpp"
 #include "macros.h"
 #include "utils.h"
-#include <iomanip>
 
 // forward declaration
 struct HttpRequest;
@@ -23,16 +22,8 @@ class AReqHandler {
     HttpRequest *request;
     Client &client;
     FdManager &table;
-    size_t bytes_recvd; // from file in disk or CGI
 
-    struct HttpResponse {
-        std::string http_version;
-        std::string status_code_phrase;
-        std::map<std::string, std::string> header_fields;
-
-        std::string header_str; // assemble_header_str() fills this up
-        void assemble_header_str();
-    } response;
+    HttpResponse response;
 
     int send_str(std::string &str);
     bool response100_expected();
@@ -44,15 +35,8 @@ class AReqHandler {
     virtual int respond() = 0;
     virtual int time_out_code();
 
-    HttpRequest *getRequest();
-    Client *getClient();
-    void add_to_bytes_recvd(size_t n);
+    bool keep_alive;
 
-    static std::string get_mime_type(const std::string &file_name);
-    static std::string get_timestamp();
-
-	// maps extensions to content-type
-    static std::map<std::string, std::string> content_type;
 };
 
 #endif

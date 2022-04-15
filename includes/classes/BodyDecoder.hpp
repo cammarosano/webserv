@@ -2,7 +2,7 @@
 # define BODYDECODER_HPP
 
 # include "HttpRequest.hpp"
-# include <stdlib.h> // strtol
+# include <cstdlib> // strtol
 # include "macros.h"
 
 /*
@@ -23,8 +23,8 @@ be filled with new data received from the client socket.
 class BodyDecoder
 {
 private:
-	std::string &raw_data;
-	std::string &decoded_data;
+	std::string &raw_data; // ref to Client's received_data buffer
+	std::string &decoded_data; // ref to Client's decoded_body buffer
 	size_t length_decoded;
 	enum e_type {chunked, content_length, other} type;
 

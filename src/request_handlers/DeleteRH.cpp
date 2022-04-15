@@ -18,8 +18,7 @@ int DeleteRH::setup()
     temp << "<html> <body><h1>ressource deleted</h1></body> </html>";
     if (remove(ressource_path.c_str()) == -1)
         throw std::exception();
-    response.http_version = "HTTP/1.1";
-    response.status_code_phrase = "200 OK";
+    response.status_code = 200;
     response.header_fields["content-length"] = long_to_str(temp.str().length());
     response.assemble_header_str();
     state = s_sending_header;

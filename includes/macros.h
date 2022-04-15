@@ -2,15 +2,18 @@
 # define MACROS_H
 
 # define BUFFER_SIZE 8192
-# define QUEUE_MAX_SIZE 10
-# define MAX_CLIENTS 255
-# define REQUEST_TIME_OUT 5 // seconds
-# define RESPONSE_TIME_OUT 5 // seconds
-# define CONNECTION_TIME_OUT 10 // seconds LOW VALUE FOR TESTING
-# define MIN_IDLE_TIME 2 // seconds
+# define QUEUE_MAX_SIZE 1000
+# define MAX_CLIENTS 500
+# define CONN_CLOSE_THRESHOLD 0.5
+# define REQUEST_TIMEOUT 5 // seconds
+# define RESPONSE_TIMEOUT 5 // seconds
+# define CONNECTION_TIMEOUT 10 // seconds LOW VALUE FOR TESTING
+# define MIN_IDLE_TIME 5 // seconds
 # define REAPER_FREQUENCY 5 // seconds
-# define POLL_TIME_OUT 2000 // miliseconds
+# define POLL_TIMEOUT 2000 // miliseconds
 # define DEFAULT_MIME "text/plain"
+# define DEFAULT_CONFIG_FILE "conf/default.conf"
+# define MIME_TYPES_FILE "conf/mime.types"
 # ifndef DEBUG
 	# define DEBUG 0
 # endif

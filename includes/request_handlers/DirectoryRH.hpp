@@ -1,14 +1,13 @@
-#include <list>
-#include <string>
-#include <utility>
 #if !defined(__DIRECTORY_RH_H__)
 #define __DIRECTORY_RH_H__
 
 #include <dirent.h>
-
 #include <ostream>
 #include "utils.h"
-
+#include <cstddef>
+#include <list>
+#include <string>
+#include <utility>
 #include "ARequestHandler.hpp"
 
 class DirectoryRH : public AReqHandler {

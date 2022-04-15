@@ -21,7 +21,7 @@ request_handler(NULL)
     list_node = --idle_clients.end();
 
     // time-out monitoring
-    last_io = time(NULL);
+    last_state_change = time(NULL);
 
     ++counter;
 }
@@ -60,9 +60,6 @@ void Client::get_client_info(sockaddr &sa)
 
 void Client::update_state(e_state new_state)
 {
-    if (state == new_state)
-        return;
-
     // remove from old state set
     if (state == idle)
         idle_clients.erase(list_node);
@@ -90,6 +87,8 @@ void Client::update_state(e_state new_state)
     
     // update state
     state = new_state;
+    // update time
+    last_state_change = time(NULL);
 }
 
 // changes state automatically:
@@ -117,6 +116,14 @@ bool Client::is_idle()
         return (true);
     return (false);
 }
+
+bool Client::is_incoming_request()
+{
+    if (state == incoming_request)
+        return (true);
+    return (false);
+}
+
 
 bool Client::is_ongoing_response()
 {

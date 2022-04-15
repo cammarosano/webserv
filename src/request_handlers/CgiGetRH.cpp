@@ -6,12 +6,13 @@ ACgiRH(request, table, script_path)
 {
     if (setup() == -1)
         throw (std::exception());
-    state = s_recving_cgi_output;
+    state = s_start;
 }
 
 CgiGetRH::~CgiGetRH()
 {
-    table.remove_fd(cgi_output_fd);
+    if (state > s_start && state < s_done)
+        table.remove_fd(cgi_output_fd);
     close(cgi_output_fd);
     if (waitpid(cgi_process, NULL, WNOHANG) == 0)
         child_processes.push_back(cgi_process);
@@ -25,6 +26,15 @@ int CgiGetRH::setup()
     if (pipe(pipefd) == -1)
     {
         perror("pipe");
+        return (-1);
+    }
+
+    // make read-end non-blocking (fcntl)
+    if (fcntl(pipefd[0], F_SETFL, O_NONBLOCK) == -1)
+    {
+        perror("fcntl");
+        close(pipefd[0]);
+        close(pipefd[1]);
         return (-1);
     }
 
@@ -79,18 +89,40 @@ int CgiGetRH::setup()
         std::cout << "pid cgi process: " << cgi_process << std::endl;
     close(pipefd[1]); // close write-end
     cgi_output_fd = pipefd[0];
-    table.add_fd_read(cgi_output_fd, client);
     return (0);
 }
 
 int CgiGetRH::respond()
 {
-    if (!table[cgi_output_fd].is_EOF) // not finished
-        return (0);
-    if (bytes_recvd == 0) // GCI failed
-        return (502);
-    state = s_done;
-    return (1);
+    switch (state)
+    {
+    case s_start:
+        table.add_fd_read(cgi_output_fd, client);
+        table.unset_pollout(client.socket); // make sure nothing's gonna be sent
+        state = s_recv_cgi_header;
+
+    case s_recv_cgi_header:
+        if (client.unsent_data.empty())
+        {
+            if (table[cgi_output_fd].is_EOF) // CGI failed
+                return (502);
+            return (0);
+        }
+        response.status_code = 200;
+        response.assemble_partial_header_str();
+        // now the hacky part
+        client.unsent_data.insert(0, response.header_str);
+        state = s_recving_cgi_output;
+
+    case s_recving_cgi_output:
+        if (!table[cgi_output_fd].is_EOF) // not finished
+            return (0);
+        table.remove_fd(cgi_output_fd);
+        state = s_done;
+    
+    default: // case s_done
+        return (1);
+    }
 }
 
 int CgiGetRH::time_out_code()

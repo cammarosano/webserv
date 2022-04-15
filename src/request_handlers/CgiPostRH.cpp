@@ -13,30 +13,27 @@ ACgiRH(request, table, script_path), bd(*request)
 	else
 	{
 		limit_body = true;
-		max_body_size = request->route->body_size_limit * 1024 * 1024;
+		max_body_size = request->route->body_size_limit;
 	}
 
 	// check if 100-continue is expected
 	state = s_start;
 	if (response100_expected())
 	{
-		response.status_code_phrase = "100 Continue";
-		response.assemble_header_str();
+		response.assemble_100_continue_str();
 		state = s_send_100_response;
 	}
 }
 
 CgiPostRH::~CgiPostRH()
 {
-	if (state > s_start)
-		table.remove_fd(cgi_output_fd);
-	if (state > s_start && state < s_recving_cgi_output)
-		table.remove_fd(cgi_input_fd);
-	if (state < s_recving_cgi_output)
+	if (state < s_recv_cgi_header)
 		close(cgi_input_fd);
-
+	if (state > s_start && state < s_recv_cgi_header)
+		table.remove_fd(cgi_input_fd);
+	if (state > s_sending_body2cgi && state < s_done)
+		table.remove_fd(cgi_output_fd);
 	close(cgi_output_fd);
-
     if (waitpid(cgi_process, NULL, WNOHANG) == 0)
         child_processes.push_back(cgi_process);
 }
@@ -61,7 +58,19 @@ int CgiPostRH::setup()
 		close(pipe_in[1]);
 		return (-1);
 	}
-	
+
+	// make pipe_out read-end and pipe_in write-end non-blocking
+    if (fcntl(pipe_out[0], F_SETFL, O_NONBLOCK) == -1
+		|| fcntl(pipe_in[1], F_SETFL, O_NONBLOCK) == -1)
+    {
+        perror("fcntl");
+		close(pipe_in[0]);
+		close(pipe_in[1]);
+		close(pipe_out[0]);
+		close(pipe_out[1]);
+        return (-1);
+    }
+
 	// fork
 	cgi_process = fork();
     if (cgi_process == -1)
@@ -108,7 +117,7 @@ int CgiPostRH::setup()
         // chdir to cgi root ("correct directory" ??)
         chdir(request->route->root.c_str());
 
-        close(2); // hide errors
+        // close(2); // hide errors
 
 		// exec()
 		execve(argv[0], argv, envp);
@@ -140,8 +149,7 @@ int CgiPostRH::respond()
 		state = s_start;
 		
 	case s_start:
-		table.add_fd_read(cgi_output_fd, request->client);
-		table.add_fd_write(cgi_input_fd, request->client);
+		table.add_fd_write(cgi_input_fd, client);
 		state = s_recv_req_body;
 
 	case s_recv_req_body:
@@ -161,13 +169,27 @@ int CgiPostRH::respond()
 			return (0);
 		close(cgi_input_fd); // sends EOF
 		table.remove_fd(cgi_input_fd);
+		table.add_fd_read(cgi_output_fd, client);
+        table.unset_pollout(client.socket); // make sure nothing's gonna be sent
+		state = s_recv_cgi_header;
+
+	case s_recv_cgi_header:
+		if (client.unsent_data.empty())
+		{
+			if (table[cgi_output_fd].is_EOF) // CGI failed
+				return (502);
+			return (0);
+		}
+        response.status_code = 200;
+        response.assemble_partial_header_str();
+        // now the hacky part
+        client.unsent_data.insert(0, response.header_str);
 		state = s_recving_cgi_output;
 
 	case s_recving_cgi_output:
-		if (!table[cgi_output_fd].is_EOF) // not finished
-			return (0);
-		if (bytes_recvd == 0)
-			return (502);
+        if (!table[cgi_output_fd].is_EOF) // not finished
+            return (0);
+		table.remove_fd(cgi_output_fd);
 		state = s_done;
 
 	default: // case s_done

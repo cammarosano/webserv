@@ -1,44 +1,50 @@
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest(Client &client, std::string &header_str)
-    : client(client) {
+HttpRequest::HttpRequest(Client &client, std::string &header_str):
+client(client)
+{
     parse_header(header_str);
     resolve_vserver();
     resolve_route();
 
+    // log
     std::string host;
     std::map<std::string, std::string>::iterator it
         = header_fields.find("host");
     if (it != header_fields.end())
         host = it->second;
-    else
+    else // no "host" header-field
         host = vserver->listen.first + ':'
             + long_to_str(vserver->listen.second);
 
-    // log
     std::cout << "Request: " << method << " " << target << " " << http_version
         << " @ " << host << std::endl;
 }
 
-// TODO: this parser must be improved: check errors...
-int HttpRequest::parse_header(std::string &header_str) {
+void HttpRequest::parse_header(std::string &header_str)
+{
     std::istringstream stream(header_str);
+    std::string line;
 
-    stream >> method;
-    stream >> target;
-    stream >> http_version;
-    while (!stream.eof()) {
-        std::string line;
+	// parse first_line
+    getline(stream, line);
+    std::istringstream first_line_stream(line);
+    first_line_stream >> method;
+    first_line_stream >> target;
+    first_line_stream >> http_version;
+    
+    // parse header-fields
+    while (!stream.eof())
+    {
         getline(stream, line);
-        size_t delimiter_pos = line.find(':');
-        if (delimiter_pos == std::string::npos)  // invalid line, skipping
-            continue;
-        std::string field_name = str_tolower(line.substr(0, delimiter_pos));
-        std::string field_value = line.substr(delimiter_pos + 1);
+        size_t pos = line.find(':');
+        if (pos == std::string::npos || pos == line.size() - 1) 
+            continue; // invalid line, skipping
+        std::string field_name = str_tolower(line.substr(0, pos));
+        std::string field_value = line.substr(pos + 1);
         remove_trailing_spaces(field_value);
         header_fields[field_name] = field_value;
     }
-    return (0);
 }
 
 void HttpRequest::resolve_vserver() {
@@ -47,8 +53,6 @@ void HttpRequest::resolve_vserver() {
     typedef std::map<std::string, std::string>::iterator iter_map;
     std::list<Vserver> &vservers_list = client.vservers;
 
-    // this might create an empty string as "host" (no problem)
-    // actually, maybe this is demanded by HTTP/1.1 ... TODO: check it!
     iter_map it_host = header_fields.find("host");
     if (it_host == header_fields.end()) // no "host" header-field
     {

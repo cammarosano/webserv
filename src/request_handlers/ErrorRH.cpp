@@ -3,6 +3,10 @@
 ErrorRH::ErrorRH(HttpRequest *request, FdManager &table, int error_code)
     : AReqHandler(request, table), error_code(error_code) {
     state = s_setup;
+    table.unset_pollin(client.socket); // client will be disconnected after resp
+    client.received_data.clear(); // clear possible body of a bad request
+    keep_alive = false;
+    response.header_fields["Connection"] = "close";
 }
 
 ErrorRH::~ErrorRH() {
@@ -50,9 +54,14 @@ int ErrorRH::setup() {
     res_type = sending_default;
     if (custom_error_page(err_page))
     {
-        fd = open(err_page.c_str(), O_RDONLY);
-        if (fd != -1 && fstat(fd, &sb) == 0) // if no error
-            res_type = sending_file;
+        fd = open(err_page.c_str(), O_RDONLY | O_NONBLOCK);
+        if (fd != -1)
+        {
+            if(fstat(fd, &sb) == 0) // if no error
+                res_type = sending_file;
+            else
+                close(fd);
+        }
     }
 
     // generate default-page
@@ -60,21 +69,21 @@ int ErrorRH::setup() {
         html_page = generate_error_page(error_code);
 
     // fill-in header
-    response.status_code_phrase =
-        long_to_str(error_code) + ' ' + reason_phrases[error_code];
+    response.status_code = error_code;
     if (res_type == sending_default)
     {
-        response.header_fields["content-length"] =
+        response.header_fields["Content-Length"] =
             long_to_str(html_page.size());
-        response.header_fields["content-type"] = "text/html";
+        response.header_fields["Content-Type"] = "text/html";
     }
     else 
     {
-        response.header_fields["content-length"] = long_to_str(sb.st_size);
-        response.header_fields["content-type"] = get_mime_type(err_page);
+        response.header_fields["Content-Length"] = long_to_str(sb.st_size);
+        response.header_fields["Content-Type"] = response.get_mime_type(err_page);
     }
-    
-    // TODO: and many other header_fields here.....
+    if (error_code == 405)
+        response.include_allow_header(request->route->accepted_methods);
+
     response.assemble_header_str();   
     return (0);
 }
@@ -82,32 +91,41 @@ int ErrorRH::setup() {
 // returns 1 if response if complete
 // 0 if response not yet complete
 // -1 if response was aborted
-int ErrorRH::respond() {
-    if (state == s_setup) {
+int ErrorRH::respond()
+{
+    if (state == s_setup)
+    {
         setup();
         state = s_sending_header;
     }
-    if (state == s_sending_header) {
-        if (send_str(response.header_str) == 1) {
+    if (state == s_sending_header)
+    {
+        if (send_str(response.header_str) == 1)
+        {
             if (res_type == sending_default)
                 state = s_sending_html_str;
             else
                 state = s_start_send_file;
         }
     }
-    if (state == s_sending_html_str) {
-        if (send_str(html_page) == 1) state = s_done;
-    } else if (state == s_start_send_file) {
-        table.add_fd_read(fd, request->client);
+    if (state == s_sending_html_str)
+    {
+        if (send_str(html_page) == 1)
+            state = s_done;
+    }
+    else if (state == s_start_send_file)
+    {
+        table.add_fd_read(fd, client);
         state = s_sending_file;
         return 0;
     }
-    if (state == s_sending_file) {
-        if (table[fd].is_EOF) {
+    if (state == s_sending_file)
+    {
+        if (table[fd].is_EOF)
             state = s_done;
-        }
     }
-    if (state == s_done) return (1);
+    if (state == s_done)
+        return (1);
     return (0);
 }
 
@@ -118,44 +136,19 @@ int ErrorRH::time_out_code()
 }
 
 // static function
-std::map<int, std::string> ErrorRH::init_map() {
-    std::map<int, std::string> map;
-
-    map[400] = "Bad Request";
-    map[403] = "Forbidden";
-    map[404] = "Not Found";
-    map[405] = "Method Not Allowed";
-    map[408] = "Request Timeout";
-    map[413] = "Payload Too Large";
-    map[431] = "Request Header Fields Too Large";
-
-    map[500] = "Internal Server Error";
-    map[501] = "Not Implemented";
-    map[502] = "Bad Gateway";
-    map[504] = "Gateway Timeout";
-
-    return map;
-}
-
-// static variable
-std::map<int, std::string> ErrorRH::reason_phrases = init_map();
-
-// static function
 std::string ErrorRH::generate_error_page(int error_code)
 {
     std::ostringstream oss;
+    std::string error_reason = HttpResponse::reason_phrases[error_code];
 
     oss << "<!DOCTYPE html>"
         << "<html>"
         << "<head>"
-        << "<title>" << error_code << ' ' << reason_phrases[error_code]
-        << "</title>"
+        << "<title>" << error_code << ' ' << error_reason << "</title>"
         << "</head>"
         << "<body>"
-        << "<p>"
-        << "Webserv42 default error page"
-        << "</p>"
-        << "<h1>" << error_code << ' ' << reason_phrases[error_code] << "</h1>"
+        << "<p>" << "Webserv42 default error page" << "</p>"
+        << "<h1>" << error_code << ' ' << error_reason << "</h1>"
         << "</body>"
         << "</html>";
 

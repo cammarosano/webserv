@@ -7,7 +7,7 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <iostream>
-# include <stdio.h> // perror
+# include <cstdio> // perror
 # include <ctime>
 # include "macros.h"
 # include <queue>
@@ -39,8 +39,7 @@ struct Client {
     AReqHandler *request_handler;
 
 	// time-outs 
-    time_t time_begin_request;
-    time_t last_io; // send2client || new_requests()
+    time_t last_state_change;
 
     // constructor
     Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
@@ -51,6 +50,7 @@ struct Client {
     void update_state();
     void update_state(e_state new_state);
     bool is_idle();
+    bool is_incoming_request();
     bool is_ongoing_response();
 
     // lists 

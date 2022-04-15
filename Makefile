@@ -9,10 +9,10 @@ functions/listening_socket.cpp \
 functions/setup.cpp \
 functions/handle_requests.cpp \
 functions/clear_resources.cpp \
-functions/error_request.cpp \
+functions/error_resp_no_request.cpp \
 functions/mime_type.cpp \
 functions/init_response.cpp \
-functions/reaper.cpp \
+functions/house_keeper.cpp \
 request_handlers/CgiGetRH.cpp \
 request_handlers/ErrorRH.cpp \
 request_handlers/StaticRH.cpp \
@@ -27,7 +27,8 @@ classes/FdManager.cpp \
 classes/BodyDecoder.cpp \
 classes/Client.cpp \
 classes/HttpRequest.cpp \
-classes/ConfigParser.cpp 
+classes/ConfigParser.cpp \
+classes/HttpResponse.cpp
 
 # shell cmd: find includes/ -type f
 INC = \
@@ -46,6 +47,7 @@ classes/HttpRequest.hpp \
 classes/FdManager.hpp \
 classes/ConfigParser.hpp \
 classes/BodyDecoder.hpp \
+classes/HttpResponse.hpp \
 macros.h \
 utils.h \
 config.hpp \
@@ -66,7 +68,7 @@ debug:		CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address \
 debug:		$(NAME)
 
 valgrind:	CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
-valgrind:	$(NAME)
+valgrind:	clean $(NAME)
 
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@

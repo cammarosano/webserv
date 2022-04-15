@@ -1,9 +1,4 @@
 #include "DirectoryRH.hpp"
-#include <cstddef>
-#include <dirent.h>
-#include <list>
-#include <string>
-#include <utility>
 
 DirectoryRH::DirectoryRH(HttpRequest *request, FdManager &table, const std::string &path)
     : AReqHandler(request, table), ressource_path(path)
@@ -76,9 +71,9 @@ int DirectoryRH::_setup()
 {
     _generate_autoindex_page();
 
-    response.status_code_phrase = "200 OK";
-    response.header_fields["content-length"] = long_to_str(html_page.length());
-    response.header_fields["content-type"] = "text/html";
+    response.status_code= 200;
+    response.header_fields["Content-Length"] = long_to_str(html_page.length());
+    response.header_fields["Content-Type"] = "text/html";
     response.assemble_header_str();
     return 0;
 }

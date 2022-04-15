@@ -1,52 +1,47 @@
 # webserv
 
+## NOTES about recent changes:
+
+### Clients state
+- When a new connection is accept()ed, a Client object is created in IDLE state.
+- When data is received from a IDLE client's socket, state is changed to INCOMING_REQUEST
+- When a complete HTTP Request header is found at client's received_data buffer:
+  - a new HTTPRequest object is instantiated,
+  - a new Request Handler object is intantiated and
+  - the client's state is changed to ONGOING_RESPONSE 
+- When a response is finished, Client's state is changed back to:
+  - IDLE if its received_data buffer is empty
+  - INCOMING_REQUEST if there's (already) data in its received_data buffer
+- Client's in a given state are kept in a list (Client class static variables). So, there are 3 lists, one for each state. And whenever a client's state changes, it is removed from one a list and inserted in another. List changes are done at constant time (O(1)) thanks the iterator *list_node* variable. Theses lists simplifies the loops in the program, namely: new_request(), handle_requests(), timeout() (in house_keep())
+
+**TLDR;** Clients cycle along 3 states: idle -> incoming_request -> ongoing_response -> idle -> etc... and are grouped in lists
+
+### Time-outs
+If a Client stays too long in the same state, it is timed-out (disconnected)
+
+In detail:
+- every time a client changes state, its *last_state_change* variable is updated to the current time, and the client is inserted at the back of the corresponding list. So the front of a list points to the oldest client in that state. That simplifies the following item a bit.
+- the house_keeper function (main loop) checks for time-outs. Depending on the Client's state, *last_state_change* will be compared against CONNECTION_TIMEOUT (idle clients), REQUEST_TIMEOUT or RESPONSE_TIMEOUT
+
+### Removing clients
+remove_client() and the Client's destructor take care of updating the FdManager table and cleaning up the allocated resources. In case of a client in **ongoing_response** state, the Request Handler's destructor will be called (so the RH class should clear their resources as well: close fds, remove from table, wait for child_process without blocking)
+
+### Protection against too many clients
+- accept_connection does not accept new connections if number of clients is greater than MAX_CLIENTS. It tries to remove a Client in **idle** state to make room for the new client, or just makes the connection request waiting in the queue (I mean the listen() queue, handled by the kernel).
+- when a AReqHandler (request handler) object is instantiated, if the number of clients is bigger than CONN_CLOSE_THRESHOLD * MAX_CLIENT (ex: 0.8 * MAX_CLIENT, that is, 80% of the maximum defined capacity), the response is tagged as **keep-alive = false**. That means that the HTTP response will have the header-field "Connection: close", which informs the client that the connection will be closed after the response is sent (in opposition to HTTP/1.1's default "Connection: keep-alive"). And the Client object is in fact removed when the response is over.
+
+--------------------------
 ## TODO
 
--  ### configuration file parser
-
-    - ### parse server block
-      - [x] listening port
-      - [x] server names
-      - [x] error pages
-      - [ ] body size limit (accept other than M ?)
-    - ### parse location block
-      - [x] root
-      - [x] auto_index
-      - [x] default index file
-      - [x] cgi extension
-      - [x] cgi interpreter
-      - [x] accepted method
-      - [ ] upload accepted
-      - [ ] upload dir
-      - [x] redirection
-
-
-- ### request handler class for Redirections
-  - [x] redirect server
-  - [ ] redirect location
-
-- ### request handler class for Directory listing
-
-  - [x] generates an HTML page with the directory listing (auto-index)
-  - [ ] display folder first then files (optional)
-
-- ### "Try to always use the most "C++" code possible (for example use <cstring> over <string.h>)."
-
-- ### Header fields in the Http response:
-   - [x] content-type
-   - [x] date
-
-- ### make request Header parser more robust
 
 - ### website for correction:
   - static pages, css and javascript, images, 
-  - forms that render a page through CGI, 
-  - forms to upload files
+  - forms that render a page through CGI (see CGI/render_html.py and template.html) 
+  - forms to upload files ? (multipart form not supported)
 
 - ## TESTING
 
   - siege
-  - subject's tester (not mandatory to pass this test)
   - curl, postman, etc
   - Conditions:
     - hanging requests:
@@ -107,15 +102,21 @@ A **Client** struct represents an accepted connection. It contains a socket and 
 
 ### Vserver and Route
 
-The structs **Vserver** and **Route** represent blocks in the configuration file. They are equivalent to nginx's "server" and "location" blocks. See includes.hpp for their definition, and get_test_config (setup.cpp) for an example.
+The structs **Vserver** and **Route** represent blocks in the configuration file. They are equivalent to nginx's "server" and "location" blocks. See conf/default.conf for an example.
 
 ### FdManager
 
-The class **FdManager** ... well, manages file descriptors. And also organizes the array used for calling poll(). So an instance of this class, "table", is seen everywhere in the code. It allows us to know what a given file descriptor refers to (a listening socket, a client socket, a file in disk, the output of a CGI script, etc). And also allow us to define whether a file descriptor will be polled for reading and/or writing operations.
+The class **FdManager** ... well, manages file descriptors. And also organizes the array used for calling poll(). So an instance of this class, "table", is seen everywhere in the code. It allows us to know what a given file descriptor refers to a:
+- listening socket
+- client socket
+- fd for read()ing from (a file in disk or the output of a CGI script)
+- fd for writing to (a file in disk or the input for a CGI script).
+
+And it also allow us to define whether a file descriptor will be polled for reading and/or writing operations.
 
 ### ARequestHandler
 
-Base class for specific request handlers (like StaticRH and ErrorRH). A request handler performs a sequence of actions to respond to a request. Ex: assemble the header of the HTTP reponse, open a file in disk, set it up of reading operation when IO is done, close de fd when done, etc.
+Base class for specific request handlers (like StaticRH and ErrorRH). A request handler performs a sequence of actions to respond to a request. Ex: assemble the header of the HTTP reponse, open a file in disk, set it up for reading operation in the IO round, close de fd when done, etc.
 
 -----------------------------
 An overview of the loop in main():
@@ -130,17 +131,17 @@ do_io(): does IO operations (no shit!!). Calls poll(), loops over the poll array
 - reads data from a file in disk or pipe connected to CGI process
 - send data to a file in disk (upload) or a pipe connected to a CGI process
 
--new_requests():
+new_requests():
 
-- when a Client's received_data buffer contains the header of a new HTTP request, this data is parsed and an instance of a **HttpRequest** object is created.
-- After resolving which Vserver and Route applies to this request, the resource path is determined (ex: /web_root/some_file.html), and the apropriate **RequestHandler** is instantiated and added to a list. There are different types of RequestHandlers: one for serving a static file, one for generating an error page, one for generating the directory listing, one for handling a CGI response, etc. Each type is a specific class, but they all inherit from a base class **ARequestHandler** and define their own respond() method.
+- when a Client's received_data buffer contains the header of a new HTTP request, this data is parsed and an instance of a **HttpRequest** object is created. Vserver and Route resolution is done at construction.
+- init_response() will instantiate the apropriate **RequestHandler**, after the resource path is determined (ex: /web_root/some_file.html). There are different types of RequestHandlers: one for serving a static file, one for generating an error page, one for generating the directory listing, one for handling a CGI response, etc. Each type is a specific class, but they all inherit from a base class **ARequestHandler** and define their own respond() method.
 
 handle_request():
 
-- iterates over the list of *ARequestHandler (pointers to an abstract class) and calls the respond() method for each one. The respond() method of the specific class is called (yep, subtype polymorphism. plz don't hate me).
+- iterates over list of clients in **ongoing_response** state and calls ARequestHandler's respond() method for each one. A cool subtype polymorphism is going on here (plz don't hate me).
 - the respond() method of the RequestHandler will perform the sequence of steps in order to send a response to the client (ex: assemble the header of the HTTP reponse, open a file in disk, set it up of reading operation when IO is done, close de fd when done, etc.)
 - most often times, a single call of a RequestHandler's repond() method does not complete the response, because it will depend on a IO operation (which can only be done after poll()ing). For this reason, the RequestHandler object keeps track of the **state** of the ongoing response, so it knows what to do when the response() method is called a second (or third, fourth...) time.
-- When a reponse is complete, the HttpRequest object and RequestHandler are deleted and removed from the list
+- When a reponse is complete, the HttpRequest object and RequestHandler object are deleted
 
 This [diagram at miro](https://miro.com/app/board/uXjVOPebVU8=/?invite_link_id=956792833423) ilustrates a static file response.
 

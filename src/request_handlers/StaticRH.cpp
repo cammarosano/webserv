@@ -21,7 +21,7 @@ int StaticRH::setup()
 {
     struct stat sb;
 
-    fd_file = open(resource_path.c_str(), O_RDONLY);
+    fd_file = open(resource_path.c_str(), O_RDONLY | O_NONBLOCK);
     if (fd_file == -1)
         return (-1);
     if (fstat(fd_file, &sb) == -1) 
@@ -29,10 +29,9 @@ int StaticRH::setup()
         close(fd_file);
         return (-1);
     }
-    response.status_code_phrase = "200 OK";
-    response.header_fields["content-length"] = long_to_str(sb.st_size);
-    response.header_fields["content-type"] = get_mime_type(resource_path);
-    // TODO: and many other header_fields here.....
+    response.status_code = 200;
+    response.header_fields["Content-Length"] = long_to_str(sb.st_size);
+    response.header_fields["Content-Type"] = response.get_mime_type(resource_path);
     response.assemble_header_str();
     return (0); // ok
 }
@@ -53,13 +52,14 @@ int StaticRH::respond()
             state = s_done;
             return (1);
         }
-        table.add_fd_read(fd_file, request->client);
+        table.add_fd_read(fd_file, client);
         state = s_sending_file;
 
     case s_sending_file:
         if (!table[fd_file].is_EOF) // incomplete
             return (0);
         state = s_done;
+
     default: // case s_done
         return (1);
     }

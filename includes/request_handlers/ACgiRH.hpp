@@ -3,6 +3,7 @@
 
 # include "ARequestHandler.hpp"
 # include <unistd.h>
+# include <fcntl.h>
 # include <string.h>
 # include "utils.h"
 # include <sys/types.h>
@@ -10,6 +11,7 @@
 
 class ACgiRH : public AReqHandler {
 protected:
+	std::string resource_path;
 	std::string script_path;
 	std::string query_str;
 	int	cgi_output_fd;
@@ -19,12 +21,13 @@ protected:
         s_send_100_response,
         s_start,
         s_recv_req_body, s_sending_body2cgi, // CGI-POST only
+        s_recv_cgi_header,
         s_recving_cgi_output,
         s_done,
-        s_abort
     } state;
 
     std::string get_query_str();
+    std::string get_script_path();
 	char **setup_cgi_argv();
 	char **setup_cgi_env();
     bool cgi_failed();
@@ -35,7 +38,7 @@ private:
     std::map<std::string, std::string> get_env_map();
 
 public:
-    ACgiRH(HttpRequest *request, FdManager &table, std::string &script_path);
+    ACgiRH(HttpRequest *request, FdManager &table, std::string &resource_path);
     virtual ~ACgiRH();
 
     virtual int respond() = 0;

@@ -1,5 +1,6 @@
 #include "includes.hpp"
 
+// clear clients and closes listening sockets
 void clear_resources(FdManager &table)
 {
 	for (int fd = 0; fd < table.len(); fd++)

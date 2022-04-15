@@ -1,7 +1,4 @@
 #include "PostRH.hpp"
-#include "macros.h"
-
-#include <fcntl.h>
 
 PostRH::PostRH(HttpRequest *request, FdManager &table) : AReqHandler(request, table), bd(*request)
 {
@@ -13,9 +10,7 @@ PostRH::PostRH(HttpRequest *request, FdManager &table) : AReqHandler(request, ta
     state = s_start;
     if (request->header_fields.find("expect") != request->header_fields.end())
     {
-        response.http_version = "HTTP/1.1";
-        response.status_code_phrase = "100 continue";
-        response.assemble_header_str();
+        response.assemble_100_continue_str();
         state = s_send_100_continue;
     }
 }
@@ -30,7 +25,6 @@ PostRH::~PostRH()
 int PostRH::respond()
 {
     int ret_bd;
-    Client &client = request->client;
 
     switch (state)
     {
@@ -39,10 +33,10 @@ int PostRH::respond()
             return 0;
         state = s_start;
     case s_start:
-        fd = open(file_path.c_str(), O_CREAT | O_WRONLY, 0644);
+        fd = open(file_path.c_str(), O_CREAT | O_WRONLY | O_NONBLOCK, 0644);
         if (fd < 0)
             return 500;
-        table.add_fd_write(fd, request->client);
+        table.add_fd_write(fd, client);
         state = s_receiving_body;
     case s_receiving_body:
         ret_bd = bd.decode_body();
@@ -55,7 +49,7 @@ int PostRH::respond()
         state = s_sending_header;
     case s_sending_header:
         response.http_version = "HTTP/1.1";
-        response.status_code_phrase = "201 created";
+        response.status_code = 201;
         response.header_fields["content-length"] = long_to_str(body.length());
         response.assemble_header_str();
         if (send_str(response.header_str) == 0)

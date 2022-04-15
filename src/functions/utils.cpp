@@ -24,17 +24,6 @@ std::string &remove_trailing_spaces(std::string &s)
     return (s);
 }
 
-// for debugging
-void print_request(HttpRequest &request) {
-    std::cout << "method: " << request.method << '\n'
-              << "target: " << request.target << '\n'
-              << "http-version: " << request.http_version << '\n';
-
-    for (std::map<std::string, std::string>::iterator it =
-             request.header_fields.begin();
-         it != request.header_fields.end(); it++)
-        std::cout << it->first << ":" << it->second << '\n';
-}
 
 bool str_is_number(std::string &str) {
     std::string::const_iterator it = str.begin();

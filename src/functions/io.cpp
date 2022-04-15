@@ -1,6 +1,9 @@
 #include "includes.hpp"
 
-void recv_from_client(int socket, FdManager &table, time_t now)
+// read() from client's socket
+// data is stored in Client::received_data
+// if client was in "idle" state, state is updated to "incoming_request"
+void recv_from_client(int socket, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
     Client &client = *table[socket].client;
@@ -25,19 +28,53 @@ void recv_from_client(int socket, FdManager &table, time_t now)
     }
     client.received_data.append(buffer, recvd_bytes);
     if (client.is_idle())
-    {
         client.update_state();
-        client.time_begin_request = now;
-    }
+
     // debug
     if (DEBUG)
         std::cout << "Received " << recvd_bytes <<
             " bytes from client at socket " << socket << std::endl;
 }
 
-// reads data from a fd (file or pipe)
-// copies it into Client's unsent data buffer
-// if error, response is terminated and client disconnected
+// write() to Client's socket.
+// Client::unsent_data is the data source.
+// Clients tagged with "disconnect_after_send" are removed if the unsent_data
+// buffer is emptied
+void send_to_client(int socket, FdManager &table)
+{
+    Client &client = *table[socket].client;
+    int bytes_sent;
+
+    if (!client.unsent_data.empty())
+    {
+        bytes_sent = write(socket, client.unsent_data.data(),
+                            client.unsent_data.size());
+        if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
+        {
+            if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
+            remove_client(client, table, "webserv (write error)");
+            return;
+        }
+        client.unsent_data.erase(0, bytes_sent);
+        // debug
+        if (DEBUG)
+            std::cout << bytes_sent << " bytes were sent to client at socket "
+                        << socket << std::endl;
+    }
+    if (client.unsent_data.empty())
+    {
+        table.unset_pollout(client.socket);
+        if (client.disconnect_after_send)
+        {
+            remove_client(client, table,
+				"webserv (disconnect after response sent)");
+            return;
+        }
+    }
+}
+
+// reads data from a fd (file or pipe with CGI output)
+// copies it into Client:unsent_data buffer
 void read_from_fd(int fd, FdManager &table)
 {
     char buffer[BUFFER_SIZE];
@@ -63,55 +100,15 @@ void read_from_fd(int fd, FdManager &table)
     client.unsent_data.append(buffer, read_bytes);
     table.set_pollout(client.socket);
 
-    if (client.is_ongoing_response()) // is this check unnecessary?
-        client.request_handler->add_to_bytes_recvd(read_bytes);
-
     // debug
     if (DEBUG)
         std::cout << read_bytes << " bytes were read from fd " << fd <<
             " destinated to client at socket " << client.socket << std::endl;
 }
 
-void send_to_client(int socket, FdManager &table, time_t current_time)
-{
-    Client &client = *table[socket].client;
-    int bytes_sent;
 
-    if (client.unsent_data.empty()) // POLLOUT should not be set in the first place...
-    {
-        table.unset_pollout(client.socket);
-        return;
-    }
-    bytes_sent = write(socket, client.unsent_data.data(),
-                        client.unsent_data.size());
-    if (bytes_sent == -1 || bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
-    {
-        if (DEBUG) perror("write"); // REMOVE BEFORE PUSH
-        remove_client(client, table, "webserv (write error)");
-        return;
-    }
-    client.unsent_data.erase(0, bytes_sent);
-    if (client.unsent_data.empty())
-    {
-        table.unset_pollout(client.socket);
-        if (client.disconnect_after_send)
-        {
-            remove_client(client, table,
-				"webserv (disconnect after response sent)");
-            return;
-        }
-    }
-
-    client.last_io = current_time;
-
-    // debug
-    if (DEBUG)
-        std::cout << bytes_sent << " bytes were sent to client at socket "
-                    << socket << std::endl;
-}
-
-// write data from Client's decoded_body to fd (file or pipe)
-// if error, response is terminated and client disconnected
+// write data from Client's decoded_body to fd (file for uploads, or pipe to
+// CGI input)
 void write_to_fd(int fd, FdManager &table)
 {
     Client &client = *table[fd].client;

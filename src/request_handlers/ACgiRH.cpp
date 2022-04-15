@@ -1,18 +1,33 @@
 #include "ACgiRH.hpp"
 
 ACgiRH::ACgiRH(HttpRequest *request, FdManager &table,
-                std::string &script_path):
+                std::string &resource_path):
 AReqHandler(request, table),
-script_path(script_path)
+resource_path(resource_path)
 {
+    script_path = get_script_path();
     query_str = get_query_str();
 }
 
 ACgiRH::~ACgiRH()
 {
-    // log
-    if (state == s_done) // no errors
-        std::cout << "Response: (CGI-generated)" << std::endl;
+}
+
+// script path relative to route's root, without additional path
+std::string ACgiRH::get_script_path()
+{
+    std::string cgi_ext = request->route->cgi_extension;
+    std::string route_root = request->route->root;
+    std::string script_path;
+
+    size_t pos_beg = route_root.size();
+    if (*route_root.rbegin() != '/')
+        pos_beg += 1;
+    size_t pos_end = resource_path.find(cgi_ext) + cgi_ext.size();
+    script_path = resource_path.substr(pos_beg, pos_end - pos_beg);
+    if (DEBUG)
+        std::cout << "Script path: " << script_path << std::endl;
+    return (script_path);
 }
 
 std::string ACgiRH::get_query_str()
@@ -31,16 +46,14 @@ char **ACgiRH::setup_cgi_argv()
 {
     char **argv = new char*[3];
 
-    // argv[0] = CGI binary
-    std::string& cgi_interp = request->route->cgi_interpreter;
+    // argv[0] = CGI binary (must be absolute path)
+    std::string &cgi_interp = request->route->cgi_interpreter;
     argv[0] = new char[cgi_interp.size() + 1];
     strcpy(argv[0], cgi_interp.c_str());
 
-    // argv[1] = the script, having the the route's root/ removed
-    std::string cgi_script
-        = script_path.substr(request->route->root.size() + 1);
-    argv[1] = new char[cgi_script.size() + 1];
-    strcpy(argv[1], cgi_script.c_str());
+    // argv[1] = the script path relative to the route's root
+    argv[1] = new char[script_path.size() + 1];
+    strcpy(argv[1], script_path.c_str());
 
     argv[2] = NULL;
     return (argv);
@@ -73,11 +86,11 @@ std::map<std::string, std::string> ACgiRH::get_env_map()
         cgi_env["CONTENT_TYPE"] = it->second;
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     //  PATH_INFO: subject expects something different from the RFC3875
-    cgi_env["PATH_INFO"] = script_path;
-    cgi_env["PATH-TRANSLATED"] = script_path; // no idea how to fill-in this one
+    cgi_env["PATH_INFO"] = resource_path;
+    cgi_env["PATH-TRANSLATED"] = resource_path; // no idea how to fill-in this one
     cgi_env["QUERY_STRING"] = query_str;
-    cgi_env["REMOTE_ADDR"] = request->client.ipv4_addr;
-    cgi_env["REMOTE_HOST"] = request->client.host_name;
+    cgi_env["REMOTE_ADDR"] = client.ipv4_addr;
+    cgi_env["REMOTE_HOST"] = client.host_name;
     // OBS: skipping REMOTE_IDENT and REMOTE_USER
     cgi_env["REQUEST_METHOD"] = request->method;
     // SCRIPT_NAME = resource target without the query-string
