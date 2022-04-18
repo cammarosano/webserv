@@ -36,13 +36,9 @@ int DeleteRH::respond()
     if (state == s_sending_html_str)
     {
         if (send_str(body) == 1)
-        {
             state = s_done;
-        }
     }
     if (state == s_done)
         return 1;
-    if (state == s_abort)
-        return -1;
     return 0;
 }
