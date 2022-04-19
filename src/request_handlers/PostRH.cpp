@@ -46,12 +46,14 @@ int PostRH::respond()
             table.set_pollout(fd);
         if (ret_bd == 0)
             return 0;
-        state = s_sending_header;
-    case s_sending_header:
+        state = s_assemble_header;
+    case s_assemble_header:
         response.http_version = "HTTP/1.1";
         response.status_code = 201;
         response.header_fields["content-length"] = long_to_str(body.length());
         response.assemble_header_str();
+        state = s_sending_header;
+    case s_sending_header:
         if (send_str(response.header_str) == 0)
             return 0;
         state = s_sending_html_str;

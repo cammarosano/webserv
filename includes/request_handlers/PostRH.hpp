@@ -5,10 +5,11 @@
 #include "BodyDecoder.hpp"
 #include "macros.h"
 #include <fcntl.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
-class PostRH : public AReqHandler {
+class PostRH : public AReqHandler
+{
   private:
     BodyDecoder bd;
     std::string file_path;
@@ -16,14 +17,15 @@ class PostRH : public AReqHandler {
 
     int fd;
 
-    enum {
+    enum
+    {
         s_send_100_continue,
         s_start,
         s_receiving_body,
+        s_assemble_header,
         s_sending_header,
         s_sending_html_str,
         s_done,
-        s_abort
     } state;
 
   public:
