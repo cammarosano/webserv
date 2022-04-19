@@ -73,21 +73,21 @@ valgrind:	clean $(NAME)
 $(NAME):	$(OBJ)
 			$(CC) $(CFLAGS) $^ -o $@
 
-obj/%.o:	src/%.cpp $(HEADERS) | obj/
+obj/%.o:	src/%.cpp $(HEADERS) | obj
 			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-obj/:
+obj:
 			mkdir -p obj/request_handlers
 			mkdir -p obj/classes
 			mkdir -p obj/functions
 
 clean:
 			rm -f $(OBJ)
-			rm -rf obj/
+			rm -rf obj
 
 fclean:		clean
 			rm -f $(NAME)
 
-re:			clean all
+re:			fclean all
 
 .PHONY:		all clean fclean re
