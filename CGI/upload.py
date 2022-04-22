@@ -26,18 +26,30 @@ def get_file_content(body: str, boundary: str) -> str:
 
 method = os.environ["REQUEST_METHOD"]
 content_type = os.environ["CONTENT_TYPE"]
-boundary = content_type[content_type.find("=") + 1:]
+boundary = content_type[content_type.find("boundary=") + 9:]
 
 if method == "POST":
     body = sys.stdin.read()
 else:
     body = os.environ["QUERY_STRING"]
 
+COLORS = {
+    "GREEN": '\033[92m',
+    "RESET": '\033[0m',
+    "CYAN": '\033[96m'
+}
+
 # content = get_file_content(body, boundary)
 file_name = get_file_name(body)
-# with open(file_name, "w") as f:
-#     f.write(content)
 
+boundary = boundary.strip()
+begin = body.find("\r\n\r\n") + 4
+end = boundary.find("\r\n--" + boundary + "--\r\n")
+file_content = body[begin:end]
+file_content = file_content[:file_content.find("\r\n--" + boundary + "--")]
+file_content = file_content[:file_content.find("\r\n")]
+with open(file_name, "w") as f:
+    f.write(file_content)
 response_body = "<!DOCTYPE html>"
 response_body += "<html>"
 response_body += "<head>"
