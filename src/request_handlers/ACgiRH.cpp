@@ -1,50 +1,40 @@
 #include "ACgiRH.hpp"
 
 ACgiRH::ACgiRH(HttpRequest *request, FdManager &table,
-                std::string &resource_path):
-AReqHandler(request, table),
-resource_path(resource_path)
-{
+               std::string &resource_path)
+    : AReqHandler(request, table), resource_path(resource_path) {
     script_path = get_script_path();
     query_str = get_query_str();
 }
 
-ACgiRH::~ACgiRH()
-{
-}
+ACgiRH::~ACgiRH() {}
 
 // script path relative to route's root, without additional path
-std::string ACgiRH::get_script_path()
-{
+std::string ACgiRH::get_script_path() {
     std::string cgi_ext = request->route->cgi_extension;
     std::string route_root = request->route->root;
     std::string script_path;
 
     size_t pos_beg = route_root.size();
-    if (*route_root.rbegin() != '/')
-        pos_beg += 1;
+    if (*route_root.rbegin() != '/') pos_beg += 1;
     size_t pos_end = resource_path.find(cgi_ext) + cgi_ext.size();
     script_path = resource_path.substr(pos_beg, pos_end - pos_beg);
-    if (DEBUG)
-        std::cout << "Script path: " << script_path << std::endl;
+    if (DEBUG) std::cout << "Script path: " << script_path << std::endl;
     return (script_path);
 }
 
-std::string ACgiRH::get_query_str()
-{
+std::string ACgiRH::get_query_str() {
     std::string query_string;
 
     size_t pos = request->target.find('?');
     if (pos != std::string::npos)
         query_string = request->target.substr(pos + 1);
-    if (DEBUG)
-        std::cout << "Query-string: " << query_string << std::endl;
+    if (DEBUG) std::cout << "Query-string: " << query_string << std::endl;
     return (query_string);
 }
 
-char **ACgiRH::setup_cgi_argv()
-{
-    char **argv = new char*[3];
+char **ACgiRH::setup_cgi_argv() {
+    char **argv = new char *[3];
 
     // argv[0] = CGI binary (must be absolute path)
     std::string &cgi_interp = request->route->cgi_interpreter;
@@ -59,10 +49,8 @@ char **ACgiRH::setup_cgi_argv()
     return (argv);
 }
 
-std::string meta_var_case(std::string s)
-{
-    for (size_t i = 0; i < s.size(); ++i)
-    {
+std::string meta_var_case(std::string s) {
+    for (size_t i = 0; i < s.size(); ++i) {
         if (islower(s[i]))
             s[i] = toupper(s[i]);
         else if (s[i] == '-')
@@ -72,8 +60,7 @@ std::string meta_var_case(std::string s)
 }
 
 // https://datatracker.ietf.org/doc/html/rfc3875
-std::map<std::string, std::string> ACgiRH::get_env_map()
-{
+std::map<std::string, std::string> ACgiRH::get_env_map() {
     std::map<std::string, std::string> cgi_env;
     std::map<std::string, std::string>::iterator it;
 
@@ -87,7 +74,8 @@ std::map<std::string, std::string> ACgiRH::get_env_map()
     cgi_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     //  PATH_INFO: subject expects something different from the RFC3875
     cgi_env["PATH_INFO"] = resource_path;
-    cgi_env["PATH-TRANSLATED"] = resource_path; // no idea how to fill-in this one
+    cgi_env["PATH-TRANSLATED"] =
+        resource_path;  // no idea how to fill-in this one
     cgi_env["QUERY_STRING"] = query_str;
     cgi_env["REMOTE_ADDR"] = client.ipv4_addr;
     cgi_env["REMOTE_HOST"] = client.host_name;
@@ -102,31 +90,31 @@ std::map<std::string, std::string> ACgiRH::get_env_map()
     cgi_env["SERVER_PROTOCOL"] = request->http_version;
     cgi_env["SERVER_SOFTWARE"] = "webserv/1.1";
 
-	// add HTTP meta variables
+    // additional env variable for the upload_path
+    cgi_env["UPLOAD_DIR"] = request->route->upload_dir;
+
+    // add HTTP meta variables
     it = request->header_fields.begin();
-    while (it != request->header_fields.end())
-    {
-        if (!(it->first == "content-length" || it-> first == "content-type"))
+    while (it != request->header_fields.end()) {
+        if (!(it->first == "content-length" || it->first == "content-type"))
             cgi_env["HTTP_" + meta_var_case(it->first)] = it->second;
         ++it;
     }
     return (cgi_env);
 }
 
-char **ACgiRH::setup_cgi_env()
-{
+char **ACgiRH::setup_cgi_env() {
     std::map<std::string, std::string> cgi_env = get_env_map();
     std::map<std::string, std::string>::iterator it;
     int i;
 
-	// allocate memory - might throw exception!
+    // allocate memory - might throw exception!
     char **envp = new char *[cgi_env.size() + 1];
 
-	// populate envp with content from cgi_env map
+    // populate envp with content from cgi_env map
     it = cgi_env.begin();
     i = 0;
-    while (it != cgi_env.end())
-    {
+    while (it != cgi_env.end()) {
         std::string s = it->first + '=' + it->second;
         envp[i] = new char[s.size() + 1];
         strcpy(envp[i], s.c_str());
@@ -136,7 +124,6 @@ char **ACgiRH::setup_cgi_env()
     envp[i] = NULL;
     return (envp);
 }
-
 
 // static variable
 std::list<pid_t> ACgiRH::child_processes;
