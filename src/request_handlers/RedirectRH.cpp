@@ -1,7 +1,7 @@
 #include "RedirectRH.hpp"
 
-RedirectRH::RedirectRH(HttpRequest *request, FdManager &table)
-    : AReqHandler(request, table) {
+RedirectRH::RedirectRH(HttpRequest *request, FdManager &table) : AReqHandler(request, table)
+{
     Redirection redirect;
 
     if (request->vserver->redirected)
@@ -13,11 +13,13 @@ RedirectRH::RedirectRH(HttpRequest *request, FdManager &table)
     response.assemble_header_str();
 }
 
-RedirectRH::~RedirectRH() {}
+RedirectRH::~RedirectRH()
+{
+}
 
-int RedirectRH::respond() {
+int RedirectRH::respond()
+{
     if (send_str(response.header_str) == 0)
         return 0;
     return 1;
 }
-

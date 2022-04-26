@@ -1,5 +1,6 @@
 import os
 import sys
+import io
 
 
 def eprint(*args, **kwargs):
@@ -37,9 +38,10 @@ file_content = file_content[:file_content.find("\r\n--" + boundary + "--")]
 
 # remove space at the end
 # file content parsed
+str_io = io.StringIO(file_content)
 with open("../" + upload_dir + "/" + file_name, "wb") as f:
-    #for some reason write fails when uploading non text files
-    f.write(file_content)
+    # for some reason write fails when uploading non text files
+    f.write(str_io.buffer.read())
 response_body = "<!DOCTYPE html>"
 response_body += "<html>"
 response_body += "<head>"
