@@ -7,11 +7,11 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def get_file_name(body: str) -> str:
-    file_name = body[body.find("filename"):]
-    file_name = file_name[file_name.find("=") + 1:file_name.find("\n")]
-    file_name = file_name.strip("\"")[:-2]
-    return file_name
+def get_file_name(body: bytes) -> str:
+    file_name = body[body.find(b"filename"):]
+    file_name = file_name[file_name.find(b"=") + 1:file_name.find(b"\n")]
+    file_name = file_name.strip(b"\"")[:-2]
+    return file_name.decode()
 
 
 method = os.environ["REQUEST_METHOD"]
@@ -20,7 +20,7 @@ upload_dir = os.environ["UPLOAD_DIR"]
 boundary = content_type[content_type.find("boundary=") + 9:]
 
 # eprint(file_name)
-body = sys.stdin.read()
+body = sys.stdin.buffer.read()
 
 COLORS = {
     "GREEN": '\033[92m',
@@ -31,17 +31,17 @@ COLORS = {
 file_name = get_file_name(body)
 
 boundary = boundary.strip()
-begin = body.find("\r\n\r\n") + 4
-end = boundary.find("\r\n--" + boundary + "--")
+begin = body.find(b"\r\n\r\n") + 4
+end = body.find(b"\r\n--" + boundary.encode() + b"--")
 file_content = body[begin:end]
-file_content = file_content[:file_content.find("\r\n--" + boundary + "--")]
+file_content = file_content[:file_content.find(
+    b"\r\n--" + boundary.encode() + b"--")]
 
 # remove space at the end
 # file content parsed
-str_io = io.StringIO(file_content)
 with open("../" + upload_dir + "/" + file_name, "wb") as f:
     # for some reason write fails when uploading non text files
-    f.write(str_io.buffer.read())
+    f.write(file_content)
 response_body = "<!DOCTYPE html>"
 response_body += "<html>"
 response_body += "<head>"
