@@ -53,6 +53,7 @@ void do_io(FdManager &table)
 }
 
 bool stop = false; // evil global var
+
 void signal_handler(int)
 {
 	stop = true;

@@ -37,7 +37,6 @@ void accept_connection(int listen_socket, FdManager &table)
 
 	if (Client::counter >= MAX_CLIENTS)
 	{
-		// (void)now;
 		if (!make_room_for_new_client(table))
 			return; // make it wait for next IO round
 	}
@@ -70,7 +69,7 @@ void accept_connection(int listen_socket, FdManager &table)
 
 /*
 OBS: man page accept() linux
- On Linux, the new socket returned by accept() does not inherit file status
+On Linux, the new socket returned by accept() does not inherit file status
 flags such as O_NONBLOCK and O_ASYNC from  the listening  socket.   This
 behavior  differs from the canonical BSD sockets implementation.  Portable
 programs should not rely on inheritance or noninheritance of file status flags
