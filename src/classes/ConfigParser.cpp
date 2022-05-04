@@ -1,19 +1,13 @@
 #include "ConfigParser.hpp"
 
-ConfigParser::ConfigParser() : curr_vs(NULL)
-{
-}
+ConfigParser::ConfigParser() : curr_vs(NULL) {}
 
-ConfigParser::~ConfigParser()
-{
-}
+ConfigParser::~ConfigParser() {}
 
 const std::map<ip_port, std::list<Vserver> > &ConfigParser::parse(
-	const char *file_name)
-{
+	const char *file_name) {
 	_f.open(file_name);
-	if (!_f.good())
-	{
+	if (!_f.good()) {
 		throw ConfigParser::ConfigParserException(
 			"Error: failed to open the file");
 	}
@@ -21,14 +15,12 @@ const std::map<ip_port, std::list<Vserver> > &ConfigParser::parse(
 	return _config;
 }
 
-void ConfigParser::_parse_root(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_root(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
 	size_t c = parsed.find(";");
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server root");
 	}
@@ -36,56 +28,45 @@ void ConfigParser::_parse_root(std::istringstream &iss, Route &r)
 	r.root = parsed;
 }
 
-void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
 	size_t c = parsed.find(";");
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server auto index");
 	}
 	parsed = parsed.substr(0, c);
-	if (parsed == "on")
-	{
+	if (parsed == "on") {
 		r.auto_index = true;
-	}
-	else if (parsed == "off")
-	{
+	} else if (parsed == "off") {
 		r.auto_index = false;
-	}
-	else
-	{
+	} else {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: Invalide value for autoindex, it should be "
 			"(on | off)");
 	}
 }
 
-void ConfigParser::_parse_default_index(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_default_index(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
 	size_t c = parsed.find(";");
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server default index");
 	}
 	r.default_index = parsed.substr(0, c);
 }
 
-void ConfigParser::_parse_cgi_interpreter(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_cgi_interpreter(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
 	size_t c = parsed.find(";");
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route cgi interpreter");
 	}
@@ -93,14 +74,12 @@ void ConfigParser::_parse_cgi_interpreter(std::istringstream &iss, Route &r)
 	r.cgi_interpreter = parsed;
 }
 
-void ConfigParser::_parse_cgi_extension(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_cgi_extension(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
 	size_t c = parsed.find(";");
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route cgi extension");
 	}
@@ -108,45 +87,38 @@ void ConfigParser::_parse_cgi_extension(std::istringstream &iss, Route &r)
 	r.cgi_extension = parsed;
 }
 
-void ConfigParser::_parse_allowed_methods(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_allowed_methods(std::istringstream &iss, Route &r) {
 	std::string parsed;
 	size_t c;
 
 	iss >> parsed;
-	while (!parsed.empty())
-	{
+	while (!parsed.empty()) {
 		c = parsed.find(";");
-		if (c != std::string::npos)
-		{
+		if (c != std::string::npos) {
 			parsed = parsed.substr(0, c);
 		}
 		r.accepted_methods.push_back(parsed);
 		parsed.clear();
 		iss >> parsed;
 	}
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route allowed methods");
 	}
 }
 
-void ConfigParser::_parse_route_error_page(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_route_error_page(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
-	if (!str_is_number(parsed))
-	{
+	if (!str_is_number(parsed)) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: error status code should be a number");
 	}
 	int err_code = std::strtol(parsed.c_str(), NULL, 10);
 	iss >> parsed;
 	size_t c = parsed.find(';');
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		std::cerr << "Error: Config file" << std::endl;
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route error page");
@@ -154,13 +126,11 @@ void ConfigParser::_parse_route_error_page(std::istringstream &iss, Route &r)
 	r.error_pages[err_code] = parsed.substr(0, c);
 }
 
-void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
-	if (!str_is_number(parsed))
-	{
+	if (!str_is_number(parsed)) {
 		std::cerr << "Error: Config file" << std::endl;
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: redirection status code should be a number");
@@ -168,8 +138,7 @@ void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r)
 	int status_code = std::strtol(parsed.c_str(), NULL, 10);
 	iss >> parsed;
 	size_t c = parsed.find(';');
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route redirection");
 	}
@@ -178,14 +147,12 @@ void ConfigParser::_parse_route_redirection(std::istringstream &iss, Route &r)
 	r.redirected = true;
 }
 
-void ConfigParser::_parse_route_upload(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_route_upload(std::istringstream &iss, Route &r) {
 	std::string parsed;
 
 	iss >> parsed;
 	size_t c = parsed.find(';');
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route upload accepted");
 	}
@@ -193,37 +160,32 @@ void ConfigParser::_parse_route_upload(std::istringstream &iss, Route &r)
 	r.upload_dir = parsed.substr(0, c);
 }
 
-void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
-{
+void ConfigParser::_parse_route_max_body_size(std::istringstream &iss,
+											  Route &r) {
 	std::string parsed;
 	bool mega = false;
 
 	iss >> parsed;
 	size_t c = parsed.find(';');
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: route max body size");
 	}
 	parsed = parsed.substr(0, c);
-	if (*(parsed.rbegin()) == 'M')
-	{
+	if (*(parsed.rbegin()) == 'M') {
 		mega = true;
 		parsed = parsed.substr(0, parsed.length() - 1);
 	}
-	if (!str_is_number(parsed))
-	{
+	if (!str_is_number(parsed)) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: max body size should be a number");
 	}
 	r.body_size_limit = std::atoi(parsed.c_str());
-	if (mega)
-		r.body_size_limit *= 1000000;
+	if (mega) r.body_size_limit *= 1000000;
 }
 
 // TODO: cut this function in pieces
-int ConfigParser::_parse_location(std::istringstream &curr_iss)
-{
+int ConfigParser::_parse_location(std::istringstream &curr_iss) {
 	std::string temp;
 	std::string line;
 
@@ -231,103 +193,74 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss)
 	Route r(temp);
 	temp.clear();
 	curr_iss >> temp;
-	if (temp != "{")
-	{
+	if (temp != "{") {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: syntax error");
 	}
-	while (std::getline(_f, line))
-	{
+	while (std::getline(_f, line)) {
 		std::istringstream iss(line);
 		iss >> temp;
-		if (temp == "root")
-		{
+		if (temp == "root") {
 			_parse_root(iss, r);
-		}
-		else if (temp == "autoindex")
-		{
+		} else if (temp == "autoindex") {
 			_parse_auto_index(iss, r);
-		}
-		else if (temp == "index")
-		{
+		} else if (temp == "index") {
 			_parse_default_index(iss, r);
-		}
-		else if (temp == "cgi_interpreter")
-		{
+		} else if (temp == "cgi_interpreter") {
 			_parse_cgi_interpreter(iss, r);
-		}
-		else if (temp == "cgi_extension")
-		{
+		} else if (temp == "cgi_extension") {
 			_parse_cgi_extension(iss, r);
-		}
-		else if (temp == "allowed_methods")
-		{
+		} else if (temp == "allowed_methods") {
 			_parse_allowed_methods(iss, r);
-		}
-		else if (temp == "error_page")
-		{
+		} else if (temp == "error_page") {
 			_parse_route_error_page(iss, r);
-		}
-		else if (temp == "return")
-		{
+		} else if (temp == "return") {
 			_parse_route_redirection(iss, r);
-		}
-		else if (temp == "upload_dir")
-		{
+		} else if (temp == "upload_dir") {
 			_parse_route_upload(iss, r);
-		}
-		else if (temp == "max_body_size")
-		{
+		} else if (temp == "max_body_size") {
 			_parse_route_max_body_size(iss, r);
 		}
-		if (temp == "}")
-			break;
+		if (temp == "}") break;
 	}
 	curr_vs->routes.push_back(r);
 	return 0;
 }
 
-int ConfigParser::_parse_server_names(std::istringstream &curr_iss)
-{
+int ConfigParser::_parse_server_names(std::istringstream &curr_iss) {
 	std::string serv_name;
 	Vserver vs;
 	size_t c;
 
 	curr_iss >> serv_name;
-	while (serv_name.length() != 0)
-	{
+	while (serv_name.length() != 0) {
 		c = serv_name.find(";");
-		if (c != std::string::npos)
-			serv_name = serv_name.substr(0, c);
+		if (c != std::string::npos) serv_name = serv_name.substr(0, c);
 
 		curr_vs->server_names.push_back(serv_name);
 		serv_name.clear();
 		curr_iss >> serv_name;
 
 		// Check if there is something after the semi colon
-		if (c != std::string::npos && serv_name.length() != 0)
-		{
+		if (c != std::string::npos && serv_name.length() != 0) {
 			throw ConfigParser::ConfigParserException(
 				"Error: Config file: server names");
 		}
 	}
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config: syntax error");
 	}
 	return 0;
 }
 
-int ConfigParser::_parse_port(std::istringstream &curr_iss)
-{
+int ConfigParser::_parse_port(std::istringstream &curr_iss) {
 	std::string port;
 	Vserver vs;
 
 	curr_iss >> port;
 	size_t c = port.find(";");
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config: syntax error");
 	}
@@ -338,34 +271,29 @@ int ConfigParser::_parse_port(std::istringstream &curr_iss)
 	return 0;
 }
 
-void ConfigParser::_parse_error_page(std::istringstream &iss)
-{
+void ConfigParser::_parse_error_page(std::istringstream &iss) {
 	std::string parsed;
 
 	iss >> parsed;
-	if (!str_is_number(parsed))
-	{
+	if (!str_is_number(parsed)) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server error status code should be a number");
 	}
 	int err_code = std::strtol(parsed.c_str(), NULL, 10);
 	iss >> parsed;
 	size_t c = parsed.find(';');
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config: syntax error");
 	}
 	curr_vs->err_pages[err_code] = parsed.substr(0, c);
 }
 
-void ConfigParser::_parse_redirection(std::istringstream &iss)
-{
+void ConfigParser::_parse_redirection(std::istringstream &iss) {
 	std::string parsed;
 
 	iss >> parsed;
-	if (!str_is_number(parsed))
-	{
+	if (!str_is_number(parsed)) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server redirection status code should be a "
 			"number");
@@ -373,8 +301,7 @@ void ConfigParser::_parse_redirection(std::istringstream &iss)
 	int status_code = std::strtol(parsed.c_str(), NULL, 10);
 	iss >> parsed;
 	size_t c = parsed.find(';');
-	if (c == std::string::npos)
-	{
+	if (c == std::string::npos) {
 		throw ConfigParser::ConfigParserException(
 			"Error: Config: syntax error");
 	}
@@ -383,36 +310,24 @@ void ConfigParser::_parse_redirection(std::istringstream &iss)
 	curr_vs->redirect.status_code = status_code;
 }
 
-int ConfigParser::_parse_server_block()
-{
+int ConfigParser::_parse_server_block() {
 	std::string str;
 	std::string line;
 
-	while (std::getline(_f, line))
-	{
+	while (std::getline(_f, line)) {
 		std::istringstream iss(line);
 		iss >> str;
-		if (*(str.begin()) == '#')
-			continue;
+		if (*(str.begin()) == '#') continue;
 
-		if (str == "listen")
-		{
+		if (str == "listen") {
 			_parse_port(iss);
-		}
-		else if (str == "server_name")
-		{
+		} else if (str == "server_name") {
 			_parse_server_names(iss);
-		}
-		else if (str == "location")
-		{
+		} else if (str == "location") {
 			_parse_location(iss);
-		}
-		else if (str == "error_page")
-		{
+		} else if (str == "error_page") {
 			_parse_error_page(iss);
-		}
-		else if (str == "return")
-		{
+		} else if (str == "return") {
 			_parse_redirection(iss);
 		}
 		str.clear();
@@ -420,17 +335,14 @@ int ConfigParser::_parse_server_block()
 	return 1;
 }
 
-int ConfigParser::_parse_config_file()
-{
+int ConfigParser::_parse_config_file() {
 	std::string block;
 	std::string line;
 
-	while (std::getline(_f, line))
-	{
+	while (std::getline(_f, line)) {
 		std::istringstream iss(line);
 		iss >> block;
-		if (block == "server")
-		{
+		if (block == "server") {
 			_parse_server_block();
 		}
 		block.clear();
@@ -438,13 +350,9 @@ int ConfigParser::_parse_config_file()
 	_f.close();
 	return 1;
 }
-
-const char *ConfigParser::ConfigParserException::what() const throw()
-{
+const char *ConfigParser::ConfigParserException::what() const throw() {
 	return message;
 }
 
 ConfigParser::ConfigParserException::ConfigParserException(const char *m)
-	: message(m)
-{
-}
+	: message(m) {}
