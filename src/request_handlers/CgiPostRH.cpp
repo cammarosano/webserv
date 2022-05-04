@@ -182,7 +182,7 @@ int CgiPostRH::respond()
 		}
         response.status_code = 200;
         response.assemble_partial_header_str();
-        // now the hacky part
+        // prepend header upper-part to content to be sent
         client.unsent_data.insert(0, response.header_str);
 		state = s_recving_cgi_output;
 

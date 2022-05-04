@@ -4,13 +4,13 @@
 #include "ARequestHandler.hpp"
 #include "utils.h"
 
-class RedirectRH : public AReqHandler {
-   public:
-    RedirectRH(HttpRequest *request, FdManager &table);
-    ~RedirectRH();
+class RedirectRH : public AReqHandler
+{
+  public:
+	RedirectRH(HttpRequest *request, FdManager &table);
+	~RedirectRH();
 
-    virtual int respond();
-
+	virtual int respond();
 };
 
-#endif  // __REDIRECT_RH_HPP__
+#endif // __REDIRECT_RH_HPP__

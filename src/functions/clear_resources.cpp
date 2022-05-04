@@ -13,17 +13,17 @@ void clear_resources(FdManager &table)
 			close(fd);
 	}
 	// wait for child processes
-	while (reap_child_processes(ACgiRH::child_processes) == 0) ;
+	while (reap_child_processes(ACgiRH::child_processes) == 0)
+		;
 }
 
 // delete Client object and remove from table
-void remove_client(Client &client, FdManager &table,
-                        const char *who)
+void remove_client(Client &client, FdManager &table, const char *who)
 {
-    // log
-    std::cout << "Connection closed by " << who << ": " << client.ipv4_addr
-            << " (" << client.host_name << ")" << std::endl;
+	// log
+	std::cout << "Connection closed by " << who << ": " << client.ipv4_addr
+			  << " (" << client.host_name << ")" << std::endl;
 
-    table.remove_fd(client.socket);
-    delete &client;
+	table.remove_fd(client.socket);
+	delete &client;
 }

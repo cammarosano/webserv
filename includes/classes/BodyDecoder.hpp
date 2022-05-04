@@ -1,9 +1,9 @@
 #ifndef BODYDECODER_HPP
-# define BODYDECODER_HPP
+#define BODYDECODER_HPP
 
-# include "HttpRequest.hpp"
-# include <cstdlib> // strtol
-# include "macros.h"
+#include "HttpRequest.hpp"
+#include "macros.h"
+#include <cstdlib>
 
 /*
  How to use it:
@@ -13,7 +13,7 @@ Call decode_body(), check return value.
 into decoded_body.
 - 0 means there's still content to be fetched, so you need to do one more
 IO round before calling it again (use the same instance of this class -
-keep it inside your request handler instance). 
+keep it inside your request handler instance).
 
 Inside the do_io loop the decode_body buffer will be emptied (data transfered
 to a CGI pipe or to a file being uploaded, and the received_data buffer might
@@ -22,11 +22,16 @@ be filled with new data received from the client socket.
 
 class BodyDecoder
 {
-private:
-	std::string &raw_data; // ref to Client's received_data buffer
+  private:
+	std::string &raw_data;	   // ref to Client's received_data buffer
 	std::string &decoded_data; // ref to Client's decoded_body buffer
 	size_t length_decoded;
-	enum e_type {chunked, content_length, other} type;
+	enum e_type
+	{
+		chunked,
+		content_length,
+		other
+	} type;
 
 	// Content-Length type
 	long content_len;
@@ -44,7 +49,7 @@ private:
 	int transfer_n_bytes(long n);
 	int finish();
 
-public:
+  public:
 	BodyDecoder(HttpRequest &request);
 	~BodyDecoder();
 

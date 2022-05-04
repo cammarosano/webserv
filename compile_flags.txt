@@ -1,4 +1,0 @@
-clang
--I./includes/classes
--I./includes/ 
--I./includes/request_handlers

@@ -2,8 +2,8 @@
 #define INCLUDES_HPP
 
 // C stuff
-# include <cstring> // memset
-# include <csignal>
+#include <csignal>
+#include <cstring>
 
 // classes
 #include "ARequestHandler.hpp"

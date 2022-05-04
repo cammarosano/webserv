@@ -1,15 +1,19 @@
 #ifndef FDMANAGER_HPP
-# define FDMANAGER_HPP
+#define FDMANAGER_HPP
 
-# include <poll.h>
-# include <set>
-# include "Client.hpp"
-# include "macros.h"
-# include <sys/types.h>
-# include <sys/wait.h>
+#include "Client.hpp"
+#include "macros.h"
+#include <poll.h>
+#include <set>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <map>
+#include <list>
+#include <cstddef>
 
-// forward declaration
+// forward declarations
 struct Client;
+struct Vserver;
 
 enum e_fd_type
 {
@@ -20,12 +24,15 @@ enum e_fd_type
 	fd_write
 };
 
-struct fd_info {
-    e_fd_type type;
-    Client *client;
-    bool is_EOF;
+struct fd_info
+{
+	e_fd_type type;
+	Client *client;
+	bool is_EOF;
 
-    fd_info() : type(fd_none), client(NULL), is_EOF(false) {}
+	fd_info() : type(fd_none), client(NULL), is_EOF(false)
+	{
+	}
 };
 
 /*
@@ -40,34 +47,34 @@ any of these resources.
 */
 class FdManager
 {
-private:
-	pollfd *		poll_array;
-	fd_info *		fd_table;
-	int				capacity;
-	std::set<int>	fd_set;
-	std::map<int, std::list<Vserver> >	vservers_map;
+  private:
+	pollfd *poll_array;
+	fd_info *fd_table;
+	int capacity;
+	std::set<int> fd_set;
+	std::map<int, std::list<Vserver> > vservers_map;
 
-	void	reallocate();
+	void reallocate();
 
-public:
+  public:
 	FdManager();
 	~FdManager();
-	
-	int		len() const;
-	pollfd	*get_poll_array();
-	void 	add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
-	void 	add_client_socket(int client_socket, Client &client);
-	void 	add_fd_read(int file_fd, Client &client);
-	void	add_fd_write(int cgi_in_fd, Client &client);
-	void 	remove_fd(int fd);
 
-	void	set_pollout(int fd);
-	void	unset_pollout(int fd);
-	void	unset_pollin(int fd);
+	int len() const;
+	pollfd *get_poll_array();
+	void add_listen_socket(int listen_socket, std::list<Vserver> &vservers);
+	void add_client_socket(int client_socket, Client &client);
+	void add_fd_read(int file_fd, Client &client);
+	void add_fd_write(int cgi_in_fd, Client &client);
+	void remove_fd(int fd);
 
-	std::list<Vserver> & get_vserver_lst(int listen_socket);
+	void set_pollout(int fd);
+	void unset_pollout(int fd);
+	void unset_pollin(int fd);
 
-	fd_info & operator[](int fd);
+	std::list<Vserver> &get_vserver_lst(int listen_socket);
+
+	fd_info &operator[](int fd);
 
 	void debug_info() const;
 };

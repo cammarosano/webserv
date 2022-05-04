@@ -30,7 +30,7 @@ bool AReqHandler::response100_expected() {
 // returns error_code for time-out response
 int AReqHandler::time_out_code()
 {
-    return (408); // in doubt, blame it on the client
+    return (408); 
 }
 
 

@@ -1,58 +1,11 @@
-handle setup errors - David, exception
-
-directoryRH error
-
-Python tests
-
-Test time-outs and header bigger than buffer
-
-Response: handle keep-alive or not.
-
-remove trailing spaces from received_data buffer
-
-Scenario: response if finished and new request is already in client's received_data. Poll with block?
-
-make file_fd and pipes fd non-blocking 
-
-test nginx and see what happens when no route matches
 
 
-- CGI (both) setup_cgi_argv and setup_cgi_env: if alloc fails and exception is thrown,
-	gotta catch it and exit process. (do not leave the request hanging!!)
+allow '/' tolerance for urls and config file
+option to make server slower (for siege tests)
 
+format code in unified style
+clean-up comments
+remove DEBUG logs
+makefile: remove -g and -fsanitize
 
-Notes:
-
-consider switching off POLLIN when the received_data buffer if full
-
-OBS: buffer size must be big enough to fit a http-header
-
-Optimizations:
-
-count fd's in the poll loop in order to stop it sooner.
-
-
-NOTES:
-
-Object ownership:
-
-	Client objects and sockets:
-		created/opened by accept_connection()
-		FdManager table holds a pointer to it
-		freed/closed by recv_from_client when connection is closed
-			by the client
-
-	HttpRequest objects:
-		created (allocated) by check4new_requests()
-		a request handler object holds a pointer to it
-		are freed by handle_requests() when response is complete
-
-	Request handlers:
-		created by init_response() (called by check4new_requests())
-		the req_handlers_lst holds a pointer to it
-		are freed by handle_requests() when response is complete
-	
-	Fd for files:
-		opened and closed by the request handler
-
-	FdManager does not own any object!
+consider putting everything inside a webserv singleton
