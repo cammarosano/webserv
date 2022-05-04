@@ -10,23 +10,23 @@ int parse_mime_types_file(std::map<std::string, std::string> &map)
 	std::string media_type;
 	std::string extension;
 
-    if (!fs.good())
-    {
-        std::cout << "Alert: Failed to load " << MIME_TYPES_FILE << std::endl;
-        return (-1);
-    }
+	if (!fs.good())
+	{
+		std::cout << "Alert: Failed to load " << MIME_TYPES_FILE << std::endl;
+		return (-1);
+	}
 	// pre-block: expect "types"
-	std::getline(fs, pre_block, '{'); 
+	std::getline(fs, pre_block, '{');
 	std::istringstream pre_block_stream(pre_block);
 	pre_block_stream >> line;
-	if (line != "types" )
-    {
-        std::cout << "Alert: Failed to load " << MIME_TYPES_FILE
-			<< "(bad format)" << std::endl;
+	if (line != "types")
+	{
+		std::cout << "Alert: Failed to load " << MIME_TYPES_FILE
+				  << "(bad format)" << std::endl;
 		return (-1);
-    }
-	
-	// block 
+	}
+
+	// block
 	std::getline(fs, block, '}');
 	std::istringstream block_stream(block);
 

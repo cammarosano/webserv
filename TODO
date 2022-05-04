@@ -6,6 +6,7 @@ option to make server slower (for siege tests)
 format code in unified style
 clean-up comments
 remove DEBUG logs
+remove perror() after read/write error in IO functions
 makefile: remove -g and -fsanitize
 
 consider putting everything inside a webserv singleton

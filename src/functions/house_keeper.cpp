@@ -48,15 +48,15 @@ void timeout_response(Client &client, FdManager &table)
 	}
 }
 
-void time_out(FdManager &table, time_t now, std::list<Client*> &list,
-		int threshold, void (*handler)(Client&, FdManager&))
+void time_out(FdManager &table, time_t now, std::list<Client *> &list,
+			  int threshold, void (*handler)(Client &, FdManager &))
 {
 	// oldest ones are at the front of the list
-    std::list<Client*>::iterator it = list.begin();
+	std::list<Client *>::iterator it = list.begin();
 	while (it != list.end())
 	{
-        Client &client = **it;
-        ++it; // move iterator, as following operations might invalidate it
+		Client &client = **it;
+		++it; // move iterator, as following operations might invalidate it
 		if (difftime(now, client.last_state_change) > threshold)
 			handler(client, table);
 		else
@@ -71,10 +71,10 @@ void house_keeper(FdManager &table)
 	time_t now = time(NULL);
 
 	time_out(table, now, Client::idle_clients, CONNECTION_TIMEOUT,
-				timeout_connection);
+			 timeout_connection);
 	time_out(table, now, Client::incoming_req_clients, REQUEST_TIMEOUT,
-				timeout_request);
+			 timeout_request);
 	time_out(table, now, Client::ongoing_resp_clients, RESPONSE_TIMEOUT,
-				timeout_response);
+			 timeout_response);
 	reap_child_processes(ACgiRH::child_processes);
 }

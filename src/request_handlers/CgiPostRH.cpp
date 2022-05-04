@@ -1,11 +1,11 @@
 #include "CgiPostRH.hpp"
 
 CgiPostRH::CgiPostRH(HttpRequest *request, FdManager &table,
-			std::string &script_path):
-ACgiRH(request, table, script_path), bd(*request)
+					 std::string &script_path)
+	: ACgiRH(request, table, script_path), bd(*request)
 {
 	if (setup() == -1)
-		throw (std::exception());
+		throw(std::exception());
 
 	// resolve body size limit
 	if (!request->route->body_size_limit) // for now, 0 means no limit.
@@ -34,8 +34,8 @@ CgiPostRH::~CgiPostRH()
 	if (state > s_sending_body2cgi && state < s_done)
 		table.remove_fd(cgi_output_fd);
 	close(cgi_output_fd);
-    if (waitpid(cgi_process, NULL, WNOHANG) == 0)
-        child_processes.push_back(cgi_process);
+	if (waitpid(cgi_process, NULL, WNOHANG) == 0)
+		child_processes.push_back(cgi_process);
 }
 
 int CgiPostRH::setup()
@@ -60,78 +60,79 @@ int CgiPostRH::setup()
 	}
 
 	// make pipe_out read-end and pipe_in write-end non-blocking
-    if (fcntl(pipe_out[0], F_SETFL, O_NONBLOCK) == -1
-		|| fcntl(pipe_in[1], F_SETFL, O_NONBLOCK) == -1)
-    {
-        perror("fcntl");
+	if (fcntl(pipe_out[0], F_SETFL, O_NONBLOCK) == -1 ||
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK) == -1)
+	{
+		perror("fcntl");
 		close(pipe_in[0]);
 		close(pipe_in[1]);
 		close(pipe_out[0]);
 		close(pipe_out[1]);
-        return (-1);
-    }
+		return (-1);
+	}
 
 	// fork
 	cgi_process = fork();
-    if (cgi_process == -1)
-    {
-        perror("fork");
+	if (cgi_process == -1)
+	{
+		perror("fork");
 		close(pipe_in[0]);
 		close(pipe_in[1]);
 		close(pipe_out[0]);
 		close(pipe_out[1]);
-        return (-1);
+		return (-1);
 	}
 
 	if (cgi_process == 0) // child process
 	{
 		// setup argv and envp for execve
 		char **argv = setup_cgi_argv();
-		char **envp = setup_cgi_env(); 
+		char **envp = setup_cgi_env();
 
-        // debug
+		// debug
 		if (DEBUG)
 		{
 			std::cout << "cgi interpreter path: " << argv[0] << std::endl;
-			std::cout << "script path, relative to route's root: " << argv[1] << std::endl;
+			std::cout << "script path, relative to route's root: " << argv[1]
+					  << std::endl;
 		}
 
 		// redirect stdin to the read-end of pipe_in
 		if (dup2(pipe_in[0], 0) == -1)
-        {
-            perror("dup2");
-            exit(1);
-        }
+		{
+			perror("dup2");
+			exit(1);
+		}
 
 		// redirect stdout to the write-end of pipe_out
 		if (dup2(pipe_out[1], 1) == -1)
 		{
-            perror("dup2");
-            exit(1);
+			perror("dup2");
+			exit(1);
 		}
 		close(pipe_in[0]);
 		close(pipe_in[1]);
 		close(pipe_out[0]);
 		close(pipe_out[1]);
 
-        // chdir to cgi root ("correct directory" ??)
-        chdir(request->route->root.c_str());
+		// chdir to cgi root ("correct directory" ??)
+		chdir(request->route->root.c_str());
 
-        // close(2); // hide errors
+		// close(2); // hide errors
 
 		// exec()
 		execve(argv[0], argv, envp);
-		
-        // if exec returns, that's an error
-        perror("exec");
-        exit(1);
+
+		// if exec returns, that's an error
+		perror("exec");
+		exit(1);
 	}
 
 	// parent process
 	if (DEBUG)
 		std::cout << "pid cgi process: " << cgi_process << std::endl;
 	close(pipe_out[1]); // close pipe out write end
-	close(pipe_in[0]); // close pipe in read end
+	close(pipe_in[0]);	// close pipe in read end
 	cgi_output_fd = pipe_out[0];
 	cgi_input_fd = pipe_in[1];
 	return (0);
@@ -147,7 +148,7 @@ int CgiPostRH::respond()
 		if (send_str(response.header_str) == 0) // incomplete
 			return (0);
 		state = s_start;
-		
+
 	case s_start:
 		table.add_fd_write(cgi_input_fd, client);
 		state = s_recv_req_body;
@@ -170,7 +171,7 @@ int CgiPostRH::respond()
 		close(cgi_input_fd); // sends EOF
 		table.remove_fd(cgi_input_fd);
 		table.add_fd_read(cgi_output_fd, client);
-        table.unset_pollout(client.socket); // make sure nothing's gonna be sent
+		table.unset_pollout(client.socket); // make sure nothing's gonna be sent
 		state = s_recv_cgi_header;
 
 	case s_recv_cgi_header:
@@ -180,15 +181,15 @@ int CgiPostRH::respond()
 				return (502);
 			return (0);
 		}
-        response.status_code = 200;
-        response.assemble_partial_header_str();
-        // prepend header upper-part to content to be sent
-        client.unsent_data.insert(0, response.header_str);
+		response.status_code = 200;
+		response.assemble_partial_header_str();
+		// prepend header upper-part to content to be sent
+		client.unsent_data.insert(0, response.header_str);
 		state = s_recving_cgi_output;
 
 	case s_recving_cgi_output:
-        if (!table[cgi_output_fd].is_EOF) // not finished
-            return (0);
+		if (!table[cgi_output_fd].is_EOF) // not finished
+			return (0);
 		table.remove_fd(cgi_output_fd);
 		state = s_done;
 
@@ -199,7 +200,7 @@ int CgiPostRH::respond()
 
 int CgiPostRH::time_out_code()
 {
-    if (state <= s_recv_req_body)
-        return (408);
-    return (504);
+	if (state <= s_recv_req_body)
+		return (408);
+	return (504);
 }

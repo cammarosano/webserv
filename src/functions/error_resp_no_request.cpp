@@ -1,7 +1,8 @@
 #include "includes.hpp"
 
 // Sends an error response without an HttpRequest object
-void send_error_resp_no_request(Client &client, FdManager &table, int error_code)
+void send_error_resp_no_request(Client &client, FdManager &table,
+								int error_code)
 {
 	// body
 	std::string body = ErrorRH::generate_error_page(error_code);
@@ -22,6 +23,6 @@ void send_error_resp_no_request(Client &client, FdManager &table, int error_code
 	client.received_data.clear();
 	table.unset_pollin(client.socket);
 
-	client.update_state(Client::idle); 
+	client.update_state(Client::idle);
 	// shall be reaped by connection time-out if data is never sent
 }

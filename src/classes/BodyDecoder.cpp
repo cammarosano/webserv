@@ -1,9 +1,8 @@
 #include "BodyDecoder.hpp"
 
-BodyDecoder::BodyDecoder(HttpRequest &request):
-raw_data(request.client.received_data),
-decoded_data(request.client.decoded_body),
-length_decoded(0)
+BodyDecoder::BodyDecoder(HttpRequest &request)
+	: raw_data(request.client.received_data),
+	  decoded_data(request.client.decoded_body), length_decoded(0)
 {
 	type = resolve_type(request);
 	if (type == chunked)
@@ -11,14 +10,16 @@ length_decoded(0)
 		bytes_left_last_chunk = 0;
 		removeCRLF = false;
 		done = false;
-		if (DEBUG) std::cout << "Transfer-Encoding: chunked" << std::endl;
+		if (DEBUG)
+			std::cout << "Transfer-Encoding: chunked" << std::endl;
 	}
 	else if (type == content_length)
 	{
 		content_len = std::strtol(
 			request.header_fields["content-length"].c_str(), NULL, 10);
 		bytes_left = content_len;
-		if (DEBUG) std::cout << "Content-Length: " << bytes_left << std::endl;
+		if (DEBUG)
+			std::cout << "Content-Length: " << bytes_left << std::endl;
 	}
 }
 
@@ -55,7 +56,8 @@ int BodyDecoder::decode_body()
 		return (decode_chunked());
 	}
 
-	if (DEBUG) std::cout << "ERROR: BodyDecoder" << std::endl;
+	if (DEBUG)
+		std::cout << "ERROR: BodyDecoder" << std::endl;
 
 	return (-1);
 }
@@ -91,7 +93,7 @@ int BodyDecoder::transfer_n_bytes(long n)
 
 int BodyDecoder::decode_known_len()
 {
-	bytes_left -= transfer_n_bytes(bytes_left); 
+	bytes_left -= transfer_n_bytes(bytes_left);
 	if (!bytes_left)
 		return (1); // complete
 	return (0);
@@ -131,13 +133,13 @@ int BodyDecoder::decode_chunked()
 
 	if (bytes_left_last_chunk)
 		bytes_left_last_chunk -= transfer_n_bytes(bytes_left_last_chunk);
-	while (!bytes_left_last_chunk)  // new chunk
+	while (!bytes_left_last_chunk) // new chunk
 	{
 		if (raw_data.size() < 2)
-			return (0); // come back after another IO round 
+			return (0); // come back after another IO round
 		if (removeCRLF) // remove CLRF end of last chunk
 		{
-			if (raw_data.substr(0,2) != "\r\n") // validation
+			if (raw_data.substr(0, 2) != "\r\n") // validation
 				return (-1);
 			raw_data.erase(0, 2);
 			removeCRLF = false;
@@ -145,11 +147,12 @@ int BodyDecoder::decode_chunked()
 		// parse chunk-size
 		pos = raw_data.find("\r\n");
 		if (pos == std::string::npos) // CRLF not found
-			return (0); // come back after another IO round
+			return (0);				  // come back after another IO round
 		if (!validade_chunk_size_line(raw_data, pos))
 			return (-1);
 		chunk_size = std::strtol(raw_data.c_str(), NULL, 16);
-		if (DEBUG) std::cout << "Chunk-size: " << chunk_size << std::endl;
+		if (DEBUG)
+			std::cout << "Chunk-size: " << chunk_size << std::endl;
 		if (chunk_size == 0)
 			return (finish());
 		raw_data.erase(0, pos + 2); // discard chunk-size line
