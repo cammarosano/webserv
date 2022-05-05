@@ -16,8 +16,6 @@ void recv_from_client(int socket, FdManager &table)
 	recvd_bytes = read(socket, buffer, max_read);
 	if (recvd_bytes == -1) // error
 	{
-		if (DEBUG)
-			perror("read"); // REMOVE THIS BEFORE PUSH
 		remove_client(client, table, "webserv(read error)");
 		return;
 	}
@@ -54,8 +52,6 @@ void send_to_client(int socket, FdManager &table)
 		if (bytes_sent == -1 ||
 			bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
 		{
-			if (DEBUG)
-				perror("write"); // REMOVE BEFORE PUSH
 			remove_client(client, table, "webserv (write error)");
 			return;
 		}
@@ -92,8 +88,6 @@ void read_from_fd(int fd, FdManager &table)
 	read_bytes = read(fd, buffer, max_read);
 	if (read_bytes == -1)
 	{
-		if (DEBUG)
-			perror("read"); // REMOVE BEFORE PUSH
 		remove_client(client, table, "webserv (read error)");
 		return;
 	}
@@ -126,11 +120,8 @@ void write_to_fd(int fd, FdManager &table)
 	}
 	bytes_written =
 		write(fd, client.decoded_body.data(), client.decoded_body.size());
-	if (bytes_written == -1 ||
-		bytes_written == 0) // should we consider write 0 error?
+	if (bytes_written == -1 || bytes_written == 0)
 	{
-		if (DEBUG)
-			perror("write"); // REMOVE BEFORE PUSH
 		remove_client(client, table, "webserv (write error)");
 		return;
 	}

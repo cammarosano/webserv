@@ -1,14 +1,11 @@
 parse host ip (David is on it)
 
-move function definitions in config.hpp to a .cpp file
 
-allow '/' tolerance for urls and config file
-option to make server slower (for siege tests)
+allow '/' tolerance for urls and config file (David will make changes to parser?)
+option to make server slower?? (for siege tests)
 
-format code in unified style
 clean-up comments
 remove DEBUG logs
-remove perror() after read/write error in IO functions
 makefile: remove -g and -fsanitize
 
 consider putting everything inside a webserv singleton
@@ -53,4 +50,3 @@ ConfigParser:
     if root ends with '/', remove it
 
   location: if does not end with '/', append one
-  
