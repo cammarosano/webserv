@@ -438,6 +438,7 @@ int ConfigParser::_parse_config_file()
 	_f.close();
 	return 1;
 }
+
 const char *ConfigParser::ConfigParserException::what() const throw()
 {
 	return message;

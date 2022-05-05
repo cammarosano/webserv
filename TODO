@@ -1,4 +1,6 @@
+parse host ip (David is on it)
 
+move function definitions in config.hpp to a .cpp file
 
 allow '/' tolerance for urls and config file
 option to make server slower (for siege tests)
@@ -10,3 +12,45 @@ remove perror() after read/write error in IO functions
 makefile: remove -g and -fsanitize
 
 consider putting everything inside a webserv singleton
+
+location: /prefix/
+root: webroot
+url: /prefix/page
+result: webroot/page
+
+location: /prefix
+root: webroot
+url: /prefix/page
+result: webroot//page  !!!
+
+location: /prefix
+root: webroot/
+url: /prefix/page
+result: webroot///page  !!!
+
+location: /prefix/
+root: webroot/
+url: /prefix/page
+result: webroot//page  !!!
+
+solution: remove multiple slashes
+
+location: /prefix
+root: webroot
+url: /prefixandotherstuff/page
+result: webroot/andotherstuff/page !!!
+
+solution: append a '/' to prefix after parsing config file
+
+global solution:
+append a '/' to prefix after parsing config file
+remove eventual '/' from the end of webroot after parsing config file
+
+
+ConfigParser:
+  root:
+    check if there's a root (cannot be an empty string)
+    if root ends with '/', remove it
+
+  location: if does not end with '/', append one
+  

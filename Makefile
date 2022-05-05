@@ -28,6 +28,7 @@ classes/BodyDecoder.cpp \
 classes/Client.cpp \
 classes/HttpRequest.cpp \
 classes/ConfigParser.cpp \
+classes/config.cpp \
 classes/HttpResponse.cpp
 
 # shell cmd: find includes/ -type f

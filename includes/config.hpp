@@ -16,7 +16,6 @@ struct Route
 {
 	std::string prefix; // location
 	std::list<std::string> accepted_methods;
-	// todo: redirection
 	std::string root;
 	bool auto_index; // directory listing
 	std::string default_index;
@@ -36,11 +35,7 @@ struct Route
 	// route error pages
 	std::map<int, std::string> error_pages;
 
-	Route(std::string prefix)
-		: prefix(prefix), auto_index(false), redirected(false),
-		  body_size_limit(0)
-	{
-	}
+	Route(std::string prefix);
 };
 
 typedef std::pair<std::string, unsigned short> ip_port;
@@ -61,9 +56,7 @@ struct Vserver
 	size_t body_size_limit;
 	std::list<Route> routes;
 
-	Vserver() : redirected(false)
-	{
-	}
+	Vserver();
 };
 
 #endif
