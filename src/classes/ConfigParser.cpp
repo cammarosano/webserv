@@ -224,7 +224,6 @@ void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
 		r.body_size_limit *= 1000000;
 }
 
-// TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss)
 {
 	std::string temp;
@@ -431,13 +430,16 @@ int ConfigParser::_parse_server_block()
 
 		if (str == "listen")
 		{
+			if (listen_parsed)
+				throw ConfigParser::ConfigParserException(
+					"Error: Config: multiple listen directives");
 			_parse_port(iss);
 			listen_parsed = true;
 		}
 		else if (!listen_parsed)
 		{
 			throw ConfigParser::ConfigParserException(
-				"Error: Config: listen must come first in server block");
+				"Error: Config: first in server block must be 'listen'");
 		}
 		else if (str == "server_name")
 		{
@@ -455,6 +457,8 @@ int ConfigParser::_parse_server_block()
 		{
 			_parse_redirection(iss);
 		}
+		else if (str == "}")
+			break;
 		str.clear();
 	}
 	return 1;
