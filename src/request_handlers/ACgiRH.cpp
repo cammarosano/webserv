@@ -114,7 +114,6 @@ char **ACgiRH::setup_cgi_env()
 	std::map<std::string, std::string>::iterator it;
 	int i;
 
-	// allocate memory - might throw exception!
 	char **envp = new char *[cgi_env.size() + 1];
 
 	// populate envp with content from cgi_env map

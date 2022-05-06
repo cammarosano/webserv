@@ -62,18 +62,13 @@ int CgiGetRH::setup()
 		}
 		close(pipefd[0]);
 		close(pipefd[1]);
-
-		// chdir to cgi root ("correct directory" ??)
-		if (chdir(request->route->root.c_str()) == -1)
-			exit(1);
-
 		close(2);
 
-		// exec()
+		// chdir to cgi root
+		if (chdir(request->route->root.c_str()) == -1)
+			exit(1);
 		execve(argv[0], argv, envp);
-
-		// if exec returns, that's an error
-		perror("exec");
+		perror("exec"); // if exec returns, that's an error
 		exit(1);
 	}
 

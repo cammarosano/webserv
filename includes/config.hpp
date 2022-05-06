@@ -25,7 +25,7 @@ struct Route
 
 	// cgi
 	std::string cgi_extension;
-	std::string cgi_interpreter; // program name/path
+	std::string cgi_interpreter; // absolute path
 
 	// upload
 	bool upload_accepted;
@@ -49,13 +49,10 @@ struct Vserver
 	ip_port listen;
 	bool redirected;
 	std::list<std::string> server_names;
-	std::string default_404; // default error page
-	std::string default_403; // default error page
 	Redirection redirect;
 
 	// key is the code value is the page path ex 404 => 404.html
 	std::map<int, std::string> err_pages;
-	// etc...
 	size_t body_size_limit;
 	std::list<Route> routes;
 

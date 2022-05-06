@@ -170,3 +170,5 @@ std::list<Vserver> &FdManager::get_vserver_lst(int listen_socket)
 	return vservers_map[listen_socket];
 }
 
+// static variable
+bool FdManager::stop = false;

@@ -12,7 +12,7 @@ void recv_from_client(int socket, FdManager &table)
 
 	max_read = BUFFER_SIZE - client.received_data.size();
 	if (max_read <= 0)
-		return; // consider unsetting POLLIN for preventing overcharging server
+		return; 
 	recvd_bytes = read(socket, buffer, max_read);
 	if (recvd_bytes == -1) // error
 	{
@@ -43,7 +43,7 @@ void send_to_client(int socket, FdManager &table)
 		bytes_sent =
 			write(socket, client.unsent_data.data(), client.unsent_data.size());
 		if (bytes_sent == -1 ||
-			bytes_sent == 0) // error (Obs: should we consider 0 an error too?)
+			bytes_sent == 0) 
 		{
 			remove_client(client, table, "webserv (write error)");
 			return;

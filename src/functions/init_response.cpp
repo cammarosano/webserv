@@ -68,7 +68,7 @@ bool body_size_exceeds(HttpRequest &request)
 
 bool is_method_allowed(HttpRequest &request)
 {
-	std::list<std::string>::iterator it; // obs: a set would be faster
+	std::list<std::string>::iterator it; 
 
 	if (request.route->accepted_methods.empty() &&
 		(request.method == "GET" || request.method == "HEAD"))

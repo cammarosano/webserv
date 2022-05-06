@@ -75,6 +75,8 @@ class FdManager
 	std::list<Vserver> &get_vserver_lst(int listen_socket);
 
 	fd_info &operator[](int fd);
+
+	static bool stop;
 };
 
 #endif

@@ -1,49 +1,11 @@
-
-option to make server slower?? (for siege tests)
-
-clean-up comments
-remove DEBUG logs
-makefile: remove -g and -fsanitize
-
-consider putting everything inside a webserv singleton
-
-location: /prefix/
-root: webroot
-url: /prefix/page
-result: webroot/page
-
-location: /prefix
-root: webroot
-url: /prefix/page
-result: webroot//page  !!!
-
-location: /prefix
-root: webroot/
-url: /prefix/page
-result: webroot///page  !!!
-
-location: /prefix/
-root: webroot/
-url: /prefix/page
-result: webroot//page  !!!
-
-solution: remove multiple slashes
-
-location: /prefix
-root: webroot
-url: /prefixandotherstuff/page
-result: webroot/andotherstuff/page !!!
-
-solution: append a '/' to prefix after parsing config file
-
-global solution:
-append a '/' to prefix after parsing config file
-remove eventual '/' from the end of webroot after parsing config file
+before push:
+  makefile: remove -g and -fsanitize
+  remove:
+    run_tests.sh
+    .clang-format
+    tests
+    error ?
+    this todo file
+    confs in conf
 
 
-ConfigParser:
-  root:
-    check if there's a root (cannot be an empty string)
-    if root ends with '/', remove it
-
-  location: if does not end with '/', append one

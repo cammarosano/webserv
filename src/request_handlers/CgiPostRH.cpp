@@ -8,7 +8,7 @@ CgiPostRH::CgiPostRH(HttpRequest *request, FdManager &table,
 		throw(std::exception());
 
 	// resolve body size limit
-	if (!request->route->body_size_limit) // for now, 0 means no limit.
+	if (!request->route->body_size_limit) // 0 means no limit.
 		limit_body = false;
 	else
 	{
@@ -106,17 +106,13 @@ int CgiPostRH::setup()
 		close(pipe_in[1]);
 		close(pipe_out[0]);
 		close(pipe_out[1]);
-
-		// chdir to cgi root ("correct directory" ??)
-		chdir(request->route->root.c_str());
-
 		close(2);
 
-		// exec()
-		execve(argv[0], argv, envp);
+		// chdir to cgi root
+		chdir(request->route->root.c_str());
 
-		// if exec returns, that's an error
-		perror("exec");
+		execve(argv[0], argv, envp);
+		perror("exec"); // if exec returns, that's an error
 		exit(1);
 	}
 
