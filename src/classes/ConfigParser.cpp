@@ -33,7 +33,7 @@ void ConfigParser::_parse_root(std::istringstream &iss, Route &r)
 	if (c == std::string::npos)
 	{
 		throw ConfigParser::ConfigParserException(
-			"Error: Config file: route's root");
+			"Error: Config file: server root");
 	}
 	parsed = parsed.substr(0, c);
 	r.root = parsed;
@@ -44,13 +44,9 @@ void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r)
 	std::string parsed;
 
 	iss >> parsed;
-
-	std::cout << "parsed: " << parsed << std::endl;
-
 	size_t c = parsed.find(";");
 	if (c == std::string::npos)
 	{
-		std::cout << "route: " << r.prefix << std::endl;
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server auto index");
 	}
@@ -66,7 +62,7 @@ void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r)
 	else
 	{
 		throw ConfigParser::ConfigParserException(
-			"Error: Config file: Invalid value for autoindex, it should be "
+			"Error: Config file: Invalide value for autoindex, it should be "
 			"(on | off)");
 	}
 }
@@ -228,8 +224,8 @@ void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
 		r.body_size_limit *= 1000000;
 }
 
-int ConfigParser::_parse_location(std::istringstream &curr_iss,
-								  std::istringstream &server_block_iss)
+// TODO: cut this function in pieces
+int ConfigParser::_parse_location(std::istringstream &curr_iss)
 {
 	std::string temp;
 	std::string line;
@@ -243,42 +239,56 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss,
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: syntax error");
 	}
-	std::string location_block;
-	std::getline(server_block_iss, location_block, '}');
-
-	std::cout << "Location block:" << "--------\n" << location_block
-		<< "-------------" << std::endl; 
-
-	std::istringstream block_ss(location_block);
-	while (!block_ss.eof())
+	while (std::getline(_f, line))
 	{
-		std::getline(block_ss, line);
 		std::istringstream iss(line);
 		iss >> temp;
 		if (temp == "root")
+		{
 			_parse_root(iss, r);
+		}
 		else if (temp == "autoindex")
+		{
 			_parse_auto_index(iss, r);
+		}
 		else if (temp == "index")
+		{
 			_parse_default_index(iss, r);
+		}
 		else if (temp == "cgi_interpreter")
+		{
 			_parse_cgi_interpreter(iss, r);
+		}
 		else if (temp == "cgi_extension")
+		{
 			_parse_cgi_extension(iss, r);
+		}
 		else if (temp == "allowed_methods")
+		{
 			_parse_allowed_methods(iss, r);
+		}
 		else if (temp == "error_page")
+		{
 			_parse_route_error_page(iss, r);
+		}
 		else if (temp == "return")
+		{
 			_parse_route_redirection(iss, r);
+		}
 		else if (temp == "upload_dir")
+		{
 			_parse_route_upload(iss, r);
+		}
 		else if (temp == "max_body_size")
+		{
 			_parse_route_max_body_size(iss, r);
+		}
+		if (temp == "}")
+			break;
 	}
 	if (!r.validate())
 		throw ConfigParser::ConfigParserException(
-			"Error: Config file: missing route's root");
+			"Error: Config file: location is not valid");
 	r.sanitize();
 	curr_vs->routes.push_back(r);
 	return 0;
@@ -345,6 +355,7 @@ ip_port parse_ip_port(std::string &host_port)
 int ConfigParser::_parse_port(std::istringstream &curr_iss)
 {
 	std::string host_port;
+	Vserver vs;
 
 	curr_iss >> host_port;
 	size_t c = host_port.find(";");
@@ -354,7 +365,9 @@ int ConfigParser::_parse_port(std::istringstream &curr_iss)
 			"Error: Config: syntax error");
 	}
 	host_port = host_port.substr(0, c);
-	curr_vs->listen = parse_ip_port(host_port);
+	vs.listen = parse_ip_port(host_port);
+	_config[vs.listen].push_back(vs);
+	curr_vs = &(*_config[vs.listen].rbegin());
 	return 0;
 }
 
@@ -403,29 +416,28 @@ void ConfigParser::_parse_redirection(std::istringstream &iss)
 	curr_vs->redirect.status_code = status_code;
 }
 
-int ConfigParser::_parse_server_block(std::string &block)
+int ConfigParser::_parse_server_block()
 {
-	std::istringstream iss_block(block);
 	std::string str;
 	std::string line;
-	Vserver vs;
-	curr_vs = &vs;
+	bool listen_parsed = false;
 
-	std::cout << block << std::endl;
-
-	while (std::getline(iss_block, line))
+	while (std::getline(_f, line))
 	{
 		std::istringstream iss(line);
 		iss >> str;
-
-		std::cout << str << std::endl;
-
 		if (*(str.begin()) == '#')
 			continue;
 
 		if (str == "listen")
 		{
 			_parse_port(iss);
+			listen_parsed = true;
+		}
+		else if (!listen_parsed)
+		{
+			throw ConfigParser::ConfigParserException(
+				"Error: Config: listen must come first in server block");
 		}
 		else if (str == "server_name")
 		{
@@ -433,7 +445,7 @@ int ConfigParser::_parse_server_block(std::string &block)
 		}
 		else if (str == "location")
 		{
-			_parse_location(iss, iss_block);
+			_parse_location(iss);
 		}
 		else if (str == "error_page")
 		{
@@ -445,37 +457,23 @@ int ConfigParser::_parse_server_block(std::string &block)
 		}
 		str.clear();
 	}
-	_config[vs.listen].push_back(vs);
-	std::cout << vs.listen.first << ", " << vs.listen.second << std::endl;
 	return 1;
-}
-
-bool is_server(std::string &s)
-{
-	std::string directive;
-
-	// strip white space
-	std::istringstream stream(s);
-	stream >> directive;
-	if (directive == "server")
-		return true;
-	return false;
 }
 
 int ConfigParser::_parse_config_file()
 {
-	while (!_f.eof())
-	{
-		std::string pre_block;
-		std::string server_block;
+	std::string block;
+	std::string line;
 
-		std::getline(_f, pre_block, '{');
-		if (!is_server(pre_block))
-			throw ConfigParser::ConfigParserException(
-				"Error: Config: syntax error");
-		std::getline(_f, server_block, '}');
-		std::cout << "let's parse a server block!\n";
-		_parse_server_block(server_block);
+	while (std::getline(_f, line))
+	{
+		std::istringstream iss(line);
+		iss >> block;
+		if (block == "server")
+		{
+			_parse_server_block();
+		}
+		block.clear();
 	}
 	_f.close();
 	return 1;

@@ -25,6 +25,6 @@ void Route::sanitize()
 		root.erase(root.size() - 1);
 }
 
-Vserver::Vserver() : listen(std::make_pair("127.0.0.1", 80)), redirected(false)
+Vserver::Vserver() : redirected(false)
 {
 }
