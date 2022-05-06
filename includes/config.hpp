@@ -36,6 +36,9 @@ struct Route
 	std::map<int, std::string> error_pages;
 
 	Route(std::string prefix);
+
+	bool validate();
+	void sanitize();
 };
 
 typedef std::pair<std::string, unsigned short> ip_port;

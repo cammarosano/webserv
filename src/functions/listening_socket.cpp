@@ -40,6 +40,8 @@ int get_listening_socket(std::string host_IP, unsigned short port)
 	if (bind(listen_socket, reinterpret_cast<struct sockaddr *>(&address),
 			 sizeof(address)) == -1)
 	{
+		std::cerr << "Error: Could not bind to " << host_IP << ":" << port
+				  << std::endl;
 		perror("bind");
 		return (-1);
 	}

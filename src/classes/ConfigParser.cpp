@@ -30,7 +30,7 @@ void ConfigParser::_parse_root(std::istringstream &iss, Route &r)
 	if (c == std::string::npos)
 	{
 		throw ConfigParser::ConfigParserException(
-			"Error: Config file: server root");
+			"Error: Config file: route's root");
 	}
 	parsed = parsed.substr(0, c);
 	r.root = parsed;
@@ -221,7 +221,6 @@ void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
 		r.body_size_limit *= 1000000;
 }
 
-// TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss)
 {
 	std::string temp;
@@ -241,48 +240,32 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss)
 		std::istringstream iss(line);
 		iss >> temp;
 		if (temp == "root")
-		{
 			_parse_root(iss, r);
-		}
 		else if (temp == "autoindex")
-		{
 			_parse_auto_index(iss, r);
-		}
 		else if (temp == "index")
-		{
 			_parse_default_index(iss, r);
-		}
 		else if (temp == "cgi_interpreter")
-		{
 			_parse_cgi_interpreter(iss, r);
-		}
 		else if (temp == "cgi_extension")
-		{
 			_parse_cgi_extension(iss, r);
-		}
 		else if (temp == "allowed_methods")
-		{
 			_parse_allowed_methods(iss, r);
-		}
 		else if (temp == "error_page")
-		{
 			_parse_route_error_page(iss, r);
-		}
 		else if (temp == "return")
-		{
 			_parse_route_redirection(iss, r);
-		}
 		else if (temp == "upload_dir")
-		{
 			_parse_route_upload(iss, r);
-		}
 		else if (temp == "max_body_size")
-		{
 			_parse_route_max_body_size(iss, r);
-		}
 		if (temp == "}")
 			break;
 	}
+	if (!r.validate())
+		throw ConfigParser::ConfigParserException(
+			"Error: Config file: missing route's root");
+	r.sanitize();
 	curr_vs->routes.push_back(r);
 	return 0;
 }
@@ -319,22 +302,45 @@ int ConfigParser::_parse_server_names(std::istringstream &curr_iss)
 	return 0;
 }
 
+ip_port parse_ip_port(std::string &host_port)
+{
+	std::string host;
+	unsigned short port = 0;
+
+	size_t pos = host_port.find(':');
+	if (pos != std::string::npos)
+	{
+		host = host_port.substr(0, pos);
+		if (pos < host_port.size() - 1)
+			port = std::atoi(host_port.substr(pos + 1).c_str());
+	}
+	else
+	{
+		if (str_is_number(host_port))	
+			port = std::atoi(host_port.c_str());
+		else
+			host = host_port;
+	}
+	if (host.empty())
+		host = "127.0.0.1";
+	if (!port)
+		port  = 80;
+	return (std::make_pair(host, port));
+}
+
 int ConfigParser::_parse_port(std::istringstream &curr_iss)
 {
-	std::string port;
-	Vserver vs;
+	std::string host_port;
 
-	curr_iss >> port;
-	size_t c = port.find(";");
+	curr_iss >> host_port;
+	size_t c = host_port.find(";");
 	if (c == std::string::npos)
 	{
 		throw ConfigParser::ConfigParserException(
 			"Error: Config: syntax error");
 	}
-	port = port.substr(0, c);
-	vs.listen = std::make_pair("127.0.0.1", std::atoi(port.c_str()));
-	_config[vs.listen].push_back(vs);
-	curr_vs = &(*_config[vs.listen].rbegin());
+	host_port = host_port.substr(0, c);
+	curr_vs->listen = parse_ip_port(host_port);
 	return 0;
 }
 
@@ -387,6 +393,8 @@ int ConfigParser::_parse_server_block()
 {
 	std::string str;
 	std::string line;
+	Vserver vs;
+	curr_vs = &vs;
 
 	while (std::getline(_f, line))
 	{
@@ -417,6 +425,7 @@ int ConfigParser::_parse_server_block()
 		}
 		str.clear();
 	}
+	_config[vs.listen].push_back(vs);
 	return 1;
 }
 
