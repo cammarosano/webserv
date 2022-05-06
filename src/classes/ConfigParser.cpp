@@ -44,9 +44,13 @@ void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r)
 	std::string parsed;
 
 	iss >> parsed;
+
+	std::cout << "parsed: " << parsed << std::endl;
+
 	size_t c = parsed.find(";");
 	if (c == std::string::npos)
 	{
+		std::cout << "route: " << r.prefix << std::endl;
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: server auto index");
 	}
@@ -62,7 +66,7 @@ void ConfigParser::_parse_auto_index(std::istringstream &iss, Route &r)
 	else
 	{
 		throw ConfigParser::ConfigParserException(
-			"Error: Config file: Invalide value for autoindex, it should be "
+			"Error: Config file: Invalid value for autoindex, it should be "
 			"(on | off)");
 	}
 }
@@ -224,7 +228,8 @@ void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
 		r.body_size_limit *= 1000000;
 }
 
-int ConfigParser::_parse_location(std::istringstream &curr_iss)
+int ConfigParser::_parse_location(std::istringstream &curr_iss,
+								  std::istringstream &server_block_iss)
 {
 	std::string temp;
 	std::string line;
@@ -238,8 +243,16 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss)
 		throw ConfigParser::ConfigParserException(
 			"Error: Config file: syntax error");
 	}
-	while (std::getline(_f, line))
+	std::string location_block;
+	std::getline(server_block_iss, location_block, '}');
+
+	std::cout << "Location block:" << "--------\n" << location_block
+		<< "-------------" << std::endl; 
+
+	std::istringstream block_ss(location_block);
+	while (!block_ss.eof())
 	{
+		std::getline(block_ss, line);
 		std::istringstream iss(line);
 		iss >> temp;
 		if (temp == "root")
@@ -262,8 +275,6 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss)
 			_parse_route_upload(iss, r);
 		else if (temp == "max_body_size")
 			_parse_route_max_body_size(iss, r);
-		if (temp == "}")
-			break;
 	}
 	if (!r.validate())
 		throw ConfigParser::ConfigParserException(
@@ -319,7 +330,7 @@ ip_port parse_ip_port(std::string &host_port)
 	}
 	else
 	{
-		if (str_is_number(host_port))	
+		if (str_is_number(host_port))
 			port = std::atoi(host_port.c_str());
 		else
 			host = host_port;
@@ -327,7 +338,7 @@ ip_port parse_ip_port(std::string &host_port)
 	if (host.empty())
 		host = "127.0.0.1";
 	if (!port)
-		port  = 80;
+		port = 80;
 	return (std::make_pair(host, port));
 }
 
@@ -392,17 +403,23 @@ void ConfigParser::_parse_redirection(std::istringstream &iss)
 	curr_vs->redirect.status_code = status_code;
 }
 
-int ConfigParser::_parse_server_block()
+int ConfigParser::_parse_server_block(std::string &block)
 {
+	std::istringstream iss_block(block);
 	std::string str;
 	std::string line;
 	Vserver vs;
 	curr_vs = &vs;
 
-	while (std::getline(_f, line))
+	std::cout << block << std::endl;
+
+	while (std::getline(iss_block, line))
 	{
 		std::istringstream iss(line);
 		iss >> str;
+
+		std::cout << str << std::endl;
+
 		if (*(str.begin()) == '#')
 			continue;
 
@@ -416,7 +433,7 @@ int ConfigParser::_parse_server_block()
 		}
 		else if (str == "location")
 		{
-			_parse_location(iss);
+			_parse_location(iss, iss_block);
 		}
 		else if (str == "error_page")
 		{
@@ -429,23 +446,36 @@ int ConfigParser::_parse_server_block()
 		str.clear();
 	}
 	_config[vs.listen].push_back(vs);
+	std::cout << vs.listen.first << ", " << vs.listen.second << std::endl;
 	return 1;
+}
+
+bool is_server(std::string &s)
+{
+	std::string directive;
+
+	// strip white space
+	std::istringstream stream(s);
+	stream >> directive;
+	if (directive == "server")
+		return true;
+	return false;
 }
 
 int ConfigParser::_parse_config_file()
 {
-	std::string block;
-	std::string line;
-
-	while (std::getline(_f, line))
+	while (!_f.eof())
 	{
-		std::istringstream iss(line);
-		iss >> block;
-		if (block == "server")
-		{
-			_parse_server_block();
-		}
-		block.clear();
+		std::string pre_block;
+		std::string server_block;
+
+		std::getline(_f, pre_block, '{');
+		if (!is_server(pre_block))
+			throw ConfigParser::ConfigParserException(
+				"Error: Config: syntax error");
+		std::getline(_f, server_block, '}');
+		std::cout << "let's parse a server block!\n";
+		_parse_server_block(server_block);
 	}
 	_f.close();
 	return 1;

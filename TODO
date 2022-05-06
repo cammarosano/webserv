@@ -1,8 +1,4 @@
-parse host ip (David is on it)
 
-check if auto index gives access to parent dir of webroot
-
-allow '/' tolerance for urls and config file (David will make changes to parser?)
 option to make server slower?? (for siege tests)
 
 clean-up comments

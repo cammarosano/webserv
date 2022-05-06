@@ -21,19 +21,12 @@ void recv_from_client(int socket, FdManager &table)
 	}
 	if (recvd_bytes == 0) // connection closed by the client
 	{
-		if (DEBUG)
-			std::cout << "socket " << socket << ": ";
 		remove_client(client, table, "peer");
 		return;
 	}
 	client.received_data.append(buffer, recvd_bytes);
 	if (client.is_idle())
 		client.update_state();
-
-	// debug
-	if (DEBUG)
-		std::cout << "Received " << recvd_bytes
-				  << " bytes from client at socket " << socket << std::endl;
 }
 
 // write() to Client's socket.
@@ -56,10 +49,6 @@ void send_to_client(int socket, FdManager &table)
 			return;
 		}
 		client.unsent_data.erase(0, bytes_sent);
-		// debug
-		if (DEBUG)
-			std::cout << bytes_sent << " bytes were sent to client at socket "
-					  << socket << std::endl;
 	}
 	if (client.unsent_data.empty())
 	{
@@ -98,12 +87,6 @@ void read_from_fd(int fd, FdManager &table)
 	}
 	client.unsent_data.append(buffer, read_bytes);
 	table.set_pollout(client.socket);
-
-	// debug
-	if (DEBUG)
-		std::cout << read_bytes << " bytes were read from fd " << fd
-				  << " destinated to client at socket " << client.socket
-				  << std::endl;
 }
 
 // write data from Client's decoded_body to fd (file for uploads, or pipe to
@@ -128,9 +111,4 @@ void write_to_fd(int fd, FdManager &table)
 	client.decoded_body.erase(0, bytes_written);
 	if (client.decoded_body.empty())
 		table.unset_pollout(fd);
-
-	// debug
-	if (DEBUG)
-		std::cout << bytes_written << " bytes were sent to fd " << fd
-				  << std::endl;
 }

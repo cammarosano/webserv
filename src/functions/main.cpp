@@ -6,25 +6,9 @@ void do_io(FdManager &table)
 {
 	int n_fds;
 
-	// debug
-	if (DEBUG)
-		std::cout << "Blocking at poll()" << std::endl;
-
-	// call poll()
 	n_fds = poll(table.get_poll_array(), table.len(), POLL_TIMEOUT);
 	if (n_fds == -1)
-	{
-		// perror("poll");
 		return;
-	}
-
-	// display debug info
-	if (DEBUG)
-	{
-		std::cout << "poll() returned " << n_fds << std::endl;
-		table.debug_info();
-		std::cout << "max fd number: " << table.len() << std::endl;
-	}
 
 	// iterate over poll_array
 	for (int fd = 3; fd < table.len() && n_fds; fd++)

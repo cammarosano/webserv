@@ -29,16 +29,18 @@ class ConfigParser
 
 	  public:
 		const char *what() const throw();
-		
+
 		ConfigParserException(const char *m);
 	};
 
   private:
 	int _parse_config_file();
-	int _parse_server_block();
+	int _parse_server_block(std::string &block);
 	int _parse_port(std::istringstream &iss);
 	int _parse_server_names(std::istringstream &iss);
 	int _parse_location(std::istringstream &iss);
+	int _parse_location(std::istringstream &curr_iss,
+						std::istringstream &server_block_iss);
 	void _parse_error_page(std::istringstream &iss);
 	void _parse_redirection(std::istringstream &iss);
 

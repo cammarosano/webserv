@@ -54,14 +54,6 @@ int CgiGetRH::setup()
 		char **argv = setup_cgi_argv();
 		char **envp = setup_cgi_env();
 
-		// debug
-		if (DEBUG)
-		{
-			std::cout << "cgi interpreter path: " << argv[0] << std::endl;
-			std::cout << "script path, relative to route's root: " << argv[1]
-					  << std::endl;
-		}
-
 		// redirect stdout to the write-end of the pipe
 		if (dup2(pipefd[1], 1) == -1)
 		{
@@ -75,7 +67,7 @@ int CgiGetRH::setup()
 		if (chdir(request->route->root.c_str()) == -1)
 			exit(1);
 
-		close(2); // hide errors
+		close(2);
 
 		// exec()
 		execve(argv[0], argv, envp);
@@ -85,9 +77,6 @@ int CgiGetRH::setup()
 		exit(1);
 	}
 
-	// parent process
-	if (DEBUG)
-		std::cout << "pid cgi process: " << cgi_process << std::endl;
 	close(pipefd[1]); // close write-end
 	cgi_output_fd = pipefd[0];
 	return (0);

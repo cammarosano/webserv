@@ -10,17 +10,8 @@
 #define CONNECTION_TIMEOUT 60 // seconds
 #define MIN_IDLE_TIME 5		  // seconds
 #define POLL_TIMEOUT 2000	  // miliseconds
-#define DEFAULT_MIME "text/plain"
 #define DEFAULT_CONFIG_FILE "conf/default.conf"
 #define MIME_TYPES_FILE "conf/mime.types"
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-// debug stuff
-#define RED "\033[0;31m"
-#define RESET "\033[0m"
-#define GREEN "\033[0;32m"
-#define COUTDEBUG(x, c) std::cout << c << x << RESET << std::endl
+#define DEFAULT_MIME "text/plain"
 
 #endif

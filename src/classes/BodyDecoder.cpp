@@ -10,16 +10,12 @@ BodyDecoder::BodyDecoder(HttpRequest &request)
 		bytes_left_last_chunk = 0;
 		removeCRLF = false;
 		done = false;
-		if (DEBUG)
-			std::cout << "Transfer-Encoding: chunked" << std::endl;
 	}
 	else if (type == content_length)
 	{
 		content_len = std::strtol(
 			request.header_fields["content-length"].c_str(), NULL, 10);
 		bytes_left = content_len;
-		if (DEBUG)
-			std::cout << "Content-Length: " << bytes_left << std::endl;
 	}
 }
 
@@ -55,10 +51,6 @@ int BodyDecoder::decode_body()
 			return (1);
 		return (decode_chunked());
 	}
-
-	if (DEBUG)
-		std::cout << "ERROR: BodyDecoder" << std::endl;
-
 	return (-1);
 }
 
@@ -151,8 +143,6 @@ int BodyDecoder::decode_chunked()
 		if (!validade_chunk_size_line(raw_data, pos))
 			return (-1);
 		chunk_size = std::strtol(raw_data.c_str(), NULL, 16);
-		if (DEBUG)
-			std::cout << "Chunk-size: " << chunk_size << std::endl;
 		if (chunk_size == 0)
 			return (finish());
 		raw_data.erase(0, pos + 2); // discard chunk-size line
