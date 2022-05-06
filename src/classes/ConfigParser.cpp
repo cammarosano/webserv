@@ -18,6 +18,9 @@ const std::map<ip_port, std::list<Vserver> > &ConfigParser::parse(
 			"Error: failed to open the file");
 	}
 	_parse_config_file();
+	if (_config.empty())
+		throw ConfigParser::ConfigParserException(
+			"Error: no server block in config file");
 	return _config;
 }
 

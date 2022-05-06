@@ -28,6 +28,7 @@ private:
 	void parse_header(std::string &header_str);
 	void resolve_vserver();
 	void resolve_route();
+	void log();
 };
 
 #endif

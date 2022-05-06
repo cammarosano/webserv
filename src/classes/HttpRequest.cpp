@@ -1,13 +1,7 @@
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest(Client &client, std::string &header_str)
-	: client(client)
+void HttpRequest::log()
 {
-	parse_header(header_str);
-	resolve_vserver();
-	resolve_route();
-
-	// log
 	std::string host;
 	std::map<std::string, std::string>::iterator it =
 		header_fields.find("host");
@@ -18,7 +12,16 @@ HttpRequest::HttpRequest(Client &client, std::string &header_str)
 			vserver->listen.first + ':' + long_to_str(vserver->listen.second);
 
 	std::cout << "Request: " << method << " " << target << " " << http_version
-			  << " @ " << host << std::endl;
+			  << " @ " << host << std::endl;	
+}
+
+HttpRequest::HttpRequest(Client &client, std::string &header_str)
+	: client(client)
+{
+	parse_header(header_str);
+	resolve_vserver();
+	resolve_route();
+	log();
 }
 
 void HttpRequest::parse_header(std::string &header_str)
@@ -100,12 +103,18 @@ void HttpRequest::resolve_route()
 	{
 		std::string &route_prefix = it->prefix;
 		size_t prefix_len = route_prefix.length();
-		// if match
+		// if target contains the prefix
 		if (target.substr(0, prefix_len) == route_prefix)
 		{
 			// if better match than before, update best_match
 			if (!best_match || best_match->prefix.length() < prefix_len)
 				best_match = &(*it);
+		}
+		else if (target + '/' == route_prefix)
+		{
+			target += '/';
+			route = &(*it);
+			return ;
 		}
 	}
 	route = best_match;
