@@ -8,7 +8,7 @@ CgiPostRH::CgiPostRH(HttpRequest *request, FdManager &table,
 		throw(std::exception());
 
 	// resolve body size limit
-	if (!request->route->body_size_limit) // for now, 0 means no limit.
+	if (!request->route->body_size_limit) // 0 means no limit.
 		limit_body = false;
 	else
 	{
@@ -89,14 +89,6 @@ int CgiPostRH::setup()
 		char **argv = setup_cgi_argv();
 		char **envp = setup_cgi_env();
 
-		// debug
-		if (DEBUG)
-		{
-			std::cout << "cgi interpreter path: " << argv[0] << std::endl;
-			std::cout << "script path, relative to route's root: " << argv[1]
-					  << std::endl;
-		}
-
 		// redirect stdin to the read-end of pipe_in
 		if (dup2(pipe_in[0], 0) == -1)
 		{
@@ -114,23 +106,17 @@ int CgiPostRH::setup()
 		close(pipe_in[1]);
 		close(pipe_out[0]);
 		close(pipe_out[1]);
+		close(2);
 
-		// chdir to cgi root ("correct directory" ??)
+		// chdir to cgi root
 		chdir(request->route->root.c_str());
 
-		// close(2); // hide errors
-
-		// exec()
 		execve(argv[0], argv, envp);
-
-		// if exec returns, that's an error
-		perror("exec");
+		perror("exec"); // if exec returns, that's an error
 		exit(1);
 	}
 
 	// parent process
-	if (DEBUG)
-		std::cout << "pid cgi process: " << cgi_process << std::endl;
 	close(pipe_out[1]); // close pipe out write end
 	close(pipe_in[0]);	// close pipe in read end
 	cgi_output_fd = pipe_out[0];

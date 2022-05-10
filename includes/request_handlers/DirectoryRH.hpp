@@ -5,7 +5,8 @@
 #include "utils.h"
 #include <cstddef>
 #include <dirent.h>
-#include <list>
+#include <vector>
+#include <algorithm>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -35,7 +36,7 @@ class DirectoryRH : public AReqHandler
   private:
 	void _generate_autoindex_page();
 	int _setup();
-	std::list<std::pair<std::string, unsigned char> > _get_files_name();
+	std::vector<std::pair<std::string, unsigned char> > _get_files_name();
 };
 
 #endif // __DIRECTORY_RH_H__

@@ -76,7 +76,7 @@ class FdManager
 
 	fd_info &operator[](int fd);
 
-	void debug_info() const;
+	static bool stop;
 };
 
 #endif

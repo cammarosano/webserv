@@ -18,6 +18,9 @@ const std::map<ip_port, std::list<Vserver> > &ConfigParser::parse(
 			"Error: failed to open the file");
 	}
 	_parse_config_file();
+	if (_config.empty())
+		throw ConfigParser::ConfigParserException(
+			"Error: no server block in config file");
 	return _config;
 }
 
@@ -221,7 +224,6 @@ void ConfigParser::_parse_route_max_body_size(std::istringstream &iss, Route &r)
 		r.body_size_limit *= 1000000;
 }
 
-// TODO: cut this function in pieces
 int ConfigParser::_parse_location(std::istringstream &curr_iss)
 {
 	std::string temp;
@@ -283,6 +285,10 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss)
 		if (temp == "}")
 			break;
 	}
+	if (!r.validate())
+		throw ConfigParser::ConfigParserException(
+			"Error: Config file: location is not valid");
+	r.sanitize();
 	curr_vs->routes.push_back(r);
 	return 0;
 }
@@ -319,20 +325,46 @@ int ConfigParser::_parse_server_names(std::istringstream &curr_iss)
 	return 0;
 }
 
+ip_port parse_ip_port(std::string &host_port)
+{
+	std::string host;
+	unsigned short port = 0;
+
+	size_t pos = host_port.find(':');
+	if (pos != std::string::npos)
+	{
+		host = host_port.substr(0, pos);
+		if (pos < host_port.size() - 1)
+			port = std::atoi(host_port.substr(pos + 1).c_str());
+	}
+	else
+	{
+		if (str_is_number(host_port))
+			port = std::atoi(host_port.c_str());
+		else
+			host = host_port;
+	}
+	if (host.empty())
+		host = "127.0.0.1";
+	if (!port)
+		port = 80;
+	return (std::make_pair(host, port));
+}
+
 int ConfigParser::_parse_port(std::istringstream &curr_iss)
 {
-	std::string port;
+	std::string host_port;
 	Vserver vs;
 
-	curr_iss >> port;
-	size_t c = port.find(";");
+	curr_iss >> host_port;
+	size_t c = host_port.find(";");
 	if (c == std::string::npos)
 	{
 		throw ConfigParser::ConfigParserException(
 			"Error: Config: syntax error");
 	}
-	port = port.substr(0, c);
-	vs.listen = std::make_pair("127.0.0.1", std::atoi(port.c_str()));
+	host_port = host_port.substr(0, c);
+	vs.listen = parse_ip_port(host_port);
 	_config[vs.listen].push_back(vs);
 	curr_vs = &(*_config[vs.listen].rbegin());
 	return 0;
@@ -387,6 +419,7 @@ int ConfigParser::_parse_server_block()
 {
 	std::string str;
 	std::string line;
+	bool listen_parsed = false;
 
 	while (std::getline(_f, line))
 	{
@@ -397,7 +430,16 @@ int ConfigParser::_parse_server_block()
 
 		if (str == "listen")
 		{
+			if (listen_parsed)
+				throw ConfigParser::ConfigParserException(
+					"Error: Config: multiple listen directives");
 			_parse_port(iss);
+			listen_parsed = true;
+		}
+		else if (!listen_parsed)
+		{
+			throw ConfigParser::ConfigParserException(
+				"Error: Config: first in server block must be 'listen'");
 		}
 		else if (str == "server_name")
 		{
@@ -415,6 +457,8 @@ int ConfigParser::_parse_server_block()
 		{
 			_parse_redirection(iss);
 		}
+		else if (str == "}")
+			break;
 		str.clear();
 	}
 	return 1;

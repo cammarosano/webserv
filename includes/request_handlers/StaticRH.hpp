@@ -21,7 +21,6 @@ class StaticRH : public AReqHandler
 		s_sending_header,
 		s_sending_file,
 		s_done,
-		s_abort
 	} state;
 
 	int setup();

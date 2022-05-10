@@ -19,12 +19,6 @@ HttpRequest *new_HttpRequest(Client &client, FdManager &table)
 	std::string header_str = client.received_data.substr(0, pos);
 	client.received_data.erase(0, pos + 4);
 
-	// debug
-	if (DEBUG)
-		std::cout << "---------\nThe following request header was received:\n"
-				  << header_str << "\n"
-				  << std::endl;
-
 	// create HttpRequest object
 	return new HttpRequest(client, header_str);
 }

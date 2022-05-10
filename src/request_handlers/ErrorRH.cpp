@@ -94,7 +94,6 @@ int ErrorRH::setup()
 
 // returns 1 if response if complete
 // 0 if response not yet complete
-// -1 if response was aborted
 int ErrorRH::respond()
 {
 	if (state == s_setup)

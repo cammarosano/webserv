@@ -64,10 +64,6 @@ NAME = webserv
 
 all:	$(NAME)
 
-debug:		CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address \
-			-D DEBUG=1
-debug:		$(NAME)
-
 valgrind:	CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 valgrind:	clean $(NAME)
 

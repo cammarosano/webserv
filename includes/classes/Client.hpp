@@ -40,17 +40,12 @@ struct Client
 	std::string unsent_data;
 	std::string decoded_body;
 
-	// ongoing response (NULL if no response in course)
+	// ongoing response
 	HttpRequest *request;
 	AReqHandler *request_handler;
 
 	// time-outs
 	time_t last_state_change;
-
-	// constructor
-	Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
-	// destructor
-	~Client();
 
 	// state checks and changes
 	void update_state();
@@ -58,10 +53,12 @@ struct Client
 	bool is_idle();
 	bool is_incoming_request();
 	bool is_ongoing_response();
-
-	// lists
 	std::list<Client *>::iterator list_node;
 
+	Client(int socket, sockaddr sa, std::list<Vserver> &vservers);
+	~Client();
+
+	// static lists
 	static std::list<Client *> idle_clients;
 	static std::list<Client *> incoming_req_clients;
 	static std::list<Client *> ongoing_resp_clients;
@@ -72,7 +69,6 @@ struct Client
   private:
 	e_state state;
 
-	// get ip address and host name
 	void get_client_info(sockaddr &sa);
 };
 

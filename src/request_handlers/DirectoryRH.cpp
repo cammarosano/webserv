@@ -12,29 +12,35 @@ DirectoryRH::~DirectoryRH()
 {
 }
 
-std::list<std::pair<std::string, unsigned char> > DirectoryRH::_get_files_name()
+bool compare(std::pair<std::string, unsigned char> const &a,
+			 std::pair<std::string, unsigned char> const &b)
+{
+	if (a.second == b.second)
+		return (a.first < b.first);
+	return (a.second == DT_DIR);
+}
+
+std::vector<std::pair<std::string, unsigned char> > DirectoryRH::
+	_get_files_name()
 {
 	struct dirent *dir;
-	std::list<std::pair<std::string, unsigned char> > files;
+	std::vector<std::pair<std::string, unsigned char> > files;
 	DIR *d = opendir(ressource_path.c_str());
 
 	if (!d)
 		throw std::exception();
 	while ((dir = readdir(d)) != NULL)
-	{
-		if (dir->d_type == DT_DIR)
-			files.push_front(std::make_pair(dir->d_name, dir->d_type));
-		else
-			files.push_back(std::make_pair(dir->d_name, dir->d_type));
-	}
+		files.push_back(std::make_pair(dir->d_name, dir->d_type));
 	closedir(d);
+	std::sort(files.begin(), files.end(), compare);
 	return files;
 }
 
 void DirectoryRH::_generate_autoindex_page()
 {
 	std::ostringstream res;
-	std::list<std::pair<std::string, unsigned char> > files = _get_files_name();
+	std::vector<std::pair<std::string, unsigned char> > files =
+		_get_files_name();
 
 	res << "<!DOCTYPE html>\n";
 	res << "<html>\n";
@@ -42,7 +48,7 @@ void DirectoryRH::_generate_autoindex_page()
 	res << "<title>" << ressource_path << "</title>\n";
 	res << "</head>\n";
 	res << "<body>\n";
-	std::list<std::pair<std::string, unsigned char> >::iterator f_it =
+	std::vector<std::pair<std::string, unsigned char> >::iterator f_it =
 		files.begin();
 
 	while (f_it != files.end())

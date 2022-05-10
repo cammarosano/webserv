@@ -24,8 +24,6 @@ std::string ACgiRH::get_script_path()
 		pos_beg += 1;
 	size_t pos_end = resource_path.find(cgi_ext) + cgi_ext.size();
 	script_path = resource_path.substr(pos_beg, pos_end - pos_beg);
-	if (DEBUG)
-		std::cout << "Script path: " << script_path << std::endl;
 	return (script_path);
 }
 
@@ -36,8 +34,6 @@ std::string ACgiRH::get_query_str()
 	size_t pos = request->target.find('?');
 	if (pos != std::string::npos)
 		query_string = request->target.substr(pos + 1);
-	if (DEBUG)
-		std::cout << "Query-string: " << query_string << std::endl;
 	return (query_string);
 }
 
@@ -118,7 +114,6 @@ char **ACgiRH::setup_cgi_env()
 	std::map<std::string, std::string>::iterator it;
 	int i;
 
-	// allocate memory - might throw exception!
 	char **envp = new char *[cgi_env.size() + 1];
 
 	// populate envp with content from cgi_env map

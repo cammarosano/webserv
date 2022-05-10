@@ -9,8 +9,6 @@ std::string assemble_ressource_path(HttpRequest &request)
 
 	url = url.substr(0, url.find('?')); // remove query string
 	std::string path = r.root + '/' + url.substr(r.prefix.size());
-	if (DEBUG)
-		std::cout << "ressource path: " << path << std::endl;
 	return (path);
 }
 
@@ -43,12 +41,7 @@ AReqHandler *directory_response(HttpRequest &request, FdManager &table,
 		std::string default_index_path = resource_path + r.default_index;
 		// check if file exists and is a regular file (no dir)
 		if (is_resource_available(default_index_path) == 1)
-		{
-			// debug
-			std::cout << "default index found: " << default_index_path
-					  << std::endl;
 			return (new StaticRH(&request, table, default_index_path));
-		}
 	}
 	// if not found, do directory listing, if enabled
 	if (r.auto_index)
@@ -75,7 +68,7 @@ bool body_size_exceeds(HttpRequest &request)
 
 bool is_method_allowed(HttpRequest &request)
 {
-	std::list<std::string>::iterator it; // obs: a set would be faster
+	std::list<std::string>::iterator it; 
 
 	if (request.route->accepted_methods.empty() &&
 		(request.method == "GET" || request.method == "HEAD"))

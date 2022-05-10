@@ -31,7 +31,6 @@ class ErrorRH : public AReqHandler
 		s_start_send_file,
 		s_sending_file,
 		s_done,
-		s_abort
 	} state;
 
 	int setup();
