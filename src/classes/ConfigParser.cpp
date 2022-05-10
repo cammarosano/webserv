@@ -283,6 +283,11 @@ int ConfigParser::_parse_location(std::istringstream &curr_iss)
 		if (temp == "}")
 			break;
 	}
+	if (r.root.empty())
+	{
+		throw ConfigParser::ConfigParserException(
+			"Config file: location root is undifined");
+	}
 	curr_vs->routes.push_back(r);
 	return 0;
 }
