@@ -14,7 +14,7 @@
   - INCOMING_REQUEST if there's (already) data in its received_data buffer
 - Client's in a given state are kept in a list (Client class static variables). So, there are 3 lists, one for each state. And whenever a client's state changes, it is removed from one a list and inserted in another. List changes are done at constant time (O(1)) thanks the iterator *list_node* variable. Theses lists simplifies the loops in the program, namely: new_request(), handle_requests(), timeout() (in house_keep())
 
-**TLDR;** Clients cycle along 3 states: idle -> incoming_request -> ongoing_response -> idle -> etc... and are grouped in lists
+**TL;DR:** Clients cycle along 3 states: idle -> incoming_request -> ongoing_response -> idle -> etc... and are grouped in lists
 
 ### Time-outs
 If a Client stays too long in the same state, it is timed-out (disconnected)
@@ -30,32 +30,7 @@ remove_client() and the Client's destructor take care of updating the FdManager 
 - accept_connection does not accept new connections if number of clients is greater than MAX_CLIENTS. It tries to remove a Client in **idle** state to make room for the new client, or just makes the connection request waiting in the queue (I mean the listen() queue, handled by the kernel).
 - when a AReqHandler (request handler) object is instantiated, if the number of clients is bigger than CONN_CLOSE_THRESHOLD * MAX_CLIENT (ex: 0.8 * MAX_CLIENT, that is, 80% of the maximum defined capacity), the response is tagged as **keep-alive = false**. That means that the HTTP response will have the header-field "Connection: close", which informs the client that the connection will be closed after the response is sent (in opposition to HTTP/1.1's default "Connection: keep-alive"). And the Client object is in fact removed when the response is over.
 
---------------------------
-## TODO
 
-
-- ### website for correction:
-  - static pages, css and javascript, images, 
-  - forms that render a page through CGI (see CGI/render_html.py and template.html) 
-  - forms to upload files ? (multipart form not supported)
-
-- ## TESTING
-
-  - siege
-  - curl, postman, etc
-  - Conditions:
-    - hanging requests:
-      - sends only part of the header
-      - sends header but only part of the body
-    - hanging responses: cgi takes too long to finish response
-    - num clients above limit (MAX_CLIENTS)
-    - disconnected clients in the middle of a response
-    - ...
-
-
-- ### check also "Issues" in the repo
-
--------------------
 
 ## Resources
 
