@@ -5,7 +5,7 @@ A single threaded (thus, non-blocking) and somewhat RFC 7230 compliant HTTP serv
 - Supported methods: GET, POST, HEAD  
 - Text-based config file  
 - Supports CGI (Python)  
-- Supports multiple host:ports and multiple virtual server in one host:port  
+- Supports multiple host:ports and multiple virtual servers in one IP:port  
 
 ### Build
 `make`
