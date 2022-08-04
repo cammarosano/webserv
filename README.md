@@ -1,5 +1,20 @@
 # webserv
 
+A single threaded (thus, non-blocking) and somewhat RFC 7230 compliant HTTP server.
+
+- Supported methods: GET, POST, HEAD  
+- Text-based config file  
+- Supports CGI (Python)  
+- Supports multiple host:ports and multiple virtual server in one host:port  
+
+### Build
+`make`
+
+### Run
+`./webserv [config_file]`  
+
+config_file is optional if you have one at conf/default.conf
+
 ## NOTES about recent changes:
 
 ### Clients state
